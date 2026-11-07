@@ -13,7 +13,7 @@ namespace DIYsect.Editor
     /// puts a hinge pivot at the outer edge of each flap (the flap becomes its child, so the closed pose is
     /// unchanged), adds a SkinFlapHinge to each pivot, adds a DissectionProgress to the root with the midline
     /// from just inside the flap's top end (xiphoid) to its bottom end (pubis), and adds the IncisionTrigger box
-    /// along that line. Safe to run more than once: the same measurements give the same result.
+    /// along that line. Then AnatomyBodyWall adds the rectus hinges, the omentum hinge and their touch triggers. Safe to run more than once: the same measurements give the same result.
     /// </summary>
     public static class AnatomyBodyDissection
     {
@@ -58,6 +58,8 @@ namespace DIYsect.Editor
                 AddHinge(root.transform, skin, left, leftPoints, progress);
                 AddHinge(root.transform, skin, right, rightPoints, progress);
 
+                AnatomyBodyWall.Apply(root, progress);
+
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
                 Debug.Log($"Added dissection components to {PrefabPath}. Midline (body-local): {start} to {end}.");
             }
@@ -76,7 +78,7 @@ namespace DIYsect.Editor
             throw new InvalidOperationException($"No {flapName} under {SkinPath}.");
         }
 
-        private static List<Vector3> RootLocalVertices(Transform root, Transform flap)
+        internal static List<Vector3> RootLocalVertices(Transform root, Transform flap)
         {
             var points = new List<Vector3>();
             Matrix4x4 toRoot = root.worldToLocalMatrix;
@@ -213,7 +215,7 @@ namespace DIYsect.Editor
             Debug.Log($"{pivotName}: hinge at {pivotPosition}, open angle {-side * OpenAngleDegrees}.");
         }
 
-        private static T GetOrAdd<T>(GameObject target) where T : Component
+        internal static T GetOrAdd<T>(GameObject target) where T : Component
         {
             return target.TryGetComponent(out T existing) ? existing : target.AddComponent<T>();
         }
