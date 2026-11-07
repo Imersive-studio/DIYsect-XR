@@ -94,8 +94,9 @@ namespace DIYsect.Editor
                 UnityEngine.Object.DestroyImmediate(root);
             }
 
-            // A rebuilt body must stay networked.
+            // A rebuilt body must stay networked and keep its incision.
             AnatomyBodyNetworking.ApplyToPrefab();
+            AnatomyBodyDissection.ApplyToPrefab();
         }
 
         private static List<ManifestEntry> ReadManifest()
