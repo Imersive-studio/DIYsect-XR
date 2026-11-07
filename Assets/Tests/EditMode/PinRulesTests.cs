@@ -5,7 +5,7 @@ namespace DIYsect.Classroom.Tests
 {
     public class PinRulesTests
     {
-        private static readonly Bounds Box = new Bounds(Vector3.zero, new Vector3(0.2f, 0.1f, 0.1f));
+        private static readonly Bounds _box = new Bounds(Vector3.zero, new Vector3(0.2f, 0.1f, 0.1f));
 
         [Test]
         public void TextIsTrimmedAndLengthChecked()
@@ -21,11 +21,11 @@ namespace DIYsect.Classroom.Tests
         [Test]
         public void PointMustBeFiniteAndOnTheOrgan()
         {
-            Assert.IsTrue(PinRules.IsPointOnOrgan(new Vector3(0.05f, 0f, 0f), Box, 0.02f));
-            Assert.IsTrue(PinRules.IsPointOnOrgan(new Vector3(0.11f, 0f, 0f), Box, 0.02f), "Inside the margin.");
-            Assert.IsFalse(PinRules.IsPointOnOrgan(new Vector3(0.2f, 0f, 0f), Box, 0.02f));
-            Assert.IsFalse(PinRules.IsPointOnOrgan(new Vector3(float.NaN, 0f, 0f), Box, 0.02f));
-            Assert.IsFalse(PinRules.IsPointOnOrgan(new Vector3(float.PositiveInfinity, 0f, 0f), Box, 0.02f));
+            Assert.IsTrue(PinRules.IsPointOnOrgan(new Vector3(0.05f, 0f, 0f), _box, 0.02f));
+            Assert.IsTrue(PinRules.IsPointOnOrgan(new Vector3(0.11f, 0f, 0f), _box, 0.02f), "Inside the margin.");
+            Assert.IsFalse(PinRules.IsPointOnOrgan(new Vector3(0.2f, 0f, 0f), _box, 0.02f));
+            Assert.IsFalse(PinRules.IsPointOnOrgan(new Vector3(float.NaN, 0f, 0f), _box, 0.02f));
+            Assert.IsFalse(PinRules.IsPointOnOrgan(new Vector3(float.PositiveInfinity, 0f, 0f), _box, 0.02f));
         }
 
         [Test]

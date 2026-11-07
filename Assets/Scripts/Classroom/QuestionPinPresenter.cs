@@ -23,8 +23,8 @@ namespace DIYsect.Classroom
         [SerializeField, Tooltip("Unlit material used for the markers. Its colour is set per marker.")]
         private Material _markerMaterial;
 
-        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
-        private static readonly int ColorId = Shader.PropertyToID("_Color");
+        private static readonly int _baseColorId = Shader.PropertyToID("_BaseColor");
+        private static readonly int _colorId = Shader.PropertyToID("_Color");
 
         private QuestionBoard _board;
         private PinClusterer _clusterer;
@@ -95,8 +95,8 @@ namespace DIYsect.Classroom
             renderer.receiveShadows = false;
             Color color = Color.Lerp(_calmColor, _glowColor, glow);
             renderer.GetPropertyBlock(_block);
-            _block.SetColor(BaseColorId, color);
-            _block.SetColor(ColorId, color);
+            _block.SetColor(_baseColorId, color);
+            _block.SetColor(_colorId, color);
             renderer.SetPropertyBlock(_block);
 
             AddLabel(marker, cluster, pins, diameter);

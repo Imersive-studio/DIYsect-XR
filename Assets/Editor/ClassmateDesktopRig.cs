@@ -20,7 +20,7 @@ namespace DIYsect.Editor
         private const string ScenePath = "Assets/Scenes/Classmate_Desktop.unity";
         private const string RigName = "ClassmateCamera";
         private const string SimulatorName = "XR Interaction Simulator";
-        private static readonly Vector3 CameraOffset = new Vector3(0f, 0.9f, -0.9f);
+        private static readonly Vector3 _cameraOffset = new Vector3(0f, 0.9f, -0.9f);
 
         [MenuItem("Tools/DIYsect/Add Classmate Desktop Camera")]
         public static void Apply()
@@ -50,7 +50,7 @@ namespace DIYsect.Editor
             rig.tag = "MainCamera";
             rig.AddComponent<AudioListener>();
             camera.nearClipPlane = 0.05f;
-            rig.transform.position = target + CameraOffset;
+            rig.transform.position = target + _cameraOffset;
             rig.transform.rotation = Quaternion.LookRotation(target - rig.transform.position, Vector3.up);
 
             var input = rig.AddComponent<PinPlacementInput>();
