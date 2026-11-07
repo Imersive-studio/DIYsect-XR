@@ -24,10 +24,19 @@ namespace DIYsect.Dissection
         // Checked in Awake only: the editor step adds the component before it assigns the references.
         private void Validate()
         {
+            bool valid = true;
             if (_target == null)
+            {
                 Debug.LogError($"{name}: LayerTouchTrigger has no DissectionProgress. Run Tools > DIYsect > Add Body Dissection.", this);
+                valid = false;
+            }
             if (TryGetComponent(out Collider touchCollider) && !touchCollider.isTrigger)
+            {
                 Debug.LogError($"{name}: the layer collider must be a trigger.", this);
+                valid = false;
+            }
+            if (!valid)
+                enabled = false;
         }
     }
 }

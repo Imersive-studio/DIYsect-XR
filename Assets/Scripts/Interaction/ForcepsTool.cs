@@ -44,7 +44,8 @@ namespace DIYsect.Interaction
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!other.TryGetComponent(out LayerTouchTrigger layer) || !IsTipCollider(other))
+            // A trigger that disabled itself (no target, bad collider) is ignored.
+            if (!other.TryGetComponent(out LayerTouchTrigger layer) || !layer.enabled || layer.Target == null || !IsTipCollider(other))
                 return;
             // The handle and the tip both raise an enter for the same layer; ask once until the forceps leaves it.
             if (_touching == layer)

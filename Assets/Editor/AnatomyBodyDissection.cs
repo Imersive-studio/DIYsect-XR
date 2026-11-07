@@ -13,7 +13,8 @@ namespace DIYsect.Editor
     /// puts a hinge pivot at the outer edge of each flap (the flap becomes its child, so the closed pose is
     /// unchanged), adds a SkinFlapHinge to each pivot, adds a DissectionProgress to the root with the midline
     /// from just inside the flap's top end (xiphoid) to its bottom end (pubis), and adds the IncisionTrigger box
-    /// along that line. Then AnatomyBodyWall adds the rectus hinges, the omentum hinge and their touch triggers. Safe to run more than once: the same measurements give the same result.
+    /// along that line. Then AnatomyBodyWall adds the rectus hinges, the omentum hinge and their touch triggers.
+    /// Safe to run more than once: the same measurements give the same result.
     /// </summary>
     public static class AnatomyBodyDissection
     {

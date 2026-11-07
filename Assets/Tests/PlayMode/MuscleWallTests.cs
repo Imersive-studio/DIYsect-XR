@@ -50,6 +50,30 @@ namespace DIYsect.Networking.Tests
         }
 
         [UnityTest]
+        public IEnumerator TouchTriggerWithoutTargetDisablesItselfAndForcepsIgnoreIt()
+        {
+            _forceps = Object.Instantiate(LoadForcepsPrefab());
+            var tool = _forceps.GetComponent<ForcepsTool>();
+            var zone = new GameObject("BrokenLayerTrigger");
+            var box = zone.AddComponent<BoxCollider>();
+            box.isTrigger = true;
+            box.size = Vector3.one * 0.2f;
+            zone.transform.position = new Vector3(5f, 5f, 5f);
+            // Awake runs on AddComponent and reports the missing target.
+            LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("has no DissectionProgress"));
+            var trigger = zone.AddComponent<LayerTouchTrigger>();
+            Assert.IsFalse(trigger.enabled, "A touch trigger without a target must disable itself.");
+
+            PlaceTip(tool, zone.transform.position + Vector3.up * 0.6f);
+            yield return new WaitForFixedUpdate();
+            PlaceTip(tool, zone.transform.position);
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Assert.IsTrue(tool.enabled, "The forceps must keep working after touching a broken trigger.");
+            Object.Destroy(zone);
+        }
+
+        [UnityTest]
         public IEnumerator RectusRequestIsRejectedBeforeSkinOpenAcceptedAfterAndHingesOpenOnPeers()
         {
             yield return StartHostAndSpawnBody();
