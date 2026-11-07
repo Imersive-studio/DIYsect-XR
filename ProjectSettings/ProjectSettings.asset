@@ -917,11 +917,11 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 1
   windowsGamepadBackendHint: 0
-  cloudProjectId: f6ec792c-4ef5-45e0-a008-9b03cedf8e43
+  cloudProjectId: 15cf1a93-d87c-41f9-ba01-1b3c6768a81c
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: com.unity.mr-multiplayer
-  organizationId: joe-greive-unity3d-com
+  projectName: DIYsect-XR
+  organizationId: arjungyawali001
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
