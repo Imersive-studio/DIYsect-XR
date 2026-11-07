@@ -1,0 +1,10 @@
+{
+  "name": "DIYsect.MixedReality",
+  "rootNamespace": "DIYsect.MixedReality",
+  "references": [
+    "Unity.XR.Interaction.Toolkit",
+    "Unity.XR.ARFoundation",
+    "Unity.XR.ARSubsystems",
+    "Unity.XR.CoreUtils"
+  ]
+}
