@@ -22,15 +22,30 @@ namespace DIYsect.Networking.Tests
 
         private sealed class Peer
         {
-            public NetworkManager Manager;
-            public SharedBody Body;
-            public ScalpelSteering Steering;
-            public GuidingHand Hand;
-            public DepthOverride Depth;
-            public GuidingHandIndicator Indicator;
-            public ScalpelTool Tool;
-            public Transform Surface;
+            public Peer(NetworkManager manager, SharedBody body = null)
+            {
+                Manager = manager;
+                Body = body;
+            }
+
+            public NetworkManager Manager { get; }
+            public SharedBody Body { get; set; }
+            public ScalpelSteering Steering { get; private set; }
+            public GuidingHand Hand { get; private set; }
+            public DepthOverride Depth { get; private set; }
+            public GuidingHandIndicator Indicator { get; private set; }
+            public ScalpelTool Tool { get; private set; }
+            public Transform Surface { get; set; }
             public ulong Id => Manager.LocalClientId;
+
+            public void BindScalpel(GameObject scalpel)
+            {
+                Steering = scalpel.GetComponent<ScalpelSteering>();
+                Hand = scalpel.GetComponent<GuidingHand>();
+                Depth = scalpel.GetComponent<DepthOverride>();
+                Indicator = scalpel.GetComponent<GuidingHandIndicator>();
+                Tool = scalpel.GetComponent<ScalpelTool>();
+            }
         }
 
         private Peer _server;
@@ -86,6 +101,10 @@ namespace DIYsect.Networking.Tests
             // The host is also a client; it is rejected while the professor holds the depth.
             yield return Control(_server, expectGranted: false);
             Assert.AreEqual(_professor.Id, _server.Hand.Controller, "The rejected request must not change the controller.");
+
+            // The controller asking again is answered yes and nothing changes.
+            yield return Control(_professor, expectGranted: true);
+            Assert.AreEqual(_professor.Id, _server.Hand.Controller);
         }
 
         [UnityTest]
@@ -289,9 +308,9 @@ namespace DIYsect.Networking.Tests
             yield return StartHostAndSpawnBody();
             NetworkManager studentManager = StartClient("Student");
             NetworkManager professorManager = StartClient("Professor");
-            _student = new Peer { Manager = studentManager };
-            _professor = new Peer { Manager = professorManager };
-            _server = new Peer { Manager = _host, Body = _serverBody };
+            _student = new Peer(studentManager);
+            _professor = new Peer(professorManager);
+            _server = new Peer(_host, _serverBody);
             yield return WaitForBody(studentManager, body => _student.Body = body);
             yield return WaitForBody(professorManager, body => _professor.Body = body);
             _progress = _serverBody.GetComponent<DissectionProgress>();
@@ -333,11 +352,7 @@ namespace DIYsect.Networking.Tests
 
         private static void Bind(Peer peer, GameObject scalpel)
         {
-            peer.Steering = scalpel.GetComponent<ScalpelSteering>();
-            peer.Hand = scalpel.GetComponent<GuidingHand>();
-            peer.Depth = scalpel.GetComponent<DepthOverride>();
-            peer.Indicator = scalpel.GetComponent<GuidingHandIndicator>();
-            peer.Tool = scalpel.GetComponent<ScalpelTool>();
+            peer.BindScalpel(scalpel);
         }
 
         private IEnumerable<Peer> Peers()
