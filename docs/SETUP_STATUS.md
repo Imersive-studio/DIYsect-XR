@@ -27,6 +27,8 @@ Meta XR Simulator on Mac: not installed. The official Homebrew formula (`brew ta
 
 Android build (`Tools/DIYsect/Build Quest APK`, batch method `DIYsect.Editor.BuildAndroid.BuildBatch`): succeeded for the five scenes in the build list, ARM64, IL2CPP, development build. Output `Builds/Android/DIYsect.apk`, 90 MB, about 8 minutes including the switch to the Android platform. The build reported 5 warnings (TextMesh Pro compile-size notices among them) and logged a licensing handshake error; the build still completed.
 
+Close-up screen: all three scenes (LectureHall_VR, Professor_MR, Classmate_Desktop) already hold one `CloseUpScreen` and one local `CloseUpCamera` (1024x1024 `CloseUp.renderTexture`, not a NetworkObject, culling mask excludes the `CloseUpScreen` layer). Edit tests check this in each saved scene; a PlayMode test with a host and a client checks that moving an organ on the host moves it in the client's close-up view. It renders every frame at 1024x1024 on Quest 3; frame cost is not measured.
+
 Not tested: a real Quest 3, the Meta XR Simulator, multiplayer and the Unity Gaming Services project link.
 
 Not yet verified earlier in setup: performance and the Sketchfab room and instrument downloads, which need a human login. Room simplification passed the synthetic test; it has not been run on the lecture-hall asset.
