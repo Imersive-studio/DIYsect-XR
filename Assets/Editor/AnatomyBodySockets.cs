@@ -21,6 +21,12 @@ namespace DIYsect.Editor
         [MenuItem("Tools/DIYsect/Add Organ Sockets")]
         public static void Apply()
         {
+            ApplyToPrefab();
+        }
+
+        /// <summary>Adds the components to the prefab. Also called by Create Anatomy Body, so a rebuilt body keeps them.</summary>
+        public static void ApplyToPrefab()
+        {
             if (!File.Exists(PrefabPath))
                 throw new FileNotFoundException($"{PrefabPath} is missing. Run Tools > DIYsect > Create Anatomy Body first.");
 

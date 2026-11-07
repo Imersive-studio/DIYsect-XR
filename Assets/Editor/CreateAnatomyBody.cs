@@ -94,9 +94,12 @@ namespace DIYsect.Editor
                 UnityEngine.Object.DestroyImmediate(root);
             }
 
-            // A rebuilt body must stay networked and keep its incision.
+            // A rebuilt body must stay networked, keep its incision, and keep its question board and organ sockets.
+            // The order matters: the later steps need the components of the earlier ones.
             AnatomyBodyNetworking.ApplyToPrefab();
             AnatomyBodyDissection.ApplyToPrefab();
+            AnatomyBodyQuestions.ApplyToPrefab();
+            AnatomyBodySockets.ApplyToPrefab();
         }
 
         private static List<ManifestEntry> ReadManifest()
