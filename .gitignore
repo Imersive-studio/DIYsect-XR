@@ -47,3 +47,7 @@ __pycache__/
 *.unitypackage
 sysinfo.txt
 crashlytics-build.properties
+
+# Editor and IDE files generated locally
+.vscode/
+*.slnx

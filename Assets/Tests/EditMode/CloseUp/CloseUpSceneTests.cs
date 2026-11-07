@@ -14,6 +14,11 @@ namespace DIYsect.CloseUp.Tests
         private const string CameraName = "CloseUpCamera";
         private const string ScreenName = "CloseUpScreen";
         private const string BodyName = "AnatomyBody";
+        // The torso is what the screen has to show. The drapes hang over the table edges and the instruments sit
+        // beside the body, so neither is counted when judging where the body is in the picture.
+        private const string TorsoPivotName = "Supine";
+        private const string DrapesName = "Drapes";
+        private const string LampName = "OperatingLight";
         private const string RenderTexturePath = "Assets/Models/Environment/CloseUp.renderTexture";
 
         // Every client role has a screen in its room: students (VR), the professor (MR) and the desktop classmate.
@@ -81,8 +86,13 @@ namespace DIYsect.CloseUp.Tests
 
             GameObject body = GameObject.Find(BodyName);
             Assert.IsNotNull(body, $"{path} has no {BodyName}.");
-            Renderer[] renderers = body.GetComponentsInChildren<Renderer>();
-            Assert.IsNotEmpty(renderers, $"{path}: the body has no renderers.");
+            Transform torso = body.transform.Find(TorsoPivotName);
+            Assert.IsNotNull(torso, $"{path}: the body has no {TorsoPivotName} pivot.");
+            var renderers = new List<Renderer>();
+            foreach (Renderer candidate in torso.GetComponentsInChildren<Renderer>())
+                if (!IsUnder(candidate.transform, torso, DrapesName))
+                    renderers.Add(candidate);
+            Assert.IsNotEmpty(renderers, $"{path}: the torso has no renderers.");
             Bounds bounds = renderers[0].bounds;
             foreach (Renderer part in renderers)
                 bounds.Encapsulate(part.bounds);
@@ -91,6 +101,29 @@ namespace DIYsect.CloseUp.Tests
             Assert.Greater(viewport.z, 0f, $"{path}: the body is behind the close-up camera.");
             Assert.That(viewport.x, Is.InRange(0.25f, 0.75f), $"{path}: the body is not centred horizontally in the close-up view.");
             Assert.That(viewport.y, Is.InRange(0.25f, 0.75f), $"{path}: the body is not centred vertically in the close-up view.");
+        }
+
+        [Test]
+        public void CloseUpCameraDoesNotRenderTheOperatingLamp([ValueSource(nameof(ScenePaths))] string path)
+        {
+            EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
+            Camera closeUp = FindCloseUpCamera(path);
+            GameObject lamp = GameObject.Find(LampName);
+            if (lamp == null)
+                Assert.Pass($"{path} has no {LampName} (the professor's room is lit by the real room).");
+
+            // The lens face is level with the close-up camera, so a rendered lamp would cover the whole picture.
+            foreach (Renderer renderer in lamp.GetComponentsInChildren<Renderer>(true))
+                Assert.AreEqual(0, closeUp.cullingMask & (1 << renderer.gameObject.layer),
+                    $"{path}: the close-up camera renders {renderer.name} of the operating lamp, which hides the body.");
+        }
+
+        private static bool IsUnder(Transform part, Transform stop, string name)
+        {
+            for (Transform node = part; node != null && node != stop; node = node.parent)
+                if (node.name == name)
+                    return true;
+            return false;
         }
 
         private static Camera FindCloseUpCamera(string path)
