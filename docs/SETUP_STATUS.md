@@ -27,6 +27,8 @@ Meta XR Simulator on Mac: not installed. The official Homebrew formula (`brew ta
 
 Android build (`Tools/DIYsect/Build Quest APK`, batch method `DIYsect.Editor.BuildAndroid.BuildBatch`): succeeded for the five scenes in the build list, ARM64, IL2CPP, development build. Output `Builds/Android/DIYsect.apk`, 90 MB, about 8 minutes including the switch to the Android platform. The build reported 5 warnings (TextMesh Pro compile-size notices among them) and logged a licensing handshake error; the build still completed.
 
+Classmate phone build (`Tools/DIYsect/Build Classmate Phone APK`, batch method `DIYsect.Editor.BuildAndroidClassmate.BuildBatch`, run with `-buildTarget Android`): builds only `Classmate_Desktop` to `Builds/Android-Classmate/DIYsect-Classmate.apk` (88 MB, about 9 minutes, 14 warnings). For the build only, XR Initialize on Startup is off, the Android XR loaders are removed, the application id gets the `.classmate` suffix and the product name is "DIYsect Classmate"; all are restored afterwards, so `Assets/XR/XRGeneralSettingsPerBuildTarget.asset` is unchanged and the Quest build is unaffected. Build Profiles are not used: the project has none. Not tested: installing on a phone. Gap: the classmate camera is fixed (no orbit by mouse or touch); a tap already places a pin because `PinPlacementInput` binds `<Pointer>`.
+
 Not tested: a real Quest 3, the Meta XR Simulator, multiplayer and the Unity Gaming Services project link.
 
 Not yet verified earlier in setup: performance and the Sketchfab room and instrument downloads, which need a human login. Room simplification passed the synthetic test; it has not been run on the lecture-hall asset.
