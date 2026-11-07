@@ -2,10 +2,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
 using NUnit.Framework;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -17,7 +20,6 @@ namespace DIYsect.Networking.Tests
     public abstract class NetworkedBodyTestBase
     {
         protected const string BodyPrefabPath = "Assets/Prefabs/AnatomyBody.prefab";
-        protected const ushort Port = 7788;
         protected const float TimeoutSeconds = 8f;
 
         // Headless runs would otherwise render thousands of frames per second, and interpolation needs realistic frame times.
@@ -29,9 +31,13 @@ namespace DIYsect.Networking.Tests
         protected readonly List<NetworkManager> _clients = new List<NetworkManager>();
         protected SharedBody _serverBody;
 
+        // Each test gets its own free port, so a test that fails or another process on the machine cannot block the next one.
+        protected ushort _port;
+
         [SetUp]
         public void SetUp()
         {
+            _port = FindFreeUdpPort();
             _previousFrameRate = Application.targetFrameRate;
             Application.targetFrameRate = TestFrameRate;
             _bodyPrefab = LoadBodyPrefab();
@@ -39,8 +45,9 @@ namespace DIYsect.Networking.Tests
             Assert.IsNotNull(_bodyPrefab.GetComponent<NetworkObject>(), "The body prefab has no NetworkObject. Run Tools > DIYsect > Add Body Networking.");
         }
 
-        [TearDown]
-        public void TearDown()
+        // Runs even when the test failed or timed out. Shuts everything down, then waits until the port is free again.
+        [UnityTearDown]
+        public IEnumerator TearDown()
         {
             Application.targetFrameRate = _previousFrameRate;
             foreach (NetworkManager client in _clients)
@@ -50,12 +57,16 @@ namespace DIYsect.Networking.Tests
             _host = null;
             if (_serverBody != null)
                 UnityEngine.Object.Destroy(_serverBody.gameObject);
+
+            float end = Time.realtimeSinceStartup + 3f;
+            while (!IsUdpPortFree(_port) && Time.realtimeSinceStartup < end)
+                yield return null;
         }
 
         protected IEnumerator StartHostAndSpawnBody()
         {
             _host = CreateManager("Host");
-            Assert.IsTrue(_host.StartHost(), "The host did not start. Is port " + Port + " free?");
+            Assert.IsTrue(_host.StartHost(), "The host did not start. Is port " + _port + " free?");
             yield return WaitFor(() => _host.IsListening && _host.IsServer, "the host to listen");
 
             var instance = UnityEngine.Object.Instantiate(_bodyPrefab, new Vector3(1f, 0.8f, 1.2f), Quaternion.Euler(0f, 90f, 0f));
@@ -72,6 +83,25 @@ namespace DIYsect.Networking.Tests
             return client;
         }
 
+        private static ushort FindFreeUdpPort()
+        {
+            using (var socket = new UdpClient(new IPEndPoint(IPAddress.Loopback, 0)))
+                return (ushort)((IPEndPoint)socket.Client.LocalEndPoint).Port;
+        }
+
+        private static bool IsUdpPortFree(ushort port)
+        {
+            try
+            {
+                using (new UdpClient(new IPEndPoint(IPAddress.Loopback, port)))
+                    return true;
+            }
+            catch (SocketException)
+            {
+                return false;
+            }
+        }
+
         protected static GameObject LoadBodyPrefab()
         {
 #if UNITY_EDITOR
@@ -81,11 +111,11 @@ namespace DIYsect.Networking.Tests
 #endif
         }
 
-        protected static NetworkManager CreateManager(string managerName)
+        protected NetworkManager CreateManager(string managerName)
         {
             var manager = new GameObject(managerName).AddComponent<NetworkManager>();
             var transport = manager.gameObject.AddComponent<UnityTransport>();
-            transport.SetConnectionData("127.0.0.1", Port, "127.0.0.1");
+            transport.SetConnectionData("127.0.0.1", _port, "127.0.0.1");
             manager.NetworkConfig = new NetworkConfig
             {
                 NetworkTransport = transport,
