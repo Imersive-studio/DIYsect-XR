@@ -1,6 +1,7 @@
 // Authority: the server. It decides who holds each organ and is the only one that moves organs.
 // Clients ask by Rpc; the server answers. The holder streams the target pose, the server applies it.
 using System;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -19,7 +20,11 @@ namespace DIYsect.Networking
         public const ulong NoHolder = ulong.MaxValue;
 
         private SharedBody _body;
+        [SerializeField, Min(0.1f), Tooltip("Largest distance in metres a holder may put an organ from the body root.")]
+        private float _maxPoseRadius = 2f;
+
         private NetworkList<ulong> _holders;
+        private readonly HashSet<ulong> _warnedSenders = new HashSet<ulong>();
         private HoldableNetworkTransform[] _organTransforms;
 
         /// <summary>Raised on every peer when an organ index changes holder (organ index, new holder id or <see cref="NoHolder"/>).</summary>
@@ -48,6 +53,9 @@ namespace DIYsect.Networking
             if (!IsServer)
                 return;
 
+            // Clear first so a despawn followed by a respawn does not duplicate entries.
+            _holders.Clear();
+            _warnedSenders.Clear();
             for (int i = 0; i < _body.Organs.Count; i++)
                 _holders.Add(NoHolder);
             NetworkManager.OnClientDisconnectCallback += ReleaseAllHeldBy;
@@ -60,6 +68,9 @@ namespace DIYsect.Networking
                 NetworkManager.OnClientDisconnectCallback -= ReleaseAllHeldBy;
         }
 
+        /// <summary>Number of organs in the registry. Only meaningful once spawned.</summary>
+        public int HolderCount => _holders.Count;
+
         /// <summary>Who holds the organ now, or <see cref="NoHolder"/>.</summary>
         public ulong GetHolder(int organIndex)
         {
@@ -68,7 +79,7 @@ namespace DIYsect.Networking
 
         public bool IsHeldByLocalClient(int organIndex)
         {
-            return IsSpawned && GetHolder(organIndex) == NetworkManager.LocalClientId;
+            return IsSpawned && NetworkManager != null && GetHolder(organIndex) == NetworkManager.LocalClientId;
         }
 
         /// <summary>Asks the server for the organ. The answer arrives through <see cref="GrabResolved"/>.</summary>
@@ -119,9 +130,18 @@ namespace DIYsect.Networking
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void MoveOrganRpc(int organIndex, Vector3 localPosition, Quaternion localRotation, RpcParams rpcParams = default)
         {
-            if (!IsHolder(organIndex, rpcParams.Receive.SenderClientId))
+            ulong sender = rpcParams.Receive.SenderClientId;
+            if (!IsHolder(organIndex, sender))
                 return;
-            _body.Organs[organIndex].transform.SetLocalPositionAndRotation(localPosition, localRotation);
+
+            Transform organ = _body.Organs[organIndex].transform;
+            if (!IsAcceptablePose(organ, localPosition, localRotation))
+            {
+                if (_warnedSenders.Add(sender))
+                    Debug.LogWarning($"{name}: ignored an invalid pose for organ {organIndex} from client {sender}. Further invalid poses from this client are ignored silently.", this);
+                return;
+            }
+            organ.SetLocalPositionAndRotation(localPosition, localRotation.normalized);
         }
 
         private void ReleaseAllHeldBy(ulong clientId)
@@ -135,8 +155,33 @@ namespace DIYsect.Networking
 
         private void SetPaused(int organIndex, bool paused)
         {
-            if (organIndex >= 0 && organIndex < _organTransforms.Length && _organTransforms[organIndex] != null)
-                _organTransforms[organIndex].IsPaused = paused;
+            if (organIndex < 0 || organIndex >= _organTransforms.Length || _organTransforms[organIndex] == null)
+                return;
+            if (paused)
+                _organTransforms[organIndex].Pause();
+            else
+                _organTransforms[organIndex].Resume();
+        }
+
+        // Rejects NaN/Infinity, a zero rotation, and positions too far from the body root.
+        private bool IsAcceptablePose(Transform organ, Vector3 localPosition, Quaternion localRotation)
+        {
+            if (!IsFinite(localPosition) || !IsFinite(localRotation))
+                return false;
+            if (localRotation.x * localRotation.x + localRotation.y * localRotation.y + localRotation.z * localRotation.z + localRotation.w * localRotation.w < 1e-6f)
+                return false;
+            Vector3 world = organ.parent != null ? organ.parent.TransformPoint(localPosition) : localPosition;
+            return Vector3.Distance(world, transform.position) <= _maxPoseRadius;
+        }
+
+        private static bool IsFinite(Vector3 v)
+        {
+            return float.IsFinite(v.x) && float.IsFinite(v.y) && float.IsFinite(v.z);
+        }
+
+        private static bool IsFinite(Quaternion q)
+        {
+            return float.IsFinite(q.x) && float.IsFinite(q.y) && float.IsFinite(q.z) && float.IsFinite(q.w);
         }
 
         private bool IsHolder(int organIndex, ulong clientId)
