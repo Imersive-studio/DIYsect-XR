@@ -1,7 +1,9 @@
 // Authority under test: the server grants a grab only if the organ is free, and frees it on release or disconnect.
 using System.Collections;
+using DIYsect.Interaction;
 using NUnit.Framework;
 using Unity.Netcode;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -127,6 +129,55 @@ namespace DIYsect.Networking.Tests
 
             yield return WaitFor(() => Near(_serverBody, serverPosition, serverRotation), "the server organ to reach the final pose");
             yield return WaitFor(() => Near(_bodyA, serverPosition, serverRotation), "the holder to converge to the server pose after release");
+        }
+
+        [UnityTest]
+        public IEnumerator DisablingTheHeldOrganReleasesIt()
+        {
+            yield return StartTwoClients();
+            yield return Grab(_authorityA, expectGranted: true);
+
+            _bodyA.Organs[OrganIndex].GetComponent<NetworkedOrganGrab>().enabled = false;
+
+            yield return WaitFor(() => _server.GetHolder(OrganIndex) == OrganGrabAuthority.NoHolder, "the server to free the disabled organ");
+            yield return Grab(_authorityB, expectGranted: true);
+        }
+
+        [UnityTest]
+        public IEnumerator InvalidPosesAreIgnoredAndWarnedAboutOncePerSender()
+        {
+            yield return StartTwoClients();
+            yield return Grab(_authorityA, expectGranted: true);
+            Transform organ = _serverBody.Organs[OrganIndex].transform;
+            Vector3 before = organ.localPosition;
+            Quaternion beforeRotation = organ.localRotation;
+
+            LogAssert.Expect(LogType.Warning, new Regex("ignored an invalid pose"));
+            _authorityA.SendPose(OrganIndex, new Vector3(float.NaN, 0f, 0f), Quaternion.identity);
+            _authorityA.SendPose(OrganIndex, new Vector3(50f, 0f, 0f), Quaternion.identity);
+            _authorityA.SendPose(OrganIndex, before, new Quaternion(0f, 0f, 0f, 0f));
+            yield return new WaitForSeconds(0.5f);
+            Assert.IsTrue(Near(_serverBody, before, beforeRotation), "An invalid pose must not move the organ.");
+
+            Vector3 good = before + new Vector3(0.1f, 0f, 0f);
+            _authorityA.SendPose(OrganIndex, good, beforeRotation);
+            yield return WaitFor(() => Near(_serverBody, good, beforeRotation), "a valid pose to still be applied");
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [UnityTest]
+        public IEnumerator RespawningTheBodyDoesNotDuplicateTheRegistry()
+        {
+            yield return StartHostAndSpawnBody();
+            var server = _serverBody.GetComponent<OrganGrabAuthority>();
+            int organCount = _serverBody.Organs.Count;
+            Assert.AreEqual(organCount, server.HolderCount);
+
+            NetworkObject body = _serverBody.GetComponent<NetworkObject>();
+            body.Despawn(false);
+            yield return null;
+            body.Spawn();
+            Assert.AreEqual(organCount, server.HolderCount, "Respawn must not add the holder entries a second time.");
         }
 
         private IEnumerator StartTwoClients()

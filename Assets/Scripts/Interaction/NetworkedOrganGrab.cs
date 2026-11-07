@@ -1,7 +1,9 @@
 // Authority: none of its own. It is a client-side bridge; the server (OrganGrabAuthority) decides every grab.
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using DIYsect.Networking;
+using Unity.Netcode.Components;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
@@ -47,13 +49,15 @@ namespace DIYsect.Interaction
         private void Awake()
         {
             _interactable = GetComponent<XRGrabInteractable>();
-            Validate();
+            if (!Validate())
+                enabled = false;
         }
 
         private void OnValidate()
         {
             Validate();
         }
+
 
         private void OnEnable()
         {
@@ -66,6 +70,12 @@ namespace DIYsect.Interaction
 
         private void OnDisable()
         {
+            // Do not leave the server holding an organ nobody can move any more.
+            if (_authority != null && _authority.IsSpawned && _authority.IsHeldByLocalClient(_organIndex))
+            {
+                _authority.SendPose(_organIndex, transform.localPosition, transform.localRotation);
+                _authority.Release(_organIndex);
+            }
             _interactable.selectFilters.Remove(this);
             _interactable.selectEntered.RemoveListener(OnSelectEntered);
             _interactable.selectExited.RemoveListener(OnSelectExited);
@@ -79,12 +89,30 @@ namespace DIYsect.Interaction
             return !_authority.IsSpawned || !IsHeldByOtherClient;
         }
 
-        private void Validate()
+        private bool Validate()
         {
             if (_authority == null)
+            {
                 Debug.LogError($"{name}: NetworkedOrganGrab has no OrganGrabAuthority. Run Tools > DIYsect > Add Body Networking.", this);
-            if (_organIndex < 0)
-                Debug.LogError($"{name}: organ index must not be negative.", this);
+                return false;
+            }
+
+            bool valid = true;
+            IReadOnlyList<NetworkTransform> organs = _authority.GetComponent<SharedBody>().Organs;
+            if (organs != null && organs.Count > 0)
+            {
+                if (_organIndex < 0 || _organIndex >= organs.Count)
+                {
+                    Debug.LogError($"{name}: organ index {_organIndex} is outside 0..{organs.Count - 1}.", this);
+                    valid = false;
+                }
+                else if (organs[_organIndex] == null || organs[_organIndex].transform != transform)
+                {
+                    Debug.LogError($"{name}: organ index {_organIndex} is not this organ in SharedBody. Run Tools > DIYsect > Add Body Networking.", this);
+                    valid = false;
+                }
+            }
+            return valid;
         }
 
         private void OnSelectEntered(SelectEnterEventArgs args)
