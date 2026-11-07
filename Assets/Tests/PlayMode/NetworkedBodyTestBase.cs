@@ -20,6 +20,7 @@ namespace DIYsect.Networking.Tests
     public abstract class NetworkedBodyTestBase
     {
         protected const string BodyPrefabPath = "Assets/Prefabs/AnatomyBody.prefab";
+        protected const string ScalpelPrefabAssetPath = "Assets/Prefabs/ScalpelPlaceholder.prefab";
         protected const float TimeoutSeconds = 8f;
 
         // Headless runs would otherwise render thousands of frames per second, and interpolation needs realistic frame times.
@@ -111,6 +112,15 @@ namespace DIYsect.Networking.Tests
 #endif
         }
 
+        protected static GameObject LoadScalpelPrefabAsset()
+        {
+#if UNITY_EDITOR
+            return AssetDatabase.LoadAssetAtPath<GameObject>(ScalpelPrefabAssetPath);
+#else
+            throw new NotSupportedException("These tests load the scalpel prefab from the project and run in the editor only.");
+#endif
+        }
+
         protected NetworkManager CreateManager(string managerName)
         {
             var manager = new GameObject(managerName).AddComponent<NetworkManager>();
@@ -124,6 +134,10 @@ namespace DIYsect.Networking.Tests
             manager.NetworkConfig.Prefabs.Add(new NetworkPrefab
             {
                 Prefab = LoadBodyPrefab(),
+            });
+            manager.NetworkConfig.Prefabs.Add(new NetworkPrefab
+            {
+                Prefab = LoadScalpelPrefabAsset(),
             });
             return manager;
         }
