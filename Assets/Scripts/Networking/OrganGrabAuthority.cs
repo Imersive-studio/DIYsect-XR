@@ -20,6 +20,7 @@ namespace DIYsect.Networking
 
         private SharedBody _body;
         private NetworkList<ulong> _holders;
+        private HoldableNetworkTransform[] _organTransforms;
 
         /// <summary>Raised on every peer when an organ index changes holder (organ index, new holder id or <see cref="NoHolder"/>).</summary>
         public event Action<int, ulong> HolderChanged;
@@ -31,6 +32,14 @@ namespace DIYsect.Networking
         {
             _body = GetComponent<SharedBody>();
             _holders = new NetworkList<ulong>();
+
+            _organTransforms = new HoldableNetworkTransform[_body.Organs.Count];
+            for (int i = 0; i < _organTransforms.Length; i++)
+            {
+                _organTransforms[i] = _body.Organs[i] as HoldableNetworkTransform;
+                if (_organTransforms[i] == null)
+                    Debug.LogError($"{name}: organ {i} needs a HoldableNetworkTransform. Run Tools > DIYsect > Add Body Networking.", this);
+            }
         }
 
         public override void OnNetworkSpawn()
@@ -65,6 +74,8 @@ namespace DIYsect.Networking
         /// <summary>Asks the server for the organ. The answer arrives through <see cref="GrabResolved"/>.</summary>
         public void RequestGrab(int organIndex)
         {
+            // Pause at once: the holder-to-be starts moving the organ before the server answers.
+            SetPaused(organIndex, true);
             RequestGrabRpc(organIndex);
         }
 
@@ -93,6 +104,8 @@ namespace DIYsect.Networking
         [Rpc(SendTo.SpecifiedInParams)]
         private void GrabResultRpc(int organIndex, bool granted, RpcParams rpcParams = default)
         {
+            if (!granted)
+                SetPaused(organIndex, false);
             GrabResolved?.Invoke(organIndex, granted);
         }
 
@@ -120,6 +133,12 @@ namespace DIYsect.Networking
             }
         }
 
+        private void SetPaused(int organIndex, bool paused)
+        {
+            if (organIndex >= 0 && organIndex < _organTransforms.Length && _organTransforms[organIndex] != null)
+                _organTransforms[organIndex].IsPaused = paused;
+        }
+
         private bool IsHolder(int organIndex, ulong clientId)
         {
             return IsValidIndex(organIndex) && _holders[organIndex] == clientId;
@@ -132,8 +151,11 @@ namespace DIYsect.Networking
 
         private void HandleListChanged(NetworkListEvent<ulong> change)
         {
-            if (change.Type == NetworkListEvent<ulong>.EventType.Value)
-                HolderChanged?.Invoke(change.Index, change.Value);
+            if (change.Type != NetworkListEvent<ulong>.EventType.Value)
+                return;
+            // The local holder moves the organ itself, so stop applying server state to it until it is released.
+            SetPaused(change.Index, change.Value == NetworkManager.LocalClientId);
+            HolderChanged?.Invoke(change.Index, change.Value);
         }
     }
 }

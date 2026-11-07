@@ -104,6 +104,31 @@ namespace DIYsect.Networking.Tests
             yield return Grab(rejoinedAuthority, expectGranted: true);
         }
 
+        [UnityTest]
+        public IEnumerator HolderKeepsItsLocalPoseWhileGrabbedAndConvergesAfterRelease()
+        {
+            yield return StartTwoClients();
+            yield return Grab(_authorityA, expectGranted: true);
+
+            // Stands in for XRI moving the organ on the holder's machine. The server has not heard of this pose yet.
+            Transform organ = _bodyA.Organs[OrganIndex].transform;
+            Vector3 localPosition = organ.localPosition + new Vector3(0.3f, 0f, 0.1f);
+            Quaternion localRotation = Quaternion.Euler(0f, 60f, 0f);
+            organ.SetLocalPositionAndRotation(localPosition, localRotation);
+
+            yield return new WaitForSeconds(0.7f);
+            Assert.IsTrue(Near(_bodyA, localPosition, localRotation), "The holder's organ snapped back toward the stale server pose.");
+
+            // The server ends up at a different pose, so the holder must move to it after release.
+            Vector3 serverPosition = localPosition + new Vector3(-0.1f, 0.05f, 0f);
+            Quaternion serverRotation = Quaternion.Euler(0f, 20f, 0f);
+            _authorityA.SendPose(OrganIndex, serverPosition, serverRotation);
+            _authorityA.Release(OrganIndex);
+
+            yield return WaitFor(() => Near(_serverBody, serverPosition, serverRotation), "the server organ to reach the final pose");
+            yield return WaitFor(() => Near(_bodyA, serverPosition, serverRotation), "the holder to converge to the server pose after release");
+        }
+
         private IEnumerator StartTwoClients()
         {
             yield return StartHostAndSpawnBody();

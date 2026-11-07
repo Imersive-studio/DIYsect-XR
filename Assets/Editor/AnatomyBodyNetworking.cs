@@ -59,7 +59,10 @@ namespace DIYsect.Editor
                 var organs = new List<NetworkTransform>();
                 foreach (Transform organ in organsGroup)
                 {
-                    var sync = GetOrAdd<NetworkTransform>(organ.gameObject);
+                    // Replace a plain NetworkTransform from an earlier run: the holder needs to pause incoming state.
+                    if (organ.TryGetComponent(out NetworkTransform plain) && plain.GetType() == typeof(NetworkTransform))
+                        UnityEngine.Object.DestroyImmediate(plain);
+                    var sync = GetOrAdd<HoldableNetworkTransform>(organ.gameObject);
                     sync.AuthorityMode = NetworkTransform.AuthorityModes.Server;
                     sync.InLocalSpace = true;
                     sync.Interpolate = true;
