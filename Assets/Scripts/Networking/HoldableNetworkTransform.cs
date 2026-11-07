@@ -58,6 +58,14 @@ namespace DIYsect.Networking
         protected override void OnNetworkTransformStateUpdated(ref NetworkTransformState oldState, ref NetworkTransformState newState)
         {
             base.OnNetworkTransformStateUpdated(ref oldState, ref newState);
+            // The rotation merge below reads per-axis Euler flags, which NGO only sets when quaternion sync is off.
+            if (UseQuaternionSynchronization)
+            {
+                Debug.LogError($"{name}: HoldableNetworkTransform expects Euler rotation sync; turn off Use Quaternion Synchronization.", this);
+                return;
+            }
+            // The first call comes from the spawn synchronization, before NGO applies it to the transform. That is
+            // fine: the full synchronization state carries every axis, so each seeded value below is overwritten.
             if (!_hasTarget)
             {
                 _targetPosition = InLocalSpace ? transform.localPosition : transform.position;
@@ -88,7 +96,9 @@ namespace DIYsect.Networking
             if (Time.unscaledTime - _lastStateTime < SettleDelaySeconds)
                 return;
 
-            // Skip the write when already there, so a resting organ does not keep waking physics every frame.
+            // NGO rewrites the transform every frame from its own value (up to 5 mm short), so this write also happens
+            // every frame for an organ that got stuck; it is a cheap local assignment. The check only skips organs that
+            // NGO already placed exactly.
             Quaternion rotation = Quaternion.Euler(_targetEuler);
             Vector3 position = InLocalSpace ? transform.localPosition : transform.position;
             Quaternion current = InLocalSpace ? transform.localRotation : transform.rotation;
