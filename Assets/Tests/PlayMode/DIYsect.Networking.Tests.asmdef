@@ -6,6 +6,8 @@
     "DIYsect.Networking",
     "DIYsect.Dissection",
     "DIYsect.Interaction",
+    "DIYsect.Classroom",
+    "Unity.Collections",
     "Unity.Netcode.Runtime"
   ],
   "includePlatforms": [],
