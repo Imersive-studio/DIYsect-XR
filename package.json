@@ -1,0 +1,20 @@
+{
+  "name": "dissect-together",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Working title. A teacher and one learner in Meta Quest 3, the rest of the class on phones via QR code, all dissecting one shared 3D frog. IEEE VR 2027 3DUI Contest entry.",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node scripts/smoke-test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "three": "^0.170.0",
+    "ws": "^8.18.0"
+  }
+}

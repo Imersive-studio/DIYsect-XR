@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dissect Together</title>
+<style>
+  :root { --bg:#0f1419; --card:#18202a; --line:#2a3440; --text:#e8eef5; --muted:#8ea0b3; --accent:#35e0c0; --blue:#4aa3ff; --orange:#ffa24a; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { margin: 0 0 4px; font-size: 28px; }
+  p.lead { color: var(--muted); margin: 0 0 24px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+  button, .btn { appearance:none; border:0; border-radius:10px; padding:12px 16px; font:inherit; font-weight:600; cursor:pointer; background:var(--accent); color:#04201a; text-decoration:none; display:inline-block; }
+  .btn.blue { background: var(--blue); color:#03203a; }
+  .btn.orange { background: var(--orange); color:#3a1d03; }
+  .btn.ghost { background: transparent; color: var(--text); border:1px solid var(--line); }
+  input { background:#0f1419; color:var(--text); border:1px solid var(--line); border-radius:10px; padding:12px; font:inherit; width: 8ch; text-transform: uppercase; letter-spacing: .15em; text-align:center; }
+  .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .code { font-size: 56px; font-weight: 800; letter-spacing: .18em; color: var(--accent); }
+  #qr { background:#fff; border-radius:12px; padding:8px; width: 296px; height: 296px; }
+  .muted { color: var(--muted); font-size: 14px; }
+  code { background:#0f1419; padding:2px 6px; border-radius:6px; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Dissect Together</h1>
+  <p class="lead">One shared 3D frog. The teacher and one learner in Quest 3 headsets. The whole class on phones, scanning a QR code.</p>
+
+  <section class="card" id="start">
+    <div class="row">
+      <button id="create">Create a room</button>
+      <span class="muted">or join one:</span>
+      <input id="existing" maxlength="4" placeholder="ABCD" aria-label="Room code">
+      <button class="btn ghost" id="join">Join</button>
+    </div>
+  </section>
+
+  <section class="card" id="room" hidden>
+    <div class="muted">Room code</div>
+    <div class="code" id="code">----</div>
+    <div class="row" style="margin-top:12px">
+      <a class="btn blue" id="teacher" target="_blank">Open as Teacher</a>
+      <a class="btn orange" id="learner" target="_blank">Open as Learner</a>
+      <a class="btn ghost" id="audience" target="_blank">Open as Student</a>
+    </div>
+    <p class="muted">Quest 3: open this page in the Quest browser (it needs HTTPS, see README), then press Teacher or Learner and tap <code>ENTER VR</code>. Any other device: scan the QR code.</p>
+    <img id="qr" alt="QR code to join as a student">
+    <p class="muted" id="url"></p>
+  </section>
+</main>
+<script>
+  const $ = (s) => document.querySelector(s);
+  function show(code) {
+    code = code.toUpperCase();
+    const base = location.origin;
+    $('#code').textContent = code;
+    $('#teacher').href = `/vr/?room=${code}&role=teacher`;
+    $('#learner').href = `/vr/?room=${code}&role=learner`;
+    $('#audience').href = `/audience/?room=${code}`;
+    $('#qr').src = `/api/qr?room=${code}&base=${encodeURIComponent(base)}`;
+    $('#url').textContent = `${base}/audience/?room=${code}`;
+    $('#room').hidden = false;
+  }
+  $('#create').onclick = async () => show((await (await fetch('/api/new-room')).json()).room);
+  $('#join').onclick = () => { const v = $('#existing').value.trim(); if (/^[A-Za-z0-9]{4}$/.test(v)) show(v); };
+</script>
+</body>
+</html>
