@@ -19,6 +19,8 @@ namespace DIYsect.Editor
         private const string LampModel = "Assets/Models/Environment/Lamp/surgical_lamp.glb";
         private const string RootName = "DIYsect";
         private const string LampName = "OperatingLight";
+        private const string LampLayerName = "OperatingLight";   // layer 9 in ProjectSettings/TagManager.asset
+        private const string CloseUpCameraName = "CloseUpCamera";
         private const float HeightAboveTable = 1.0f;   // lens face above the table top, in metres
         private static readonly string[] Scenes =
         {
@@ -40,11 +42,28 @@ namespace DIYsect.Editor
                 Transform lamp = root.transform.Find(LampName) ?? Place(model, root.transform);
                 lamp.SetPositionAndRotation(new Vector3(top.center.x, top.max.y + HeightAboveTable, top.center.z), Quaternion.identity);
                 ConfigureLight(lamp);
+                HideFromCloseUpCamera(lamp);
                 EditorSceneManager.MarkSceneDirty(scene);
                 if (!EditorSceneManager.SaveScene(scene))
                     throw new IOException($"Could not save {path}.");
                 Debug.Log($"{path}: operating light {HeightAboveTable} m above the table top.");
             }
+        }
+
+        // The lens face hangs at the same height as the close-up camera (one metre above the table), so the lamp
+        // would fill the whole picture on the big screen. The lamp goes on its own layer and the close-up camera
+        // does not render that layer; the lamp and its light are unchanged for every other camera.
+        private static void HideFromCloseUpCamera(Transform lamp)
+        {
+            int layer = LayerMask.NameToLayer(LampLayerName);
+            if (layer < 0)
+                throw new InvalidOperationException($"The layer '{LampLayerName}' is missing from ProjectSettings/TagManager.asset.");
+            foreach (Transform node in lamp.GetComponentsInChildren<Transform>(true))
+                node.gameObject.layer = layer;
+            GameObject cameraObject = GameObject.Find(CloseUpCameraName);
+            if (cameraObject == null || !cameraObject.TryGetComponent(out Camera closeUp))
+                throw new InvalidOperationException($"{lamp.gameObject.scene.path} has no {CloseUpCameraName}. Run Tools > DIYsect > Create Scenes first.");
+            closeUp.cullingMask &= ~(1 << layer);
         }
 
         private static Transform Place(GameObject model, Transform root)
