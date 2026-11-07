@@ -74,3 +74,5 @@ Keep the whole visible scene below approximately **750,000 triangles**. Individu
 `Assets/` holds Unity content. `Tools/blender/` holds reproducible asset processing. `docs/` is the existing documentation directory (keep this casing on every platform). `SourceAssets/` is local only. The template must supply `Packages/` and `ProjectSettings/` before this is a runnable Unity project; the scaffold alone is not a working multiplayer demo.
 
 The earlier frog browser prototype remains in `server/`, `shared/`, `vr/`, `audience/` and `public/`. Run it with `npm ci`, `npm start`, and `npm test`. Its WebSocket/WebXR implementation is separate from the Unity Netcode/OpenXR work. Other older documents describe that prototype; this README and the Unity architecture/checklist describe the current direction.
+
+Follow the [task branch and commit workflow](docs/WORKFLOW.md) for every change.

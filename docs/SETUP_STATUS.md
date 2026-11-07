@@ -14,4 +14,4 @@ Local preparation completed on November 7, 2026:
 
 Not yet verified: Unity compilation, prefab menu execution, template scenes, multiplayer, OpenXR runtime, Quest builds and performance. Sketchfab room and instrument downloads require a human login. Room simplification passed the synthetic test; it has not been run on the lecture-hall asset.
 
-Use the README's numbered setup and `ARCHITECTURE.md` acceptance checklist to complete these steps. Keep the three work branches in order: Unity foundation, anatomy pipeline, then team setup documentation.
+Use the README's numbered setup and `ARCHITECTURE.md` acceptance checklist to complete these steps. Follow `WORKFLOW.md` for the parent branch, task branches and PR dependencies.
