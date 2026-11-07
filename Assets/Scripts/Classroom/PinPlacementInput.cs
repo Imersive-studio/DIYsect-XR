@@ -1,5 +1,6 @@
 // Authority: none. This only asks the server for a pin through QuestionBoard; the server decides.
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using DIYsect.Networking;
 
@@ -64,10 +65,24 @@ namespace DIYsect.Classroom
 
         private void HandlePress(InputAction.CallbackContext context)
         {
+            if (IsPointerOverUi(context))
+                return;
             Camera view = _camera != null ? _camera : Camera.main;
             if (view == null)
                 return;
             TryRequestPin(view.ScreenPointToRay(_point.ReadValue<Vector2>()));
+        }
+
+        // A press on a screen-space panel must not also pin the organ behind it.
+        // A touch is asked by its touch id; the mouse is asked with the module's own pointer.
+        private static bool IsPointerOverUi(InputAction.CallbackContext context)
+        {
+            EventSystem eventSystem = EventSystem.current;
+            if (eventSystem == null)
+                return false;
+            if (context.control.device is Touchscreen touchscreen)
+                return eventSystem.IsPointerOverGameObject(touchscreen.primaryTouch.touchId.ReadValue());
+            return eventSystem.IsPointerOverGameObject();
         }
 
         /// <summary>Casts the ray and, if it hits an organ, asks the server for a pin there. Returns true if it asked.</summary>

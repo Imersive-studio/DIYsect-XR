@@ -5,6 +5,7 @@
     "DIYsect.Networking",
     "Unity.Netcode.Runtime",
     "Unity.Collections",
-    "Unity.InputSystem"
+    "Unity.InputSystem",
+    "UnityEngine.UI"
   ]
 }
