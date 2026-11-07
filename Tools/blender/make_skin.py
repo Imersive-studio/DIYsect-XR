@@ -5,6 +5,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import *
 import bmesh
 from mathutils import Matrix
+from skin_layers import flap_axis, split_skin_layers
 
 def main():
     args = arguments(__doc__)
@@ -45,6 +46,7 @@ def main():
     material.diffuse_color = (0.65, 0.38, 0.24, 1)
     material.use_nodes = True
     material.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = material.diffuse_color
+    axis = flap_axis([shell])
     entries = []
     for side in ['l', 'r']:
         obj = shell.copy()
@@ -61,6 +63,7 @@ def main():
         obj.data.materials.clear()
         obj.data.materials.append(material)
         simplify(obj,15000)
+        split_skin_layers(obj, axis)
         for poly in obj.data.polygons:
             poly.use_smooth=True
         entries.append(export(obj,args.output/'Skin'/f'{obj.name}.glb','skin'))
