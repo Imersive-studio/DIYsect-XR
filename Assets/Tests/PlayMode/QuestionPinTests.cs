@@ -264,6 +264,54 @@ namespace DIYsect.Networking.Tests
             }
         }
 
+        [UnityTest]
+        public IEnumerator OnlyTheAskingClientIsToldWhyItWasRefused()
+        {
+            yield return StartTwoClients();
+            var toA = new List<PinRejection>();
+            var toB = new List<PinRejection>();
+            var toHost = new List<PinRejection>();
+            _boardA.LocalRequestRejected += toA.Add;
+            _boardB.LocalRequestRejected += toB.Add;
+            _server.LocalRequestRejected += toHost.Add;
+
+            _boardA.RequestPin(99, PointOn(OrganIndex), "x");
+            yield return WaitFor(() => toA.Count == 1, "client A to hear the refusal");
+            // Give a wrong delivery time to arrive before asserting nobody else heard it.
+            yield return new WaitForSeconds(0.4f);
+
+            Assert.AreEqual(PinRejection.BadOrgan, toA[0]);
+            Assert.AreEqual(0, toB.Count, "Client B did not ask, so it must not be told.");
+            Assert.AreEqual(0, toHost.Count, "The host did not ask, so it must not be told.");
+        }
+
+        [UnityTest]
+        public IEnumerator RateLimitedClientIsToldToSlowDown()
+        {
+            yield return StartTwoClients();
+            var toA = new List<PinRejection>();
+            _boardA.LocalRequestRejected += toA.Add;
+            Vector3 good = PointOn(OrganIndex);
+            for (int i = 0; i < 6; i++)
+                _boardA.RequestPin(OrganIndex, good, "q");
+
+            yield return WaitFor(() => toA.Count >= 1, "client A to hear the rate limit");
+            Assert.AreEqual(PinRejection.RateLimited, toA[0]);
+            Assert.AreEqual(1, toA.Count, "Only the sixth request is over the limit.");
+        }
+
+        [UnityTest]
+        public IEnumerator HostIsToldAboutItsOwnRefusedRequest()
+        {
+            yield return StartTwoClients();
+            var toHost = new List<PinRejection>();
+            _server.LocalRequestRejected += toHost.Add;
+
+            _server.RequestPin(OrganIndex, PointOn(OrganIndex), "   ");
+            yield return WaitFor(() => toHost.Count == 1, "the host to hear its own refusal");
+            Assert.AreEqual(PinRejection.BadText, toHost[0]);
+        }
+
         private IEnumerator Reject(System.Action send, PinRejection expected)
         {
             int before = _rejections.Count;

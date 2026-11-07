@@ -7,11 +7,12 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace DIYsect.Editor
 {
     /// <summary>
-    /// Gives Classmate_Desktop a plain camera that looks at the body and lets a click or tap pin a question.
+    /// Gives Classmate_Desktop a plain camera that looks at the body and lets a click or tap pin a question, and shows a short message when the server refuses a pin.
     /// The XR Interaction Simulator and the template's XR rig are switched off in that scene, because a
     /// classmate has no headset. Safe to run more than once.
     /// </summary>
@@ -30,19 +31,36 @@ namespace DIYsect.Editor
             Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
 
             QuestionBoard board = null;
+            GameObject existingRig = null;
             foreach (GameObject root in scene.GetRootGameObjects())
             {
                 if (root.name == RigName)
-                {
-                    Debug.Log($"{ScenePath} already has the {RigName}, leaving it unchanged.");
-                    return;
-                }
+                    existingRig = root;
                 if (board == null)
                     board = root.GetComponentInChildren<QuestionBoard>(true);
             }
             if (board == null)
                 throw new InvalidOperationException("No body with a QuestionBoard in the scene. Run Tools > DIYsect > Add Question Pins first.");
 
+            if (existingRig == null)
+            {
+                existingRig = CreateRig(board);
+                SwitchOffXr(scene);
+            }
+            else
+            {
+                Debug.Log($"{ScenePath} already has the {RigName}, keeping its camera.");
+            }
+            AddRejectionToast(existingRig, board);
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            if (!EditorSceneManager.SaveScene(scene))
+                throw new IOException($"Could not save {ScenePath}.");
+            Debug.Log($"Set up the {RigName} in {ScenePath}.");
+        }
+
+        private static GameObject CreateRig(QuestionBoard board)
+        {
             // The body sits on the table; look at it from the foot side, above and behind.
             Vector3 target = board.transform.position;
             var rig = new GameObject(RigName);
@@ -58,12 +76,44 @@ namespace DIYsect.Editor
             serialized.FindProperty("_board").objectReferenceValue = board;
             serialized.FindProperty("_camera").objectReferenceValue = camera;
             serialized.ApplyModifiedPropertiesWithoutUndo();
+            return rig;
+        }
 
-            SwitchOffXr(scene);
-            EditorSceneManager.MarkSceneDirty(scene);
-            if (!EditorSceneManager.SaveScene(scene))
-                throw new IOException($"Could not save {ScenePath}.");
-            Debug.Log($"Added the {RigName} to {ScenePath}.");
+        // A screen overlay with one line of text near the bottom. Hidden until the server refuses a pin.
+        private static void AddRejectionToast(GameObject rig, QuestionBoard board)
+        {
+            if (rig.GetComponentInChildren<PinRejectionToast>(true) != null)
+                return;
+
+            var canvasObject = new GameObject("PinRejectionCanvas");
+            canvasObject.transform.SetParent(rig.transform, false);
+            var canvas = canvasObject.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            var scaler = canvasObject.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1280f, 720f);
+
+            var labelObject = new GameObject("Message");
+            labelObject.transform.SetParent(canvasObject.transform, false);
+            var label = labelObject.AddComponent<Text>();
+            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            label.fontSize = 32;
+            label.alignment = TextAnchor.MiddleCenter;
+            label.color = Color.white;
+            label.raycastTarget = false;
+            var shadow = labelObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0f, 0f, 0f, 0.8f);
+            var rect = label.rectTransform;
+            rect.anchorMin = new Vector2(0.1f, 0.08f);
+            rect.anchorMax = new Vector2(0.9f, 0.18f);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            var toast = rig.AddComponent<PinRejectionToast>();
+            var serialized = new SerializedObject(toast);
+            serialized.FindProperty("_board").objectReferenceValue = board;
+            serialized.FindProperty("_label").objectReferenceValue = label;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static void SwitchOffXr(Scene scene)
