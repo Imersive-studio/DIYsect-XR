@@ -29,6 +29,29 @@ namespace DIYsect.Classroom.Tests
         }
 
         [Test]
+        public void ViewMustBeFiniteNearTheBodyAndHaveARotation()
+        {
+            Quaternion turned = Quaternion.Euler(10f, 20f, 30f);
+            Assert.IsTrue(PinRules.TryCleanView(new Vector3(1f, 1f, 1f), turned, out Quaternion cleaned));
+            Assert.AreEqual(0f, Quaternion.Angle(turned, cleaned), 0.01f);
+            Assert.IsTrue(PinRules.TryCleanView(new Vector3(PinRules.MaxViewDistance - 0.1f, 0f, 0f), turned, out _));
+            Assert.IsFalse(PinRules.TryCleanView(new Vector3(20f, 0f, 0f), turned, out _), "Too far from the body.");
+            Assert.IsFalse(PinRules.TryCleanView(new Vector3(float.NaN, 0f, 0f), turned, out _));
+            Assert.IsFalse(PinRules.TryCleanView(Vector3.zero, new Quaternion(0f, 0f, 0f, 0f), out _), "Zero rotation means no view.");
+            Assert.IsFalse(PinRules.TryCleanView(Vector3.zero, new Quaternion(float.NaN, 0f, 0f, 1f), out _));
+            Assert.IsFalse(PinRules.TryCleanView(Vector3.zero, new Quaternion(0f, float.PositiveInfinity, 0f, 1f), out _));
+        }
+
+        [Test]
+        public void ViewRotationIsNormalized()
+        {
+            Assert.IsTrue(PinRules.TryCleanView(Vector3.zero, new Quaternion(0f, 0f, 0f, 5f), out Quaternion cleaned));
+            Assert.AreEqual(1f, cleaned.w, 1e-5f);
+            Assert.IsTrue(PinRules.IsUsableRotation(cleaned));
+            Assert.IsFalse(PinRules.IsUsableRotation(default));
+        }
+
+        [Test]
         public void RateLimiterAllowsTheLimitPerWindowThenRecovers()
         {
             var limiter = new PinRateLimiter(2, 10f);
