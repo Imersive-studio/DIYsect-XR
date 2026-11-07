@@ -42,7 +42,9 @@ namespace DIYsect.Classroom
 
         private void OnDisable()
         {
-            _board.LocalRequestRejected -= Show;
+            // The board can be destroyed first when the scene unloads.
+            if (_board != null)
+                _board.LocalRequestRejected -= Show;
         }
 
         /// <summary>Shows the message for a reason now and restarts the timer.</summary>
