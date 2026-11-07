@@ -38,6 +38,9 @@ namespace DIYsect.Classroom
         /// <summary>Raised on the server when a request is refused (sender id, reason).</summary>
         public event Action<ulong, PinRejection> RequestRejected;
 
+        /// <summary>Raised on the client that asked, when the server refused its request (the host included).</summary>
+        public event Action<PinRejection> LocalRequestRejected;
+
         public SharedBody Body => _body;
         public int Count => _pins.Count;
         public QuestionPin this[int index] => _pins[index];
@@ -131,6 +134,14 @@ namespace DIYsect.Classroom
         private void Reject(ulong sender, PinRejection reason)
         {
             RequestRejected?.Invoke(sender, reason);
+            RejectedRpc(reason, RpcTarget.Single(sender, RpcTargetUse.Temp));
+        }
+
+        // Runs only on the client that asked (on the host too, when the host asked).
+        [Rpc(SendTo.SpecifiedInParams)]
+        private void RejectedRpc(PinRejection reason, RpcParams rpcParams = default)
+        {
+            LocalRequestRejected?.Invoke(reason);
         }
 
         private void HandleDisconnect(ulong clientId)
