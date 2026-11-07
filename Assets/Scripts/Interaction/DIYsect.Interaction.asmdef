@@ -1,4 +1,9 @@
 {
   "name": "DIYsect.Interaction",
-  "rootNamespace": "DIYsect.Interaction"
+  "rootNamespace": "DIYsect.Interaction",
+  "references": [
+    "DIYsect.Networking",
+    "Unity.Netcode.Runtime",
+    "Unity.XR.Interaction.Toolkit"
+  ]
 }
