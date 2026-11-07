@@ -1,7 +1,10 @@
 fileFormatVersion: 2
 guid: a05eedfc204d47e408a461e7d4510b77
 TextureImporter:
-  internalIDToNameTable: []
+  internalIDToNameTable:
+  - first:
+      213: -8209689067411919216
+    second: Tutorial_Screenshot_Sandbox_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -108,7 +111,29 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites: []
+    sprites:
+    - serializedVersion: 2
+      name: Tutorial_Screenshot_Sandbox_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 1483
+        height: 792
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09e218c3a43511e80800000000000000
+      internalID: -8209689067411919216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -122,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      Tutorial_Screenshot_Sandbox_0: -8209689067411919216
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
