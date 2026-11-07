@@ -1,4 +1,7 @@
 {
   "name": "DIYsect.Networking",
-  "rootNamespace": "DIYsect.Networking"
+  "rootNamespace": "DIYsect.Networking",
+  "references": [
+    "Unity.Netcode.Runtime"
+  ]
 }
