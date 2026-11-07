@@ -406,6 +406,8 @@ GameObject:
   - component: {fileID: 7856755953579595824}
   - component: {fileID: 551808545123675395}
   - component: {fileID: 2888984263022851446}
+  - component: {fileID: 2163784326227153577}
+  - component: {fileID: 5861137823878542367}
   m_Layer: 0
   m_Name: AnatomyBody
   m_TagString: Untagged
@@ -562,6 +564,40 @@ MonoBehaviour:
   _calmColor: {r: 0.2, g: 0.6, b: 1, a: 1}
   _glowColor: {r: 1, g: 0.85, b: 0.1, a: 1}
   _markerMaterial: {fileID: 2100000, guid: de2a2bdac347a43c393f4032500fca39, type: 2}
+--- !u!114 &2163784326227153577
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2832709544761105719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc25d8e9ee7984a62bb3593c4631909f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.OrganSocketKeeper
+  ShowTopMostFoldoutHeaderGroup: 1
+  _positionTolerance: 0.03
+  _angleToleranceDegrees: 45
+--- !u!114 &5861137823878542367
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2832709544761105719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29f57c960ce8b49f3a071aebe95a552c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Interaction::DIYsect.Interaction.OrganGrabPresenter
+  ShowTopMostFoldoutHeaderGroup: 1
+  _ghostMaterial: {fileID: 2100000, guid: b3419019821e643b5968d15de4cba77b, type: 2}
+  _acceptedColor: {r: 0.2, g: 1, b: 0.3, a: 0.6}
+  _rejectedColor: {r: 1, g: 0.2, b: 0.2, a: 0.6}
+  _flashSeconds: 0.8
+  _labelHeight: 0.15
+  _labelCharacterSize: 0.01
 --- !u!1 &3076195585154834734
 GameObject:
   m_ObjectHideFlags: 0
@@ -1438,6 +1474,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 3422163482229725678}
+    - targetCorrespondingSourceObject: {fileID: 2943613505406986837, guid: 2e46a2704988b426aac4bf122de2c8d7,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3413522094994547625}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 2e46a2704988b426aac4bf122de2c8d7,
     type: 3}
 --- !u!1 &2755139772634075386 stripped
@@ -1686,6 +1726,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &3413522094994547625
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2755139772634075386}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: -0.001629797, y: 0.8955054, z: -0.05706678}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: -0.0029401332, y: -0.030440975, z: 0.010006409}
 --- !u!4 &6532492165624164167 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6074787338842019304, guid: 2e46a2704988b426aac4bf122de2c8d7,
@@ -1854,6 +1909,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 2606177435365195148}
+    - targetCorrespondingSourceObject: {fileID: 7223685058481956906, guid: 0f64be9a36e654a18a91f8c4a980c7a4,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2414809726279759246}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 0f64be9a36e654a18a91f8c4a980c7a4,
     type: 3}
 --- !u!4 &5397305754035253580 stripped
@@ -2108,6 +2167,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &2414809726279759246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8464385977567369172}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0.053033903, y: 1.0953091, z: -0.006172892}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: 0.0059676636, y: -0.0014980175, z: -0.003696885}
 --- !u!1001 &1369938871098255010
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2495,6 +2569,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 6713097555333613660}
+    - targetCorrespondingSourceObject: {fileID: -8692947240674858937, guid: beeb183af04594f7f9a6045f6bf47420,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2514947554991673070}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: beeb183af04594f7f9a6045f6bf47420,
     type: 3}
 --- !u!1 &1240276286696726215 stripped
@@ -2743,6 +2821,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &2514947554991673070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1240276286696726215}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0, y: 0, z: 0}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: -0.04240011, y: 1.2815454, z: 0.028136153}
 --- !u!4 &7436940559620220060 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -1053991615122550244, guid: beeb183af04594f7f9a6045f6bf47420,
@@ -2911,6 +3004,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 5651089553775524905}
+    - targetCorrespondingSourceObject: {fileID: -1670487070446258225, guid: 0ae06df7830754db3a1c3a2913108a5c,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2896885543452644632}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 0ae06df7830754db3a1c3a2913108a5c,
     type: 3}
 --- !u!4 &6297350904759388122 stripped
@@ -3165,6 +3262,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &2896885543452644632
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8179121177163894925}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0.087473154, y: 0.9526455, z: 0.015487217}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: -0.13540886, y: 0.05027271, z: -0.026645958}
 --- !u!1001 &2069917823911660442
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3327,6 +3439,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 5591758779273105571}
+    - targetCorrespondingSourceObject: {fileID: 402311362328501206, guid: d852674121be74d6481f87570697dc52,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6466603452079856737}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: d852674121be74d6481f87570697dc52,
     type: 3}
 --- !u!1 &2602197695486038114 stripped
@@ -3575,6 +3691,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &6466603452079856737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2602197695486038114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0.05062045, y: 1.2119701, z: 0.033700243}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: -0.039018333, y: -0.03739512, z: -0.010886863}
 --- !u!4 &8557379336105016705 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -2933960862283188683, guid: d852674121be74d6481f87570697dc52,
@@ -4118,6 +4249,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 4125103959755111506}
+    - targetCorrespondingSourceObject: {fileID: -8160280874046884864, guid: 3cffa848722c647a79dbef4b9e77a06a,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1629195942007647682}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 3cffa848722c647a79dbef4b9e77a06a,
     type: 3}
 --- !u!4 &2130639842914503216 stripped
@@ -4372,6 +4507,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &1629195942007647682
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2342162070947843804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: -0.03634917, y: 1.1722512, z: 0.04255004}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: -0.001957655, y: -0.0058321804, z: -0.0063531063}
 --- !u!1001 &3335010749741250592
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4459,6 +4609,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 3515318818781524523}
+    - targetCorrespondingSourceObject: {fileID: 6202777163275258064, guid: 64bd4dea7fe8a46c5b54c991945fb130,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3179867085739434635}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 64bd4dea7fe8a46c5b54c991945fb130,
     type: 3}
 --- !u!4 &4880075701645947854 stripped
@@ -4713,6 +4867,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &3179867085739434635
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8673060334636036336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0, y: 0, z: 0}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: -0.06593766, y: 1.3252692, z: 0.016108356}
 --- !u!1001 &3404178657108095445
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4950,6 +5119,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 7374099154182335563}
+    - targetCorrespondingSourceObject: {fileID: -4038519320577172693, guid: 59593184cbf3c447ba2ca21d3da0e2e1,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1831533765952237857}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 59593184cbf3c447ba2ca21d3da0e2e1,
     type: 3}
 --- !u!4 &2850355016086264539 stripped
@@ -5204,6 +5377,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &1831533765952237857
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8562296069485231808}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0.047517728, y: 1.1436094, z: 0.05697201}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: -0.0023485366, y: -0.0064742137, z: -0.0007173177}
 --- !u!1001 &3625019654810984963
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5291,6 +5479,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1800944402186707951}
+    - targetCorrespondingSourceObject: {fileID: -342137249190094372, guid: 45331f78a057246a9b1c0c3b0e545c74,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1338674234664124759}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 45331f78a057246a9b1c0c3b0e545c74,
     type: 3}
 --- !u!4 &3600678307053580508 stripped
@@ -5545,6 +5737,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &1338674234664124759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5264377936714742751}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0, y: 0, z: 0}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: -0.019730713, y: 1.285152, z: 0.047685094}
 --- !u!1001 &3698861976860330778
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5857,6 +6064,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 3825097285504344810}
+    - targetCorrespondingSourceObject: {fileID: -8880553370015844689, guid: 9239783414ebb49edafa5bebe991e9cc,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3355761090067586148}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 9239783414ebb49edafa5bebe991e9cc,
     type: 3}
 --- !u!4 &115621070103281275 stripped
@@ -6111,6 +6322,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &3355761090067586148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3725522642529188815}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0, y: 0, z: 0}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: 0.06693797, y: 1.2601405, z: 0.004661113}
 --- !u!1001 &4031665050835382130
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6273,6 +6499,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 8300359565237163406}
+    - targetCorrespondingSourceObject: {fileID: 8525243887126730419, guid: 5c6908365cbf449888c672d9ccc2e639,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4619743285174888068}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 5c6908365cbf449888c672d9ccc2e639,
     type: 3}
 --- !u!1 &5534432096562180827 stripped
@@ -6521,6 +6751,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &4619743285174888068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5534432096562180827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0, y: 0, z: 0}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: -0.020863399, y: 1.3005352, z: 0.011504069}
 --- !u!4 &8501153785875508978 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -3496012819511768422, guid: 5c6908365cbf449888c672d9ccc2e639,
@@ -6914,6 +7159,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 2732118278789223209}
+    - targetCorrespondingSourceObject: {fileID: -2274229583263537095, guid: 072c091d4b1554f56b46bc0c057ce2ea,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4034174018660915265}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 072c091d4b1554f56b46bc0c057ce2ea,
     type: 3}
 --- !u!1 &2333256739376240912 stripped
@@ -7162,6 +7411,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &4034174018660915265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2333256739376240912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0, y: 0, z: 0}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: -0.074108735, y: 1.2637206, z: 0.008179456}
 --- !u!4 &3949793367491881450 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8557200748703045827, guid: 072c091d4b1554f56b46bc0c057ce2ea,
@@ -7255,6 +7519,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 3895838025239865763}
+    - targetCorrespondingSourceObject: {fileID: -7915511601382465646, guid: 8c072dd91a3f847989c908a201666173,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9198620856405045422}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 8c072dd91a3f847989c908a201666173,
     type: 3}
 --- !u!4 &4835530645167048333 stripped
@@ -7509,6 +7777,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &9198620856405045422
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5908761751002812075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: -0.036349196, y: 1.1722502, z: 0.042549998}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: -0.0014593005, y: -0.0058238283, z: -0.006352801}
 --- !u!1001 &4625658240222466837
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8421,6 +8704,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1011131169588698929}
+    - targetCorrespondingSourceObject: {fileID: 8281257346447058747, guid: dcfc98a0541054241b3a6456da915508,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3480249380589000743}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: dcfc98a0541054241b3a6456da915508,
     type: 3}
 --- !u!1 &4434556752386814527 stripped
@@ -8669,6 +8956,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &3480249380589000743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4434556752386814527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0.087473154, y: 0.9526455, z: 0.015487217}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: -0.09335884, y: 0.14832571, z: 0.028145874}
 --- !u!4 &5372476588787440140 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 425735914099461896, guid: dcfc98a0541054241b3a6456da915508,
@@ -9137,6 +9439,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 8812009481554200792}
+    - targetCorrespondingSourceObject: {fileID: 8011643714138665746, guid: de87bd10cdb5147869ac6529ec4c0ad9,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4041478047378587042}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: de87bd10cdb5147869ac6529ec4c0ad9,
     type: 3}
 --- !u!4 &349652366809562649 stripped
@@ -9391,6 +9697,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &4041478047378587042
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4305459944386187017}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0, y: 0, z: 0}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: 0.06306511, y: 1.36079, z: 0.006451495}
 --- !u!1001 &6299556184638481474
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9553,6 +9874,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 8216559711725646108}
+    - targetCorrespondingSourceObject: {fileID: -884258619209121601, guid: 4c30dbbee37c043ee80453a785c14e13,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 956016799124494857}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 4c30dbbee37c043ee80453a785c14e13,
     type: 3}
 --- !u!1 &2998432061049489671 stripped
@@ -9801,6 +10126,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &956016799124494857
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2998432061049489671}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0.021595366, y: 1.1044712, z: 0.032889336}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: -0.004948087, y: -0.0104025565, z: -0.0013269372}
 --- !u!4 &4959837996150282271 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2229856907937190311, guid: 4c30dbbee37c043ee80453a785c14e13,
@@ -9969,6 +10309,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 8333937418104020650}
+    - targetCorrespondingSourceObject: {fileID: 1268587318630299535, guid: 053d837d2a3224573b6ef9dbbc052707,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6465134397687904477}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 053d837d2a3224573b6ef9dbbc052707,
     type: 3}
 --- !u!4 &1790101518559097075 stripped
@@ -10223,6 +10567,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &6465134397687904477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5550813888013871150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: -0.057743046, y: 1.1109402, z: -0.01704752}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: -0.0038684867, y: 0.0013034903, z: -0.0012115352}
 --- !u!1001 &6671090522987309183
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10385,6 +10744,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 4972416235229282982}
+    - targetCorrespondingSourceObject: {fileID: -7235099898268522007, guid: c8f4ec679b36545ef9780162d940b7d3,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3215865516517722969}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: c8f4ec679b36545ef9780162d940b7d3,
     type: 3}
 --- !u!4 &4513418188672126534 stripped
@@ -10639,6 +11002,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &3215865516517722969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8919498940182140053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: -0.0057046963, y: 1.1214072, z: 0.02431816}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: -0.007899113, y: -0.005403891, z: -0.0027838685}
 --- !u!1001 &7221328801359388089
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10876,6 +11254,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 2340460270887367978}
+    - targetCorrespondingSourceObject: {fileID: -3185334545020147937, guid: 46e784a93895d47228e5f95d5fd1c016,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2515198240328192843}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 46e784a93895d47228e5f95d5fd1c016,
     type: 3}
 --- !u!4 &1683314401851592580 stripped
@@ -11130,6 +11512,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &2515198240328192843
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4042079233155593595}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0, y: 0, z: 0}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: 0.014454746, y: 1.2954583, z: 0.029151794}
 --- !u!1001 &7843095047854928962
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11292,6 +11689,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 3184798626880435784}
+    - targetCorrespondingSourceObject: {fileID: 5223798169340549911, guid: 6fcfebd4da8e64ced9aec35a05f99a9c,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1576271011954758926}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 6fcfebd4da8e64ced9aec35a05f99a9c,
     type: 3}
 --- !u!1 &2700708211571003852 stripped
@@ -11540,6 +11941,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &1576271011954758926
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2700708211571003852}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0, y: 0, z: 0}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: 0.064661145, y: 1.2673728, z: 0.027480822}
 --- !u!4 &7011577639706995591 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 885625536926458204, guid: 6fcfebd4da8e64ced9aec35a05f99a9c,
@@ -11933,6 +12349,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 2069716230927858473}
+    - targetCorrespondingSourceObject: {fileID: 1217192808752539990, guid: 9a809c104f1c6440587bde6d9e93f857,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3977457218567900817}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: 9a809c104f1c6440587bde6d9e93f857,
     type: 3}
 --- !u!1 &7485555209589345839 stripped
@@ -12181,6 +12601,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &3977457218567900817
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7485555209589345839}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: 0.087473154, y: 0.9526455, z: 0.015487217}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: 0.0006065555, y: 0.06575052, z: -0.0005390756}
 --- !u!4 &8504268025746894039 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -9150359986467763282, guid: 9a809c104f1c6440587bde6d9e93f857,
@@ -12349,6 +12784,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 2909846134690027804}
+    - targetCorrespondingSourceObject: {fileID: 8935064806069755571, guid: e5a813e7e046848c98f7ff579d82c909,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 895685812613820515}
   m_SourcePrefab: {fileID: -4161369568681901532, guid: e5a813e7e046848c98f7ff579d82c909,
     type: 3}
 --- !u!1 &217202594696357975 stripped
@@ -12597,6 +13036,21 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &895685812613820515
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 217202594696357975}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6746343ed232457c9b49fb8ba972a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.SnappableOrgan
+  _homeLocalPosition: {x: -0.08630504, y: 1.1581117, z: -0.0065687196}
+  _homeLocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  _centreOffset: {x: 0.0015539061, y: 0.0033875182, z: 0.0021504797}
 --- !u!4 &1911908729953919463 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7094405668913125123, guid: e5a813e7e046848c98f7ff579d82c909,

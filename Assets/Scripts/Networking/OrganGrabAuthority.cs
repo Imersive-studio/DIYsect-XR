@@ -30,6 +30,12 @@ namespace DIYsect.Networking
         /// <summary>Raised on every peer when an organ index changes holder (organ index, new holder id or <see cref="NoHolder"/>).</summary>
         public event Action<int, ulong> HolderChanged;
 
+        /// <summary>
+        /// Raised on the server only, after an organ became free (released by its holder or freed on disconnect),
+        /// with the organ index. The organ already has its last pose. Used to judge where it was dropped.
+        /// </summary>
+        public event Action<int> ServerReleased;
+
         /// <summary>Raised on the requesting client when the server answers a grab request (organ index, granted).</summary>
         public event Action<int, bool> GrabResolved;
 
@@ -123,8 +129,10 @@ namespace DIYsect.Networking
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void ReleaseRpc(int organIndex, RpcParams rpcParams = default)
         {
-            if (IsHolder(organIndex, rpcParams.Receive.SenderClientId))
-                _holders[organIndex] = NoHolder;
+            if (!IsHolder(organIndex, rpcParams.Receive.SenderClientId))
+                return;
+            _holders[organIndex] = NoHolder;
+            ServerReleased?.Invoke(organIndex);
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
@@ -148,8 +156,10 @@ namespace DIYsect.Networking
         {
             for (int i = 0; i < _holders.Count; i++)
             {
-                if (_holders[i] == clientId)
-                    _holders[i] = NoHolder;
+                if (_holders[i] != clientId)
+                    continue;
+                _holders[i] = NoHolder;
+                ServerReleased?.Invoke(i);
             }
         }
 
