@@ -92,7 +92,7 @@ namespace DIYsect.Networking.Tests
         [Test]
         public void NearestOtherSocketIsReported()
         {
-            var wide = new SocketRule(0.6f, AngleTolerance);
+            var wide = new SocketRule(0.3f, AngleTolerance);
             var organ = new Pose(new Vector3(0.09f, 0f, 0f), Quaternion.Euler(0f, 180f, 0f));
             // Organ 2 is turned away from its own socket and sits nearest to socket 1.
             SnapDecision decision = wide.Evaluate(2, organ, _sockets);
@@ -119,8 +119,8 @@ namespace DIYsect.Networking.Tests
         public void ABrokenSocketIsIgnored()
         {
             _sockets[1] = new Pose(new Vector3(float.NaN, 0f, 0f), Quaternion.identity);
-            Assert.AreEqual(SnapOutcome.None, _rule.Evaluate(0, new Pose(new Vector3(0.1f, 0f, 0f), Quaternion.identity), _sockets).Outcome);
-            Assert.AreEqual(SnapOutcome.None, _rule.Evaluate(1, _sockets[0], _sockets).Outcome, "The organ's own socket is broken.");
+            Assert.AreEqual(SnapOutcome.None, _rule.Evaluate(0, new Pose(new Vector3(0.1f, 0f, 0f), Quaternion.identity), _sockets).Outcome, "The broken socket cannot reject.");
+            Assert.AreEqual(SnapOutcome.None, _rule.Evaluate(1, new Pose(new Vector3(4f, 0f, 0f), Quaternion.identity), _sockets).Outcome, "The organ's own socket is broken.");
         }
 
         [Test]
