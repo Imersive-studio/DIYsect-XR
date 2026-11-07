@@ -37,6 +37,11 @@ namespace DIYsect.Interaction
         {
             _interactable = GetComponent<XRGrabInteractable>();
             _steering = GetComponent<ScalpelSteering>();
+            if (_interactable == null || _steering == null)
+            {
+                Debug.LogError($"{name}: NetworkedScalpelGrab needs an XRGrabInteractable and a ScalpelSteering on the same object. Run Tools > DIYsect > Add Placeholder Scalpel.", this);
+                enabled = false;
+            }
         }
 
         private void OnEnable()

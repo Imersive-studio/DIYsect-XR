@@ -40,6 +40,11 @@ namespace DIYsect.Networking
         private void Awake()
         {
             _networkTransform = GetComponent<HoldableNetworkTransform>();
+            if (_networkTransform == null)
+            {
+                Debug.LogError($"{name}: ScalpelSteering needs a HoldableNetworkTransform on the same object. Run Tools > DIYsect > Add Placeholder Scalpel.", this);
+                enabled = false;
+            }
         }
 
         public override void OnNetworkSpawn()

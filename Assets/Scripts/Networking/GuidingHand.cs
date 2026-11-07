@@ -44,6 +44,11 @@ namespace DIYsect.Networking
         private void Awake()
         {
             _steering = GetComponent<ScalpelSteering>();
+            if (_steering == null)
+            {
+                Debug.LogError($"{name}: GuidingHand needs a ScalpelSteering on the same object. Run Tools > DIYsect > Add Placeholder Scalpel.", this);
+                enabled = false;
+            }
         }
 
         public override void OnNetworkSpawn()
@@ -94,9 +99,11 @@ namespace DIYsect.Networking
         private void RequestControlRpc(RpcParams rpcParams = default)
         {
             ulong sender = rpcParams.Receive.SenderClientId;
-            bool free = _controller.Value == NoController || _controller.Value == sender;
-            bool granted = free && _steering.HasSteerer && _steering.Steerer != sender;
-            if (granted)
+            bool steerable = _steering.HasSteerer && _steering.Steerer != sender;
+            // The current controller asking again is an idempotent success: answered yes, nothing is written.
+            bool alreadyControls = _controller.Value == sender && steerable;
+            bool granted = alreadyControls || (_controller.Value == NoController && steerable);
+            if (granted && !alreadyControls)
                 _controller.Value = sender;
             ControlResultRpc(granted, RpcTarget.Single(sender, RpcTargetUse.Temp));
         }

@@ -8,6 +8,8 @@ namespace DIYsect.Interaction
     {
         private Camera _camera;
 
+        // Needs a per-frame update: the camera (the viewer's head) moves every frame and the label must keep facing it.
+        // Cost is limited because GuidingHandIndicator enables this component only while the label is visible.
         private void LateUpdate()
         {
             if (_camera == null)
