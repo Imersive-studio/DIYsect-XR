@@ -1,5 +1,5 @@
 // Authority: the server. It alone writes the incision progress and the stage. Clients only send contact
-// samples and an open request by Rpc; the server validates each one before anything changes.
+// samples and open/lift requests by Rpc; the server validates each one before anything changes.
 using System;
 using Unity.Netcode;
 using UnityEngine;
@@ -16,7 +16,7 @@ namespace DIYsect.Dissection
     /// by every peer, so late joiners get the current state when the body spawns.
     /// </summary>
     [RequireComponent(typeof(NetworkObject))]
-    public class DissectionProgress : NetworkBehaviour, ICuttable
+    public class DissectionProgress : NetworkBehaviour, ICuttable, IDissectionSteps
     {
         [SerializeField] private Vector3 _lineStart;
         [SerializeField] private Vector3 _lineEnd;
@@ -25,6 +25,7 @@ namespace DIYsect.Dissection
         [SerializeField, Range(0.5f, 1f)] private float _completeAtFraction = 0.98f;
 
         private readonly NetworkVariable<float> _progress = new NetworkVariable<float>(0f);
+        private readonly LayerOrderRule _order = LayerOrderRule.Default;
         private readonly NetworkVariable<DissectionStage> _stage = new NetworkVariable<DissectionStage>(DissectionStage.Intact);
 
         public float IncisionProgress => _progress.Value;
@@ -33,6 +34,9 @@ namespace DIYsect.Dissection
         public Vector3 LineEnd => _lineEnd;
 
         public event Action<DissectionStage, bool> StageChanged;
+
+        /// <summary>Raised on the peer that made a request when the server answers it (accepted or rejected).</summary>
+        public event Action<DissectionAction, StepResult> StepResolved;
 
         /// <summary>Raised on every peer when the progress changes.</summary>
         public event Action<float> ProgressChanged;
@@ -70,6 +74,14 @@ namespace DIYsect.Dissection
             if (!IsSpawned)
                 return;
             RequestOpenRpc();
+        }
+
+        /// <summary>Asks the server to open the rectus or lift the omentum. Rejected unless the layer before it is open.</summary>
+        public void RequestStep(DissectionAction action)
+        {
+            if (!IsSpawned)
+                return;
+            RequestStepRpc(action);
         }
 
         /// <summary>
@@ -114,6 +126,42 @@ namespace DIYsect.Dissection
                 return false;
             _stage.Value = DissectionStage.SkinOpen;
             return true;
+        }
+
+        /// <summary>
+        /// Server only. Applies one layer step if <see cref="LayerOrderRule"/> allows it at the current stage.
+        /// Public so the rules can be tested without the network; the Rpc is the only way a client reaches it.
+        /// </summary>
+        public StepResult TryStep(DissectionAction action)
+        {
+            if (!IsServer)
+            {
+                Debug.LogError($"{name}: only the server may apply dissection steps.", this);
+                return StepResult.Unknown;
+            }
+            StepResult result = _order.Evaluate(_stage.Value, action, out DissectionStage next);
+            if (result == StepResult.Accepted)
+                _stage.Value = next;
+            return result;
+        }
+
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+        private void RequestStepRpc(DissectionAction action, RpcParams rpcParams = default)
+        {
+            StepResult result = TryStep(action);
+            // The answer goes back to the asker only, so a tool can show why a step was refused.
+            // The host asking itself needs no message: it is the server.
+            ulong asker = rpcParams.Receive.SenderClientId;
+            if (asker == NetworkManager.LocalClientId)
+                StepResolved?.Invoke(action, result);
+            else
+                ReportStepRpc(action, result, RpcTarget.Single(asker, RpcTargetUse.Temp));
+        }
+
+        [Rpc(SendTo.SpecifiedInParams)]
+        private void ReportStepRpc(DissectionAction action, StepResult result, RpcParams rpcParams)
+        {
+            StepResolved?.Invoke(action, result);
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
