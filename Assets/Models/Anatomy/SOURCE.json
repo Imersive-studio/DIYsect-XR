@@ -1,0 +1,12 @@
+{
+  "source": "https://github.com/Z-Anatomy/The-blend",
+  "revision": "8dd357ed52a675db0c5f8d7fa9a8621cbfeee713",
+  "archive_sha256": "e029688545627bd0214b269e1063143abb580aad72b2c2445d6d8a9a0d9da736",
+  "blender_package": "bpy==5.2.3",
+  "license": "CC BY-SA 4.0",
+  "changes": [
+    "Surface extraction and decimation",
+    "Export-compatible materials from source color controls",
+    "Synthetic split skin shell"
+  ]
+}

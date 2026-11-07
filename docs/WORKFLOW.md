@@ -16,7 +16,7 @@ Use one parent branch for a feature or setup milestone, and a small branch for e
 |---|---|---|
 | `task/repository-conventions` | `epic/unity-setup` | Local-file exclusions and LFS rules; setup prerequisite |
 | `task/unity-folders` | `epic/unity-setup` | Folder and assembly scaffold; partial task 1 |
-| `task/anatomy-tools` | `epic/unity-setup` | Fetch, extraction, skin, previews and validation; task 3 tooling |
+| `task/anatomy-tools` | `task/repository-conventions` | Fetch, extraction, skin, previews and validation; task 3 tooling |
 | `task/anatomy-assets` | `task/anatomy-tools` | Processed anatomy, provenance and credits; task 3 outputs |
 | `task/room-processing` | `task/anatomy-tools` | Room simplification and synthetic test; partial task 4 |
 | `task/mesh-slicing` | `epic/unity-setup` | Optional planar slicing source; task 9 prerequisite |
