@@ -100,6 +100,8 @@ namespace DIYsect.Editor
             AnatomyBodyDissection.ApplyToPrefab();
             AnatomyBodyQuestions.ApplyToPrefab();
             AnatomyBodySockets.ApplyToPrefab();
+            AnatomyHoverFeedback.Apply();
+            AddGuideLine.ApplyToPrefab();
             AnatomyBodyLook.ApplyToPrefab();
         }
 
