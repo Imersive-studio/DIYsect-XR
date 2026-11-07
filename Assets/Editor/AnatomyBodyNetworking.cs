@@ -66,7 +66,8 @@ namespace DIYsect.Editor
                     sync.AuthorityMode = NetworkTransform.AuthorityModes.Server;
                     sync.InLocalSpace = true;
                     sync.Interpolate = true;
-                    // The extra smoothing pass stops about 5 mm short of the target. Organs should land exactly.
+                    // The extra smoothing pass blurs fast moves. Organs should follow the server pose directly.
+                    // (HoldableNetworkTransform separately settles the organ exactly, because NGO's interpolator can stop up to 5 mm short.)
                     sync.PositionLerpSmoothing = false;
                     sync.RotationLerpSmoothing = false;
                     sync.ScaleLerpSmoothing = false;
