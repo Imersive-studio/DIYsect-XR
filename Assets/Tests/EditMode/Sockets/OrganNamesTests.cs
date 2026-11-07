@@ -10,19 +10,28 @@ namespace DIYsect.Interaction.Tests
     {
         private const string ManifestPath = "Assets/Models/Anatomy/manifest.json";
 
+        // The field names must match the JSON keys, which is how JsonUtility finds them.
+#pragma warning disable 0649
         [System.Serializable]
         private class Entry
         {
-            public string file;
-            public string original_name;
-            public string layer;
+            [SerializeField] private string file;
+            [SerializeField] private string original_name;
+            [SerializeField] private string layer;
+
+            public string File => file;
+            public string OriginalName => original_name;
+            public string Layer => layer;
         }
 
         [System.Serializable]
         private class Manifest
         {
-            public List<Entry> items;
+            [SerializeField] private List<Entry> items;
+
+            public List<Entry> Items => items;
         }
+#pragma warning restore 0649
 
         [TestCase("liver", "Liver")]
         [TestCase("kidney_l", "Left kidney")]
@@ -51,15 +60,15 @@ namespace DIYsect.Interaction.Tests
         {
             var manifest = JsonUtility.FromJson<Manifest>("{\"items\":" + File.ReadAllText(ManifestPath) + "}");
             int checkedOrgans = 0;
-            foreach (Entry entry in manifest.items)
+            foreach (Entry entry in manifest.Items)
             {
-                if (entry.layer != "organ")
+                if (entry.Layer != "organ")
                     continue;
-                string objectName = Path.GetFileNameWithoutExtension(entry.file);
-                string expected = entry.original_name.EndsWith(".l") ? "Left " + entry.original_name.Substring(0, entry.original_name.Length - 2).ToLowerInvariant()
-                    : entry.original_name.EndsWith(".r") ? "Right " + entry.original_name.Substring(0, entry.original_name.Length - 2).ToLowerInvariant()
-                    : entry.original_name;
-                Assert.AreEqual(expected, OrganNames.Display(objectName), entry.file);
+                string objectName = Path.GetFileNameWithoutExtension(entry.File);
+                string expected = entry.OriginalName.EndsWith(".l") ? "Left " + entry.OriginalName.Substring(0, entry.OriginalName.Length - 2).ToLowerInvariant()
+                    : entry.OriginalName.EndsWith(".r") ? "Right " + entry.OriginalName.Substring(0, entry.OriginalName.Length - 2).ToLowerInvariant()
+                    : entry.OriginalName;
+                Assert.AreEqual(expected, OrganNames.Display(objectName), entry.File);
                 checkedOrgans++;
             }
             Assert.AreEqual(22, checkedOrgans);
