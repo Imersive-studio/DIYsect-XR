@@ -12,6 +12,23 @@ Local preparation completed on November 7, 2026:
 - Front and three-quarter previews rendered on CPU and visually inspected. Export materials preserve source color controls with simplified shaders.
 - Browser regression suite: **15/15 passed**.
 
-Not yet verified: Unity compilation, prefab menu execution, template scenes, multiplayer, OpenXR runtime, Quest builds and performance. Sketchfab room and instrument downloads require a human login. Room simplification passed the synthetic test; it has not been run on the lecture-hall asset.
+## OpenXR, simulator and Android build (November 7, 2026)
+
+Editor: Unity 6000.3.28f1. Template: MR Multiplayer Tabletop 2.0.0. OpenXR plugin 1.17.1, Meta OpenXR 2.5.1, XR Management 4.6.1.
+
+Batch-mode editor validation (`Tools/DIYsect/Report XR Validation`, run with `-batchmode -nographics`):
+
+- Android loader: OpenXR. Features include Meta Quest support, Oculus Touch and Meta Quest Touch Plus controller profiles, hand tracking and the AR Foundation camera, plane, raycast, anchor and mesh features.
+- Standalone (Mac) loaders: OpenXR and XR Simulation. Graphics API pinned to Metal. Android uses Vulkan, ARM64 and IL2CPP, minimum API level 34.
+- Result: 0 OpenXR Project Validation issues and 0 XR Core Utils issues for both targets. Before the change, the only error was the XR Simulation rule requiring the editor preference "Script Changes While Playing" to be "Recompile After Finished Playing"; this is a per-user editor preference, fixed with the validator's own action and not stored in the project.
+- Touch Plus profile enabled for Quest 3 on Android; the Touch Pro profile stays off.
+
+Meta XR Simulator on Mac: not installed. The official Homebrew formula (`brew tap Oculus-VR/tap`, `brew install meta-xr-simulator`) prints a notice that installing it accepts the Meta Platform Technologies SDK license, and its post-install step needs `sudo`. Both need the owner. No simulator run and no screenshot yet.
+
+Android build (`Tools/DIYsect/Build Quest APK`, batch method `DIYsect.Editor.BuildAndroid.BuildBatch`): succeeded for the five scenes in the build list, ARM64, IL2CPP, development build. Output `Builds/Android/DIYsect.apk`, 90 MB, about 8 minutes including the switch to the Android platform. The build reported 5 warnings (TextMesh Pro compile-size notices among them) and logged a licensing handshake error; the build still completed.
+
+Not tested: a real Quest 3, the Meta XR Simulator, multiplayer and the Unity Gaming Services project link.
+
+Not yet verified earlier in setup: performance and the Sketchfab room and instrument downloads, which need a human login. Room simplification passed the synthetic test; it has not been run on the lecture-hall asset.
 
 Use the README's numbered setup and `ARCHITECTURE.md` acceptance checklist to complete these steps. Follow `WORKFLOW.md` for the parent branch, task branches and PR dependencies.
