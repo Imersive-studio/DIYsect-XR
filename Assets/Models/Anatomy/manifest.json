@@ -1095,7 +1095,7 @@
     "file": "Assets/Models/Anatomy/Skin/skin_flap_l.glb",
     "original_name": "skin_flap_l",
     "layer": "skin",
-    "triangles": 14698,
+    "triangles": 14532,
     "world_position": [
       0.0,
       0.0,
@@ -1108,7 +1108,7 @@
     "file": "Assets/Models/Anatomy/Skin/skin_flap_r.glb",
     "original_name": "skin_flap_r",
     "layer": "skin",
-    "triangles": 14698,
+    "triangles": 14526,
     "world_position": [
       0.0,
       0.0,

@@ -20,19 +20,22 @@ Built for the **Immersion Studio Hackathon, November 6–9, 2026**. Deadline: **
    bash Tools/blender/fetch_zanatomy.sh
    .venv/bin/python -I Tools/blender/extract_organs.py
    .venv/bin/python -I Tools/blender/make_skin.py
+   .venv/bin/python -I Tools/blender/make_drapes.py
+   .venv/bin/python -I Tools/blender/make_surgical_lamp.py
    .venv/bin/python -I Tools/blender/render_previews.py
    ```
 
    Raw downloads stay in ignored `SourceAssets/`. The Blender file's embedded scripts are disabled. The manifest records source object names, triangle counts and Blender world positions; GLBs retain anatomical placement and convert to Y-up. Do not center each organ separately. Measure scale against a meter cube before building the body prefab.
-6. **MANUAL:** Sign into Sketchfab and download A2 and A3 below as glTF/GLB. Put the lecture hall and its external textures together in `SourceAssets/LectureHall/`; put instruments in `SourceAssets/Instruments/`. Run:
+6. **MANUAL:** Sign into Sketchfab and download A2 and A3 below as GLB. Put the lecture hall in `SourceAssets/LectureHall/lecture_hall.glb` and the instrument set in `SourceAssets/Instruments/surgical_instrument.glb` (`SourceAssets/` is git-ignored; never commit the raw downloads). Then run:
 
    ```bash
-   .venv/bin/python -I Tools/blender/simplify_room.py -- --input SourceAssets/LectureHall/room.glb
+   .venv/bin/python -I Tools/blender/simplify_room.py -- --input SourceAssets/LectureHall/lecture_hall.glb --budget 250000
+   .venv/bin/python -I Tools/blender/extract_instruments.py
    ```
 
-   Substitute the actual filename. In Blender, separate the instruments and simplify each to **10,000 triangles maximum**, then export them to `Assets/Models/Instruments/`. Keep textures beside `.gltf` input files. A4 is an optional non-commercial backup, not a required download.
+   `simplify_room.py` keeps small parts (walls, floor, screen, desks) intact and decimates only the parts above one shared per-object cap (the chair rows), then scales textures to 1024 px or less; the hall goes from about 1.21M to about 246k triangles. `extract_instruments.py` takes the thumb forceps and the scalpel handle out of the instrument set, models a No. 22 style blade into the handle, and writes `Assets/Models/Instruments/forceps.glb` and `scalpel.glb` with their origin on the working tip. A4 is an optional non-commercial backup, not a required download.
 7. **MANUAL:** Verify GLB import support in the template before dragging models into scenes. Unity does not universally import GLB by default. If no compatible importer is installed, open the GLBs in Blender and export FBX while preserving transforms and materials; do not rename their extensions. TODO: record the team's chosen import method and version.
-8. Run **Tools > DIYsect > Create Classroom Props** to create table, tray and screen prefabs. The command preserves existing prefabs. Place them in scenes derived from the working template rigs: `LectureHall_VR`, `Professor_MR`, and `Classmate_Desktop`, under `Assets/Scenes/`. Assign `CloseUp.renderTexture` to an overhead camera and exclude the screen from its culling mask. Render Texture output is local; each network client renders its own synchronized scene.
+8. Run **Tools > DIYsect > Create Classroom Props** to create table, tray and screen prefabs. The command preserves existing prefabs. Place them in scenes derived from the working template rigs: `LectureHall_VR`, `Professor_MR`, and `Classmate_Desktop`, under `Assets/Scenes/`. Assign `CloseUp.renderTexture` to an overhead camera and exclude the screen from its culling mask. Render Texture output is local; each network client renders its own synchronized scene. Then run **Tools > DIYsect > Apply Realistic Look**: it re-measures the incision and flap hinges on the current skin, adds the cut line, the surgical drapes and wet-tissue materials to the body prefab, puts the lecture hall around the student's table in `LectureHall_VR` (replacing the room placeholder), hangs the operating light in `LectureHall_VR` and `Classmate_Desktop`, moves the instruments onto a stand beside the table, and gives the scalpel and forceps their real models. Rerun it after re-exporting the skin, drapes or lamp.
 9. **MANUAL:** Configure the template's service/project credentials using Unity's UI, then test two connected clients. Build an ARM64 Android APK for Quest 3 and test on hardware. Never commit credentials. Check the [architecture and acceptance checklist](docs/ARCHITECTURE.md).
 
 **Quest on Mac:** [Meta Horizon Link](https://developers.meta.com/vr/documentation/unity/unity-link/) is Windows only. Build a standalone APK from Mac; use the simulator for iteration or a Windows PC with Link for a PC-streamed demo.
@@ -42,11 +45,13 @@ Built for the **Immersion Studio Hackathon, November 6–9, 2026**. Deadline: **
 | ID | Asset | Source | License | Acquisition |
 |---|---|---|---|---|
 | A1 | Human anatomy, organs and body wall | [Z-Anatomy](https://github.com/Z-Anatomy/The-blend) | CC BY-SA 4.0 | Fetch and processing scripts; source archive stays local |
-| A2 | University Lecture Hall — Heat Of Fusion | [Sketchfab](https://sketchfab.com/3d-models/university-lecture-hall-452cc01ebd1a47de9925bd43f44d7da4) | CC BY 4.0 | Manual login/download; simplify from about 1.2M triangles |
-| A3 | SURGICAL INSTRUMENT — ferofluid | [Sketchfab](https://sketchfab.com/3d-models/surgical-instrument-2971a44d334b45ff926792e92a6bcee7) | CC BY 4.0 | Manual login/download |
+| A2 | University Lecture Hall — Heat Of Fusion | [Sketchfab](https://sketchfab.com/3d-models/university-lecture-hall-452cc01ebd1a47de9925bd43f44d7da4) | CC BY 4.0 | Manual login/download; `simplify_room.py` reduces it to about 246k triangles |
+| A3 | SURGICAL INSTRUMENT — ferofluid | [Sketchfab](https://sketchfab.com/3d-models/surgical-instrument-2971a44d334b45ff926792e92a6bcee7) | CC BY 4.0 | Manual login/download; `extract_instruments.py` keeps the forceps and scalpel handle and adds a project-authored blade |
 | A4 | Charité operating room — ChrisRE | [Sketchfab](https://sketchfab.com/3d-models/charite-university-hospital-operating-room-9ec46c4d615a4581a235eebfb162f574) | CC BY-NC 4.0 | Optional non-commercial backup; about 335k triangles before simplification |
 | A5 | EzySlice — David Arayan | [Source](https://github.com/DavidArayan/ezy-slice) | MIT | Included source; optional whole-mesh planar cutting |
 | A6 | Table, tray, screen | Unity primitives | Project-authored | Editor menu builds prefabs |
+| A7 | Surgical drapes | `Tools/blender/make_drapes.py` (cloth simulation around the anatomy) | Project-authored | Committed GLB; rerun the script after changing the anatomy |
+| A8 | Surgical lamp | `Tools/blender/make_surgical_lamp.py` | Project-authored | Committed GLB |
 
 See [full credits](docs/CREDITS.md). Derived anatomy and its previews remain CC BY-SA 4.0. The source has colored materials and no texture images. Unsupported stylized shader groups are converted to simple export materials using their source color controls; this preserves the color palette, not the original shader effects. The skin flaps are a simplified prototype, not a supplied anatomical skin layer. Do not use paid frog packs, the NIH frog kit, or an unverified laboratory pack.
 
@@ -56,6 +61,13 @@ These previews show the exported organ set with its source material color palett
 
 ![Front organ preview](docs/previews/front.png)
 ![Three-quarter organ preview](docs/previews/three_quarter.png)
+
+The Unity scene previews show `LectureHall_VR` from where the student stands: intact under the operating light, then with the skin, rectus, transversus and omentum opened. Refresh them with **Tools > DIYsect > Capture Scene Previews** (batch mode needs graphics, not `-nographics`). The wide view shows the table in the front area of the lecture hall, and the close view shows the real scalpel and forceps on their stand.
+
+![Intact body on the draped table](docs/previews/scene_intact.png)
+![Body wall opened down to the organs](docs/previews/scene_opened.png)
+![Lecture hall seen from behind the student](docs/previews/scene_hall.png)
+![Scalpel and forceps on the instrument stand](docs/previews/scene_instruments.png)
 
 ## Performance
 

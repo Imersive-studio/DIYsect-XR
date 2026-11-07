@@ -10,7 +10,8 @@ namespace DIYsect.Editor
     /// The deeper layers of the body wall, added to the loaded body prefab by AnatomyBodyDissection (so it also
     /// runs from Create Anatomy Body). Each rectus half gets a hinge pivot on its outer edge that opens at
     /// RectusOpen; the greater omentum gets a hinge on its head-side edge that lifts it at OmentumLifted. The
-    /// transversus stays where it is. A trigger box over the omentum asks for LiftOmentum and a slab over the
+    /// transversus halves lie under the rectus across the front of the abdomen, so they open with it (slightly
+    /// less far, so they rest beneath the rectus) and the cavity is exposed. A trigger box over the omentum asks for LiftOmentum and a slab over the
     /// rectus (kept clear of the omentum box) asks for OpenRectus. Hinge axes and trigger boxes come from the
     /// measured mesh bounds. Safe to run more than once.
     /// </summary>
@@ -19,6 +20,7 @@ namespace DIYsect.Editor
         private const string MuscleGroup = "Supine/Muscle";
         private const string OmentumGroup = "Supine/Omentum";
         private const float RectusOpenDegrees = 120f;
+        private const float TransversusOpenDegrees = 110f;
         private const float OmentumLiftDegrees = 100f;
         private const float EdgeBand = 0.01f;
         private const float SlabHeight = 0.03f;
@@ -36,8 +38,14 @@ namespace DIYsect.Editor
             List<Vector3> rightPoints = AnatomyBodyDissection.RootLocalVertices(root.transform, rectusRight);
             List<Vector3> omentumPoints = AnatomyBodyDissection.RootLocalVertices(root.transform, omentum);
 
-            AddSideHinge(root.transform, muscle, rectusLeft, leftPoints, progress);
-            AddSideHinge(root.transform, muscle, rectusRight, rightPoints, progress);
+            AddSideHinge(root.transform, muscle, rectusLeft, leftPoints, progress, RectusOpenDegrees);
+            AddSideHinge(root.transform, muscle, rectusRight, rightPoints, progress, RectusOpenDegrees);
+            foreach (string side in new[] { "l", "r" })
+            {
+                Transform transversus = Find(muscle, $"transversus_abdominis_muscle_{side}");
+                AddSideHinge(root.transform, muscle, transversus, AnatomyBodyDissection.RootLocalVertices(root.transform, transversus),
+                    progress, TransversusOpenDegrees);
+            }
             AddHeadHinge(root.transform, omentumGroup, omentum, omentumPoints, progress);
 
             Bounds omentumBounds = BoundsOf(omentumPoints);
@@ -48,8 +56,9 @@ namespace DIYsect.Editor
             Debug.Log($"Wall layers: rectus bounds {rectusBounds}, omentum bounds {omentumBounds}.");
         }
 
-        // Rectus halves hinge on their outer (lateral) edge, like the skin flaps.
-        private static void AddSideHinge(Transform root, Transform group, Transform layer, List<Vector3> points, DissectionProgress progress)
+        // Rectus and transversus halves hinge on their outer (lateral) edge, like the skin flaps, and open at RectusOpen.
+        private static void AddSideHinge(Transform root, Transform group, Transform layer, List<Vector3> points, DissectionProgress progress,
+            float openDegrees)
         {
             float outerX = 0f;
             foreach (Vector3 point in points)
@@ -68,7 +77,7 @@ namespace DIYsect.Editor
             Bounds bounds = BoundsOf(points);
             var pivotPosition = new Vector3(outerX, heightSum / count, bounds.center.z);
             // About root +Z a positive angle turns x towards y, so a layer hinged at +x opens with a negative one.
-            AddHinge(root, group, layer, pivotPosition, Vector3.forward, -side * RectusOpenDegrees, DissectionStage.RectusOpen, progress);
+            AddHinge(root, group, layer, pivotPosition, Vector3.forward, -side * openDegrees, DissectionStage.RectusOpen, progress);
         }
 
         // The omentum hangs toward the pubis (+Z). It hinges on its head-side edge (min Z) and folds up and over (about root X).
