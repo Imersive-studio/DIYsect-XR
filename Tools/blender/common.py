@@ -70,6 +70,20 @@ def simplify(obj, budget):
 def slug(name):
     return re.sub(r'[^a-z0-9]+', '_', name.lower()).strip('_')
 
+def linked_color(socket):
+    """Evaluate the simple color nodes (RGB, Gamma) feeding a socket; None if unsupported."""
+    if not socket.is_linked:
+        return tuple(socket.default_value)
+    node = socket.links[0].from_node
+    if node.type == 'RGB':
+        return tuple(node.outputs[0].default_value)
+    if node.type == 'GAMMA':
+        color = linked_color(node.inputs['Color'])
+        gamma = node.inputs['Gamma'].default_value
+        if color is not None:
+            return tuple(c ** gamma for c in color[:3]) + (color[3],)
+    return None
+
 def source_color(material):
     """Read the source's color controls without exporting unsupported shader groups."""
     def visit(tree, seen):
@@ -78,7 +92,9 @@ def source_color(material):
         seen.add(tree.name)
         for node in tree.nodes:
             if node.type == 'GROUP' and 'Color2' in node.inputs:
-                return tuple(node.inputs['Color2'].default_value)
+                color = linked_color(node.inputs['Color2'])
+                if color is not None:
+                    return color
         for node in tree.nodes:
             if node.type == 'BSDF_PRINCIPLED':
                 return tuple(node.inputs['Base Color'].default_value)
