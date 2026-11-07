@@ -42,11 +42,6 @@ namespace DIYsect.Dissection
             Validate();
         }
 
-        private void OnValidate()
-        {
-            Validate();
-        }
-
         public override void OnNetworkSpawn()
         {
             _stage.OnValueChanged += HandleStageChanged;
@@ -143,6 +138,7 @@ namespace DIYsect.Dissection
             ProgressChanged?.Invoke(current);
         }
 
+        // Checked in Awake only: the editor step adds the component before it assigns the references.
         private void Validate()
         {
             if (_lineStart == _lineEnd)

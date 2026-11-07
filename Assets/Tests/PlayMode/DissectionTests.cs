@@ -133,8 +133,20 @@ namespace DIYsect.Networking.Tests
             // The variables are server-write only: Netcode refuses a client write with an error and changes nothing.
             FieldInfo progressField = typeof(DissectionProgress).GetField("_progress", BindingFlags.NonPublic | BindingFlags.Instance);
             var progress = (NetworkVariable<float>)progressField.GetValue(clientProgress);
-            LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Write permissions"));
-            progress.Value = 1f;
+            // Netcode logs its own error for the refused write; ignore log text for this one attempt only.
+            LogAssert.ignoreFailingMessages = true;
+            try
+            {
+                progress.Value = 1f;
+            }
+            catch (System.InvalidOperationException)
+            {
+                // Some Netcode versions throw instead of logging. Either way the server value must not change.
+            }
+            finally
+            {
+                LogAssert.ignoreFailingMessages = false;
+            }
             Assert.AreEqual(0f, _server.IncisionProgress, 0.0001f);
 
             // A sample far off the midline goes through the real Rpc path and is rejected.
@@ -181,6 +193,28 @@ namespace DIYsect.Networking.Tests
             yield return WaitFor(() => _server.Stage == DissectionStage.SkinOpen, "the scalpel to complete the cut and open the skin", () => $"stage {_server.Stage}, progress {_server.IncisionProgress}");
             yield return WaitFor(() => clientProgress.Stage == DissectionStage.SkinOpen, "the client to see the skin open");
             yield return WaitFor(() => FlapsAre(clientHinges, open: true), "the flaps to open on the client");
+        }
+
+        [UnityTest]
+        public IEnumerator ScalpelThatLeftTheZoneDoesNotOpenTheSkinForSomeoneElsesCut()
+        {
+            yield return StartHostAndSpawnBody();
+            _server = _serverBody.GetComponent<DissectionProgress>();
+            _scalpel = Object.Instantiate(LoadScalpelPrefab());
+            var tool = _scalpel.GetComponent<ScalpelTool>();
+
+            PlaceTip(tool, _serverBody.transform.TransformPoint(OnLine(0.1f)));
+            yield return new WaitForFixedUpdate();
+            yield return WaitFor(() => _server.IncisionProgress > 0.09f, "the scalpel to start the cut");
+
+            // Lift the scalpel out of the zone, then let someone else finish the cut.
+            PlaceTip(tool, _serverBody.transform.TransformPoint(OnLine(0.1f)) + Vector3.up * 0.5f);
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+            Complete(_server);
+            Assert.AreEqual(DissectionStage.Incised, _server.Stage);
+            yield return new WaitForSeconds(QuietSeconds);
+            Assert.AreEqual(DissectionStage.Incised, _server.Stage, "A scalpel that left the zone must not open the skin.");
         }
 
         // A point on the midline at the given fraction, in body-local space.

@@ -20,11 +20,7 @@ namespace DIYsect.Dissection
             Validate();
         }
 
-        private void OnValidate()
-        {
-            Validate();
-        }
-
+        // Checked in Awake only: the editor step adds the component before it assigns the references.
         private void Validate()
         {
             if (_target == null)

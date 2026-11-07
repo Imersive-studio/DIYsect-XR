@@ -9,7 +9,7 @@ namespace DIYsect.Interaction
     /// <summary>
     /// A minimal scalpel. While the blade tip is inside an <see cref="IncisionTrigger"/> it reports the tip
     /// position to the target on a timer, and only if the tip moved since the last report. When the incision
-    /// this scalpel was cutting becomes complete, it asks for the skin to be opened. The server still checks
+    /// this scalpel is still cutting becomes complete, it asks for the skin to be opened. The server still checks
     /// every sample and the request. The scalpel needs a Rigidbody and a trigger collider on the tip so Unity
     /// raises the trigger events.
     /// </summary>
@@ -34,11 +34,6 @@ namespace DIYsect.Interaction
             Validate();
         }
 
-        private void OnValidate()
-        {
-            Validate();
-        }
-
         private void OnDisable()
         {
             StopSampling();
@@ -58,6 +53,8 @@ namespace DIYsect.Interaction
             if (!other.TryGetComponent(out IncisionTrigger zone) || zone.Target != _target)
                 return;
             StopSampling();
+            // Leaving the zone ends this cut: a later completion by someone else must not make this scalpel open the skin.
+            Detach();
         }
 
         // The tip's own trigger is the only one that cuts, not the handle or the blade body.
@@ -85,7 +82,7 @@ namespace DIYsect.Interaction
 
         private void HandleStageChanged(DissectionStage stage, bool initialState)
         {
-            // Only the scalpel that made the cut asks to open it. Anyone else may still call RequestOpen.
+            // Only a scalpel still cutting (tip in the zone, samples sent) asks to open it. Anyone else may still call RequestOpen.
             if (!initialState && stage == DissectionStage.Incised && _hasSent)
                 _target.RequestOpen();
         }

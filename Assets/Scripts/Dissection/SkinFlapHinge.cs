@@ -28,12 +28,8 @@ namespace DIYsect.Dissection
         private void Awake()
         {
             _closedRotation = transform.localRotation;
-            Validate();
-        }
-
-        private void OnValidate()
-        {
-            Validate();
+            if (!Validate())
+                enabled = false;
         }
 
         private void OnEnable()
@@ -45,7 +41,8 @@ namespace DIYsect.Dissection
 
         private void OnDisable()
         {
-            _progress.StageChanged -= HandleStageChanged;
+            if (_progress != null)
+                _progress.StageChanged -= HandleStageChanged;
             StopSwing();
         }
 
@@ -84,12 +81,21 @@ namespace DIYsect.Dissection
             _swing = null;
         }
 
-        private void Validate()
+        // Checked in Awake only: the editor step adds the component before it assigns the references.
+        private bool Validate()
         {
+            bool valid = true;
             if (_progress == null)
+            {
                 Debug.LogError($"{name}: SkinFlapHinge has no DissectionProgress. Run Tools > DIYsect > Add Body Dissection.", this);
+                valid = false;
+            }
             if (_hingeAxis == Vector3.zero)
+            {
                 Debug.LogError($"{name}: the hinge axis must not be zero.", this);
+                valid = false;
+            }
+            return valid;
         }
     }
 }

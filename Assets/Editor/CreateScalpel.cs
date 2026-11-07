@@ -20,7 +20,7 @@ namespace DIYsect.Editor
         private const string SteelPath = "Assets/Models/Environment/Steel.mat";
         private const string RootName = "DIYsect";
         private const float HandleHeight = 0.012f;
-        private static readonly string[] ScenePaths =
+        private static readonly string[] _scenePaths =
         {
             "Assets/Scenes/LectureHall_VR.unity",
             "Assets/Scenes/Professor_MR.unity",
@@ -31,7 +31,7 @@ namespace DIYsect.Editor
         public static void Apply()
         {
             GameObject prefab = BuildPrefab();
-            foreach (string path in ScenePaths)
+            foreach (string path in _scenePaths)
                 PlaceOnTray(path, prefab);
         }
 
