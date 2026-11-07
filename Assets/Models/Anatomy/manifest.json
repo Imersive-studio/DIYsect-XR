@@ -1,0 +1,1120 @@
+[
+  {
+    "file": "Assets/Models/Anatomy/Organs/superior_lobe_of_left_lung.glb",
+    "original_name": "Superior lobe of left lung",
+    "layer": "organ",
+    "triangles": 5481,
+    "world_position": [
+      -1.4901161193847656e-08,
+      -1.4205880916051683e-09,
+      -1.1920928955078125e-07
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/inferior_lobe_of_left_lung.glb",
+    "original_name": "Inferior lobe of left lung",
+    "layer": "organ",
+    "triangles": 5480,
+    "world_position": [
+      -1.4901161193847656e-08,
+      -1.4205880916051683e-09,
+      -1.1920928955078125e-07
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/superior_lobe_of_right_lung.glb",
+    "original_name": "Superior lobe of right lung",
+    "layer": "organ",
+    "triangles": 5480,
+    "world_position": [
+      2.9802322387695312e-08,
+      -8.289617881018785e-10,
+      0.0
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/middle_lobe_of_right_lung.glb",
+    "original_name": "Middle lobe of right lung",
+    "layer": "organ",
+    "triangles": 5480,
+    "world_position": [
+      2.9802322387695312e-08,
+      -8.289617881018785e-10,
+      0.0
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/inferior_lobe_of_right_lung.glb",
+    "original_name": "Inferior lobe of right lung",
+    "layer": "organ",
+    "triangles": 5479,
+    "world_position": [
+      2.9802322387695312e-08,
+      -8.289617881018785e-10,
+      0.0
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/left_atrium.glb",
+    "original_name": "Left atrium",
+    "layer": "organ",
+    "triangles": 5105,
+    "world_position": [
+      1.862645149230957e-09,
+      -6.63820287627459e-09,
+      0.0
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/right_atrium.glb",
+    "original_name": "Right atrium",
+    "layer": "organ",
+    "triangles": 5481,
+    "world_position": [
+      1.862645149230957e-09,
+      -6.63820287627459e-09,
+      0.0
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/left_ventricle.glb",
+    "original_name": "Left ventricle",
+    "layer": "organ",
+    "triangles": 5481,
+    "world_position": [
+      1.862645149230957e-09,
+      -6.63820287627459e-09,
+      0.0
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/right_ventricle.glb",
+    "original_name": "Right ventricle",
+    "layer": "organ",
+    "triangles": 5481,
+    "world_position": [
+      1.862645149230957e-09,
+      -6.63820287627459e-09,
+      0.0
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/liver.glb",
+    "original_name": "Liver",
+    "layer": "organ",
+    "triangles": 3652,
+    "world_position": [
+      -0.05062045156955719,
+      -0.03370024263858795,
+      1.2119700908660889
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/gallbladder.glb",
+    "original_name": "Gallbladder",
+    "layer": "organ",
+    "triangles": 722,
+    "world_position": [
+      -0.04751772806048393,
+      -0.05697200819849968,
+      1.1436094045639038
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/stomach.glb",
+    "original_name": "Stomach",
+    "layer": "organ",
+    "triangles": 3652,
+    "world_position": [
+      0.03634916990995407,
+      -0.042550038546323776,
+      1.1722512245178223
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/mucosa_of_stomach.glb",
+    "original_name": "Mucosa of stomach",
+    "layer": "organ",
+    "triangles": 3653,
+    "world_position": [
+      0.03634919598698616,
+      -0.04254999756813049,
+      1.1722501516342163
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/pancreas.glb",
+    "original_name": "Pancreas",
+    "layer": "organ",
+    "triangles": 3652,
+    "world_position": [
+      0.005704696290194988,
+      -0.024318160489201546,
+      1.121407151222229
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/spleen.glb",
+    "original_name": "Spleen",
+    "layer": "organ",
+    "triangles": 1330,
+    "world_position": [
+      0.08630503714084625,
+      0.006568719632923603,
+      1.1581116914749146
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/kidney_l.glb",
+    "original_name": "Kidney.l",
+    "layer": "organ",
+    "triangles": 2982,
+    "world_position": [
+      0.057743046432733536,
+      0.017047520726919174,
+      1.1109402179718018
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/kidney_r.glb",
+    "original_name": "Kidney.r",
+    "layer": "organ",
+    "triangles": 2322,
+    "world_position": [
+      -0.05303390324115753,
+      0.0061728921718895435,
+      1.0953091382980347
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/duodenum.glb",
+    "original_name": "Duodenum",
+    "layer": "organ",
+    "triangles": 1750,
+    "world_position": [
+      -0.021595366299152374,
+      -0.032889336347579956,
+      1.104471206665039
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/ascending_colon.glb",
+    "original_name": "Ascending colon",
+    "layer": "organ",
+    "triangles": 3652,
+    "world_position": [
+      -0.08747315406799316,
+      -0.015487217344343662,
+      0.952645480632782
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/transverse_colon.glb",
+    "original_name": "Transverse colon",
+    "layer": "organ",
+    "triangles": 3652,
+    "world_position": [
+      -0.08747315406799316,
+      -0.015487217344343662,
+      0.952645480632782
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/descending_colon.glb",
+    "original_name": "Descending colon",
+    "layer": "organ",
+    "triangles": 3652,
+    "world_position": [
+      -0.08747315406799316,
+      -0.015487217344343662,
+      0.952645480632782
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Organs/sigmoid_colon.glb",
+    "original_name": "Sigmoid colon",
+    "layer": "organ",
+    "triangles": 3432,
+    "world_position": [
+      0.0016297970432788134,
+      0.05706677958369255,
+      0.895505428314209
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/rectus_abdominis_muscle_l.glb",
+    "original_name": "Rectus abdominis muscle.l",
+    "layer": "muscle",
+    "triangles": 3652,
+    "world_position": [
+      0.04097414016723633,
+      -0.09763853996992111,
+      1.1085008382797241
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/rectus_abdominis_muscle_r.glb",
+    "original_name": "Rectus abdominis muscle.r",
+    "layer": "muscle",
+    "triangles": 3652,
+    "world_position": [
+      -0.04097414016723633,
+      -0.09763860702514648,
+      1.1085009574890137
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/transversus_abdominis_muscle_l.glb",
+    "original_name": "Transversus abdominis muscle.l",
+    "layer": "muscle",
+    "triangles": 3652,
+    "world_position": [
+      0.08311864733695984,
+      -0.030757201835513115,
+      1.0739784240722656
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/transversus_abdominis_muscle_r.glb",
+    "original_name": "Transversus abdominis muscle.r",
+    "layer": "muscle",
+    "triangles": 3652,
+    "world_position": [
+      -0.08311864733695984,
+      -0.03075728379189968,
+      1.0739785432815552
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/greater_omentum.glb",
+    "original_name": "Greater omentum",
+    "layer": "omentum",
+    "triangles": 3652,
+    "world_position": [
+      0.000656556396279484,
+      -0.04486463591456413,
+      1.0291893482208252
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/lesser_omentum.glb",
+    "original_name": "Lesser omentum",
+    "layer": "omentum",
+    "triangles": 3652,
+    "world_position": [
+      0.000656556396279484,
+      -0.04486463591456413,
+      1.0291893482208252
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/diaphragm.glb",
+    "original_name": "Diaphragm",
+    "layer": "chest",
+    "triangles": 3653,
+    "world_position": [
+      -0.013290932402014732,
+      -0.008662796579301357,
+      1.1620349884033203
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/body_of_sternum.glb",
+    "original_name": "Body of sternum",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      -8.790661013335921e-06,
+      -0.09217386692762375,
+      1.2961254119873047
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/abdominal_part_of_pectoralis_major_muscle_l.glb",
+    "original_name": "(Abdominal part of pectoralis major muscle).l",
+    "layer": "chest",
+    "triangles": 1508,
+    "world_position": [
+      0.11512167751789093,
+      -0.06920279562473297,
+      1.2482572793960571
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/abdominal_part_of_pectoralis_major_muscle_r.glb",
+    "original_name": "(Abdominal part of pectoralis major muscle).r",
+    "layer": "chest",
+    "triangles": 1508,
+    "world_position": [
+      -0.11512165516614914,
+      -0.06920287758111954,
+      1.2482572793960571
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/clavicular_head_of_pectoralis_major_muscle_l.glb",
+    "original_name": "Clavicular head of pectoralis major muscle.l",
+    "layer": "chest",
+    "triangles": 850,
+    "world_position": [
+      0.11295314878225327,
+      -0.02061261050403118,
+      1.3761075735092163
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/clavicular_head_of_pectoralis_major_muscle_r.glb",
+    "original_name": "Clavicular head of pectoralis major muscle.r",
+    "layer": "chest",
+    "triangles": 850,
+    "world_position": [
+      -0.11295312643051147,
+      -0.020612718537449837,
+      1.3761075735092163
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_eighth_rib_l.glb",
+    "original_name": "Costal cartilage of eighth rib.l",
+    "layer": "chest",
+    "triangles": 2624,
+    "world_position": [
+      0.07320865988731384,
+      -0.09163571894168854,
+      1.155562162399292
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_eighth_rib_r.glb",
+    "original_name": "Costal cartilage of eighth rib.r",
+    "layer": "chest",
+    "triangles": 2624,
+    "world_position": [
+      -0.07320865988731384,
+      -0.09163571894168854,
+      1.155562162399292
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_fifth_rib_l.glb",
+    "original_name": "Costal cartilage of fifth rib.l",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      0.0491655096411705,
+      -0.10129359364509583,
+      1.2584271430969238
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_fifth_rib_r.glb",
+    "original_name": "Costal cartilage of fifth rib.r",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      -0.0491655096411705,
+      -0.10129359364509583,
+      1.2584271430969238
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_first_rib_l.glb",
+    "original_name": "Costal cartilage of first rib.l",
+    "layer": "chest",
+    "triangles": 2772,
+    "world_position": [
+      0.03631478548049927,
+      -0.038397304713726044,
+      1.3889423608779907
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_first_rib_r.glb",
+    "original_name": "Costal cartilage of first rib.r",
+    "layer": "chest",
+    "triangles": 2772,
+    "world_position": [
+      -0.03631478548049927,
+      -0.038397304713726044,
+      1.3889423608779907
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_fourth_rib_l.glb",
+    "original_name": "Costal cartilage of fourth rib.l",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      0.04040708392858505,
+      -0.09136050194501877,
+      1.290143609046936
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_fourth_rib_r.glb",
+    "original_name": "Costal cartilage of fourth rib.r",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      -0.04040708392858505,
+      -0.09136050194501877,
+      1.290143609046936
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_ninth_rib_l.glb",
+    "original_name": "Costal cartilage of ninth rib.l",
+    "layer": "chest",
+    "triangles": 1964,
+    "world_position": [
+      0.09755206108093262,
+      -0.06968316435813904,
+      1.1118249893188477
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_ninth_rib_r.glb",
+    "original_name": "Costal cartilage of ninth rib.r",
+    "layer": "chest",
+    "triangles": 1964,
+    "world_position": [
+      -0.09755206108093262,
+      -0.06968316435813904,
+      1.1118249893188477
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_second_rib_l.glb",
+    "original_name": "Costal cartilage of second rib.l",
+    "layer": "chest",
+    "triangles": 3408,
+    "world_position": [
+      0.050322383642196655,
+      -0.0853358581662178,
+      1.2554469108581543
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_second_rib_r.glb",
+    "original_name": "Costal cartilage of second rib.r",
+    "layer": "chest",
+    "triangles": 3408,
+    "world_position": [
+      -0.050322383642196655,
+      -0.0853358581662178,
+      1.2554469108581543
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_seventh_rib_l.glb",
+    "original_name": "Costal cartilage of seventh rib.l",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      0.05267658084630966,
+      -0.10109815746545792,
+      1.2052795886993408
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_seventh_rib_r.glb",
+    "original_name": "Costal cartilage of seventh rib.r",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      -0.05267658084630966,
+      -0.10109815746545792,
+      1.2052795886993408
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_sixth_rib_l.glb",
+    "original_name": "Costal cartilage of sixth rib.l",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      0.05721132457256317,
+      -0.1030367985367775,
+      1.228140950202942
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_sixth_rib_r.glb",
+    "original_name": "Costal cartilage of sixth rib.r",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      -0.05721132457256317,
+      -0.1030367985367775,
+      1.228140950202942
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_tenth_rib_l.glb",
+    "original_name": "Costal cartilage of tenth rib.l",
+    "layer": "chest",
+    "triangles": 1524,
+    "world_position": [
+      0.1066998839378357,
+      -0.04999290406703949,
+      1.0794551372528076
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_tenth_rib_r.glb",
+    "original_name": "Costal cartilage of tenth rib.r",
+    "layer": "chest",
+    "triangles": 1524,
+    "world_position": [
+      -0.1066998839378357,
+      -0.04999290406703949,
+      1.0794551372528076
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_third_rib_l.glb",
+    "original_name": "Costal cartilage of third rib.l",
+    "layer": "chest",
+    "triangles": 3600,
+    "world_position": [
+      0.031338028609752655,
+      -0.08047226071357727,
+      1.3204213380813599
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/costal_cartilage_of_third_rib_r.glb",
+    "original_name": "Costal cartilage of third rib.r",
+    "layer": "chest",
+    "triangles": 3600,
+    "world_position": [
+      -0.031338028609752655,
+      -0.08047226071357727,
+      1.3204213380813599
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/eighth_rib_l.glb",
+    "original_name": "Eighth rib.l",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      0.08391059935092926,
+      0.03820858523249626,
+      1.223750114440918
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/eighth_rib_r.glb",
+    "original_name": "Eighth rib.r",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      -0.08391059935092926,
+      0.03820858523249626,
+      1.223750114440918
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/eleventh_rib_l.glb",
+    "original_name": "Eleventh rib.l",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      0.07191670686006546,
+      0.04407043755054474,
+      1.1306840181350708
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/eleventh_rib_r.glb",
+    "original_name": "Eleventh rib.r",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      -0.07191672176122665,
+      0.04407043755054474,
+      1.1306840181350708
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/fifth_rib_l.glb",
+    "original_name": "Fifth rib.l",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      0.07866037636995316,
+      0.02499683015048504,
+      1.321190595626831
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/fifth_rib_r.glb",
+    "original_name": "Fifth rib.r",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      -0.07866037636995316,
+      0.02499683015048504,
+      1.321190595626831
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/first_rib_l.glb",
+    "original_name": "First rib.l",
+    "layer": "chest",
+    "triangles": 3210,
+    "world_position": [
+      0.04373091459274292,
+      0.0053034196607768536,
+      1.421472191810608
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/first_rib_r.glb",
+    "original_name": "First rib.r",
+    "layer": "chest",
+    "triangles": 3210,
+    "world_position": [
+      -0.04373092204332352,
+      0.0053034196607768536,
+      1.421472191810608
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/fourth_rib_l.glb",
+    "original_name": "Fourth rib.l",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      0.07453610002994537,
+      0.01778447814285755,
+      1.3504539728164673
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/fourth_rib_r.glb",
+    "original_name": "Fourth rib.r",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      -0.07453610002994537,
+      0.017784476280212402,
+      1.3504539728164673
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/intra_articular_ligament_of_head_of_rib.glb",
+    "original_name": "Intra-articular ligament of head of rib",
+    "layer": "chest",
+    "triangles": 108,
+    "world_position": [
+      0.016557874158024788,
+      0.047852423042058945,
+      1.3410589694976807
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/intra_articular_ligament_of_head_of_rib_r.glb",
+    "original_name": "Intra-articular ligament of head of rib.r",
+    "layer": "chest",
+    "triangles": 108,
+    "world_position": [
+      -0.016557814553380013,
+      0.047852423042058945,
+      1.3410589694976807
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/ninth_rib_l.glb",
+    "original_name": "Ninth rib.l",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      0.0795888677239418,
+      0.0494687482714653,
+      1.1977888345718384
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/ninth_rib_r.glb",
+    "original_name": "Ninth rib.r",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      -0.0795888677239418,
+      0.0494687482714653,
+      1.1977888345718384
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/radiate_ligament_of_head_of_rib_l.glb",
+    "original_name": "Radiate ligament of head of rib.l",
+    "layer": "chest",
+    "triangles": 3456,
+    "world_position": [
+      0.018460096791386604,
+      0.04035516455769539,
+      1.3123948574066162
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/radiate_ligament_of_head_of_rib_r.glb",
+    "original_name": "Radiate ligament of head of rib.r",
+    "layer": "chest",
+    "triangles": 3456,
+    "world_position": [
+      -0.01846003718674183,
+      0.04035516455769539,
+      1.3123948574066162
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/second_rib_l.glb",
+    "original_name": "Second rib.l",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      0.056707385927438736,
+      0.00608467822894454,
+      1.401396632194519
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/second_rib_r.glb",
+    "original_name": "Second rib.r",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      -0.056707385927438736,
+      0.006084678694605827,
+      1.401396632194519
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/seventh_rib_l.glb",
+    "original_name": "Seventh rib.l",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      0.08636890351772308,
+      0.03294989839196205,
+      1.2568691968917847
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/seventh_rib_r.glb",
+    "original_name": "Seventh rib.r",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      -0.08636890351772308,
+      0.03294989839196205,
+      1.2568691968917847
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/sixth_rib_l.glb",
+    "original_name": "Sixth rib.l",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      0.08676940947771072,
+      0.025506077334284782,
+      1.2867975234985352
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/sixth_rib_r.glb",
+    "original_name": "Sixth rib.r",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      -0.08676940947771072,
+      0.025506075471639633,
+      1.2867975234985352
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/sternocostal_head_of_pectoralis_major_muscle_l.glb",
+    "original_name": "Sternocostal head of pectoralis major muscle.l",
+    "layer": "chest",
+    "triangles": 3222,
+    "world_position": [
+      0.08836134523153305,
+      -0.07272046059370041,
+      1.3070212602615356
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/sternocostal_head_of_pectoralis_major_muscle_r.glb",
+    "original_name": "Sternocostal head of pectoralis major muscle.r",
+    "layer": "chest",
+    "triangles": 3222,
+    "world_position": [
+      -0.08836132287979126,
+      -0.07272054255008698,
+      1.3070212602615356
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/tenth_rib_l.glb",
+    "original_name": "Tenth rib.l",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      0.07664182782173157,
+      0.04563765600323677,
+      1.1639047861099243
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/tenth_rib_r.glb",
+    "original_name": "Tenth rib.r",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      -0.07664184272289276,
+      0.04563765600323677,
+      1.1639047861099243
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/third_rib_l.glb",
+    "original_name": "Third rib.l",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      0.06240692734718323,
+      0.015050052665174007,
+      1.3785711526870728
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/third_rib_r.glb",
+    "original_name": "Third rib.r",
+    "layer": "chest",
+    "triangles": 3652,
+    "world_position": [
+      -0.062406934797763824,
+      0.015050052665174007,
+      1.3785711526870728
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/twelfth_rib_l.glb",
+    "original_name": "Twelfth rib.l",
+    "layer": "chest",
+    "triangles": 3002,
+    "world_position": [
+      0.04998653009533882,
+      0.04611882567405701,
+      1.1127233505249023
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/BodyWall/twelfth_rib_r.glb",
+    "original_name": "Twelfth rib.r",
+    "layer": "chest",
+    "triangles": 3002,
+    "world_position": [
+      -0.049986544996500015,
+      0.04611882567405701,
+      1.1127233505249023
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Skin/skin_flap_l.glb",
+    "original_name": "skin_flap_l",
+    "layer": "skin",
+    "triangles": 14698,
+    "world_position": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  },
+  {
+    "file": "Assets/Models/Anatomy/Skin/skin_flap_r.glb",
+    "original_name": "skin_flap_r",
+    "layer": "skin",
+    "triangles": 14698,
+    "world_position": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "coordinate_system": "Blender Z-up; GLB converted to Y-up",
+    "license": "CC BY-SA 4.0"
+  }
+]
