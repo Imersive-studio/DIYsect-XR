@@ -10,6 +10,7 @@ Start with the working Mixed Reality Multiplayer Tabletop template. Keep one sce
 | Interaction | Grab, socket, scalpel and guiding hand | Student steers; professor may own depth only; visible ownership indicator |
 | Dissection | Incision progress, flap state, muscle and omentum order | Shared state comes from Networking; events drive presentation |
 | Classroom | Organ-local question anchors, clusters and screen | Server accepts pins; clients reconstruct anchor transforms and render their own close-up camera |
+| MixedReality | Lines the virtual table and body up with a real table in passthrough | Local to one client, no network state. References XRI and AR Foundation only, never Networking |
 
 Add explicit assembly references when components are implemented. Do not introduce another XR or networking framework. State authority at the top of each network behavior. Validate references in Awake/OnValidate, use events instead of per-frame polling where possible, and keep private serialized fields.
 
