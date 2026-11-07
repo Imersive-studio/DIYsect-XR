@@ -28,9 +28,28 @@ namespace DIYsect.Editor
         static bool Build()
         {
             var scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
-            if (scenes.Length == 0)
+            return Run("BuildAndroid", CreateOptions(scenes, OutputPath));
+        }
+
+        /// <summary>The ARM64 IL2CPP development build options shared by every Android build.</summary>
+        public static BuildPlayerOptions CreateOptions(string[] scenes, string outputPath)
+        {
+            return new BuildPlayerOptions
             {
-                Debug.LogError("[BuildAndroid] No enabled scenes in the build settings.");
+                scenes = scenes,
+                locationPathName = outputPath,
+                target = BuildTarget.Android,
+                targetGroup = BuildTargetGroup.Android,
+                options = BuildOptions.Development | BuildOptions.StrictMode
+            };
+        }
+
+        /// <summary>Applies the shared Android player settings, builds, and logs the result. Returns true on success.</summary>
+        public static bool Run(string label, BuildPlayerOptions options)
+        {
+            if (options.scenes == null || options.scenes.Length == 0)
+            {
+                Debug.LogError($"[{label}] No enabled scenes in the build settings.");
                 return false;
             }
 
@@ -39,28 +58,19 @@ namespace DIYsect.Editor
             EditorUserBuildSettings.androidBuildSystem = AndroidBuildSystem.Gradle;
             EditorUserBuildSettings.buildAppBundle = false;
 
-            Directory.CreateDirectory(Path.GetDirectoryName(OutputPath));
-            var options = new BuildPlayerOptions
-            {
-                scenes = scenes,
-                locationPathName = OutputPath,
-                target = BuildTarget.Android,
-                targetGroup = BuildTargetGroup.Android,
-                options = BuildOptions.Development | BuildOptions.StrictMode
-            };
-
-            Debug.Log($"[BuildAndroid] Building {scenes.Length} scene(s): {string.Join(", ", scenes)}");
+            Directory.CreateDirectory(Path.GetDirectoryName(options.locationPathName));
+            Debug.Log($"[{label}] Building {options.scenes.Length} scene(s): {string.Join(", ", options.scenes)}");
             var started = DateTime.UtcNow;
             BuildSummary summary = BuildPipeline.BuildPlayer(options).summary;
             var elapsed = DateTime.UtcNow - started;
 
             if (summary.result != BuildResult.Succeeded)
             {
-                Debug.LogError($"[BuildAndroid] Build {summary.result}: {summary.totalErrors} error(s), {summary.totalWarnings} warning(s) after {elapsed.TotalSeconds:F0}s");
+                Debug.LogError($"[{label}] Build {summary.result}: {summary.totalErrors} error(s), {summary.totalWarnings} warning(s) after {elapsed.TotalSeconds:F0}s");
                 return false;
             }
 
-            Debug.Log($"[BuildAndroid] Build succeeded: {summary.outputPath}, {summary.totalSize / (1024 * 1024)} MB, {elapsed.TotalSeconds:F0}s, {summary.totalWarnings} warning(s)");
+            Debug.Log($"[{label}] Build succeeded: {summary.outputPath}, {summary.totalSize / (1024 * 1024)} MB, {elapsed.TotalSeconds:F0}s, {summary.totalWarnings} warning(s)");
             return true;
         }
     }
