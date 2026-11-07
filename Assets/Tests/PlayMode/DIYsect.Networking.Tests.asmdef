@@ -4,6 +4,7 @@
   "references": [
     "UnityEngine.TestRunner",
     "DIYsect.Networking",
+    "DIYsect.Interaction",
     "Unity.Netcode.Runtime"
   ],
   "includePlatforms": [],

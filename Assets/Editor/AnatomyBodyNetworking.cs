@@ -2,12 +2,14 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using DIYsect.Interaction;
 using DIYsect.Networking;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace DIYsect.Editor
 {
@@ -16,6 +18,8 @@ namespace DIYsect.Editor
     /// so their placed body instances get a stable network id. Safe to run more than once.
     /// The body root gets a NetworkObject and SharedBody. Every child of Supine/Organs gets a
     /// server-authoritative, interpolated NetworkTransform in local space.
+    /// The root also gets an OrganGrabAuthority, and every organ gets convex colliders, a kinematic Rigidbody,
+    /// an XRGrabInteractable and a NetworkedOrganGrab that points at the authority.
     /// </summary>
     public static class AnatomyBodyNetworking
     {
@@ -55,7 +59,10 @@ namespace DIYsect.Editor
                 var organs = new List<NetworkTransform>();
                 foreach (Transform organ in organsGroup)
                 {
-                    var sync = GetOrAdd<NetworkTransform>(organ.gameObject);
+                    // Replace a plain NetworkTransform from an earlier run: the holder needs to pause incoming state.
+                    if (organ.TryGetComponent(out NetworkTransform plain) && plain.GetType() == typeof(NetworkTransform))
+                        UnityEngine.Object.DestroyImmediate(plain);
+                    var sync = GetOrAdd<HoldableNetworkTransform>(organ.gameObject);
                     sync.AuthorityMode = NetworkTransform.AuthorityModes.Server;
                     sync.InLocalSpace = true;
                     sync.Interpolate = true;
@@ -74,6 +81,10 @@ namespace DIYsect.Editor
                     list.GetArrayElementAtIndex(i).objectReferenceValue = organs[i];
                 serialized.ApplyModifiedPropertiesWithoutUndo();
 
+                var authority = GetOrAdd<OrganGrabAuthority>(root);
+                for (int i = 0; i < organs.Count; i++)
+                    MakeGrabbable(organs[i].gameObject, authority, i);
+
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
                 Debug.Log($"Added network components to {PrefabPath} ({organs.Count} organs).");
             }
@@ -81,6 +92,30 @@ namespace DIYsect.Editor
             {
                 PrefabUtility.UnloadPrefabContents(root);
             }
+        }
+
+        private static void MakeGrabbable(GameObject organ, OrganGrabAuthority authority, int index)
+        {
+            foreach (MeshFilter filter in organ.GetComponentsInChildren<MeshFilter>())
+            {
+                var collider = GetOrAdd<MeshCollider>(filter.gameObject);
+                collider.sharedMesh = filter.sharedMesh;
+                collider.convex = true;
+            }
+
+            var body = GetOrAdd<Rigidbody>(organ);
+            body.isKinematic = true;
+            body.useGravity = false;
+
+            var grab = GetOrAdd<XRGrabInteractable>(organ);
+            grab.movementType = XRBaseInteractable.MovementType.Kinematic;
+            grab.throwOnDetach = false;
+
+            var bridge = GetOrAdd<NetworkedOrganGrab>(organ);
+            var serialized = new SerializedObject(bridge);
+            serialized.FindProperty("_authority").objectReferenceValue = authority;
+            serialized.FindProperty("_organIndex").intValue = index;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // Opening and saving a scene makes Netcode bake the network id of the placed body instance.
