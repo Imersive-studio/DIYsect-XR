@@ -130,11 +130,12 @@ namespace DIYsect.Networking.Tests
             NetworkManager client = StartClient("Client");
             yield return WaitForBody(client, body => clientProgress = body.GetComponent<DissectionProgress>());
 
-            // The variables are server-write only: a client write throws and changes nothing.
+            // The variables are server-write only: Netcode refuses a client write with an error and changes nothing.
             FieldInfo progressField = typeof(DissectionProgress).GetField("_progress", BindingFlags.NonPublic | BindingFlags.Instance);
             var progress = (NetworkVariable<float>)progressField.GetValue(clientProgress);
             LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("Write permissions"));
-            Assert.Throws<System.InvalidOperationException>(() => progress.Value = 1f);
+            progress.Value = 1f;
+            Assert.AreEqual(0f, _server.IncisionProgress, 0.0001f);
 
             // A sample far off the midline goes through the real Rpc path and is rejected.
             clientProgress.SubmitContact(_serverBody.transform.TransformPoint(OnLine(0.1f) + Vector3.up * 0.5f));
