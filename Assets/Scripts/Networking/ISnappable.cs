@@ -9,6 +9,9 @@ namespace DIYsect.Networking
     /// </summary>
     public interface ISnappable
     {
+        /// <summary>False when the home pose is unusable (for example no rotation was recorded). Such an organ is never judged or moved.</summary>
+        bool IsValid { get; }
+
         /// <summary>The pose of the transform when the organ sits in its socket.</summary>
         Pose HomeRootPose { get; }
 

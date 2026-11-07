@@ -37,6 +37,7 @@ namespace DIYsect.Networking
 
             _snappables = new ISnappable[_body.Organs.Count];
             _sockets = new Pose[_snappables.Length];
+            var skipped = new System.Collections.Generic.List<string>();
             for (int i = 0; i < _snappables.Length; i++)
             {
                 _snappables[i] = _body.Organs[i] != null ? _body.Organs[i].GetComponent<ISnappable>() : null;
@@ -46,8 +47,18 @@ namespace DIYsect.Networking
                     enabled = false;
                     return;
                 }
+                if (!_snappables[i].IsValid)
+                {
+                    // Skip it: with no usable home it can neither be judged nor moved. NaN makes SocketRule ignore the socket.
+                    skipped.Add(_body.Organs[i].name);
+                    _snappables[i] = null;
+                    _sockets[i] = new Pose(new Vector3(float.NaN, float.NaN, float.NaN), Quaternion.identity);
+                    continue;
+                }
                 _sockets[i] = _snappables[i].HomeCentrePose;
             }
+            if (skipped.Count > 0)
+                Debug.LogError($"{name}: these organs have no usable socket and will not snap: {string.Join(", ", skipped)}. Run Tools > DIYsect > Add Organ Sockets.", this);
         }
 
         public override void OnNetworkSpawn()
@@ -65,7 +76,7 @@ namespace DIYsect.Networking
         /// <summary>Checks the organ against the sockets, moves it if needed and tells every peer. Server only.</summary>
         private void OnServerReleased(int organIndex)
         {
-            if (organIndex < 0 || organIndex >= _snappables.Length)
+            if (organIndex < 0 || organIndex >= _snappables.Length || _snappables[organIndex] == null)
                 return;
             SnapDecision decision = _rule.Evaluate(organIndex, _snappables[organIndex].CurrentCentrePose, _sockets);
             if (decision.Outcome == SnapOutcome.None)

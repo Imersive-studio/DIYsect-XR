@@ -14,6 +14,8 @@ namespace DIYsect.Networking
         [SerializeField, Tooltip("Middle of the organ's mesh, in the organ's own space.")]
         private Vector3 _centreOffset;
 
+        public bool IsValid => enabled && IsUsable(_homeLocalRotation) && IsFinite(_homeLocalPosition) && IsFinite(_centreOffset);
+
         public Pose HomeRootPose => new Pose(_homeLocalPosition, _homeLocalRotation);
 
         public Pose HomeCentrePose => CentreOf(HomeRootPose);
@@ -22,12 +24,22 @@ namespace DIYsect.Networking
 
         private void Awake()
         {
-            Quaternion q = _homeLocalRotation;
-            if (q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w < 1e-6f)
+            if (!IsUsable(_homeLocalRotation) || !IsFinite(_homeLocalPosition) || !IsFinite(_centreOffset))
             {
-                Debug.LogError($"{name}: SnappableOrgan has no home rotation. Run Tools > DIYsect > Add Organ Sockets.", this);
+                Debug.LogError($"{name}: SnappableOrgan has has an unusable home pose. Run Tools > DIYsect > Add Organ Sockets.", this);
                 enabled = false;
             }
+        }
+
+        private static bool IsUsable(Quaternion q)
+        {
+            return float.IsFinite(q.x) && float.IsFinite(q.y) && float.IsFinite(q.z) && float.IsFinite(q.w)
+                && q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w > 1e-6f;
+        }
+
+        private static bool IsFinite(Vector3 v)
+        {
+            return float.IsFinite(v.x) && float.IsFinite(v.y) && float.IsFinite(v.z);
         }
 
         public void SnapHome()
