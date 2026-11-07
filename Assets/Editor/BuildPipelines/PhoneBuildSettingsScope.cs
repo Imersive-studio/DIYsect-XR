@@ -68,34 +68,35 @@ namespace DIYsect.Editor
 
         // SetApplicationIdentifier also switches on "override default identifier" and no PlayerSettings API
         // switches it back, so it is read and restored through the serialized settings.
-        private static SerializedProperty OverrideIdentifierProperty(out SerializedObject owner)
+        private const string OverrideIdentifierField = "overrideDefaultApplicationIdentifier";
+
+        private static SerializedObject OpenPlayerSettings()
         {
             UnityEngine.Object[] settings = UnityEngine.Resources.FindObjectsOfTypeAll<PlayerSettings>();
             if (settings.Length == 0)
                 throw new InvalidOperationException("PlayerSettings is not loaded.");
-            owner = new SerializedObject(settings[0]);
-            return owner.FindProperty("overrideDefaultApplicationIdentifier")
-                ?? throw new InvalidOperationException("PlayerSettings has no overrideDefaultApplicationIdentifier field.");
+            return new SerializedObject(settings[0]);
         }
 
         private static bool ReadOverrideIdentifier()
         {
-            using (SerializedProperty property = OverrideIdentifierProperty(out SerializedObject owner))
+            using (SerializedObject owner = OpenPlayerSettings())
             {
-                bool value = property.boolValue;
-                owner.Dispose();
-                return value;
+                return FindOverrideIdentifier(owner).boolValue;
             }
         }
 
         private static void WriteOverrideIdentifier(bool value)
         {
-            using (SerializedProperty property = OverrideIdentifierProperty(out SerializedObject owner))
+            using (SerializedObject owner = OpenPlayerSettings())
             {
-                property.boolValue = value;
+                FindOverrideIdentifier(owner).boolValue = value;
                 owner.ApplyModifiedPropertiesWithoutUndo();
-                owner.Dispose();
             }
         }
+
+        private static SerializedProperty FindOverrideIdentifier(SerializedObject owner) =>
+            owner.FindProperty(OverrideIdentifierField)
+            ?? throw new InvalidOperationException($"PlayerSettings has no {OverrideIdentifierField} field.");
     }
 }

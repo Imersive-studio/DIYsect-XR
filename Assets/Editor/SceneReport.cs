@@ -88,7 +88,7 @@ namespace DIYsect.Editor
                 failures.Add($"{path}: AnatomyBody or DissectionTable is missing.");
                 return;
             }
-            Bounds bodyBounds = CombinedBounds(body);
+            Bounds bodyBounds = AnatomyBounds(body);
             Renderer top = null;
             foreach (Renderer candidate in table.GetComponentsInChildren<Renderer>())
                 if (candidate.name == "Top") top = candidate;
@@ -124,12 +124,25 @@ namespace DIYsect.Editor
                 failures.Add($"{path}: the close-up camera has no target texture.");
         }
 
-        private static Bounds CombinedBounds(GameObject root)
+        // The anatomy meshes only: the drapes hang over the table edges and the cut line is not tissue.
+        private static Bounds AnatomyBounds(GameObject body)
         {
-            Renderer[] renderers = root.GetComponentsInChildren<Renderer>();
-            Bounds bounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++)
-                bounds.Encapsulate(renderers[i].bounds);
+            Transform drapes = body.transform.Find("Supine/Drapes");
+            var bounds = new Bounds();
+            bool any = false;
+            foreach (Renderer renderer in body.GetComponentsInChildren<Renderer>())
+            {
+                bool isDrape = drapes != null && renderer.transform.IsChildOf(drapes);
+                if (isDrape || renderer is LineRenderer)
+                    continue;
+                if (any)
+                    bounds.Encapsulate(renderer.bounds);
+                else
+                {
+                    bounds = renderer.bounds;
+                    any = true;
+                }
+            }
             return bounds;
         }
 

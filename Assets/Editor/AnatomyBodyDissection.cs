@@ -60,6 +60,7 @@ namespace DIYsect.Editor
                 AddHinge(root.transform, skin, right, rightPoints, progress);
 
                 AnatomyBodyWall.Apply(root, progress);
+                AnatomyBodyIncisionLine.Apply(root, progress, new[] { left, right });
 
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
                 Debug.Log($"Added dissection components to {PrefabPath}. Midline (body-local): {start} to {end}.");

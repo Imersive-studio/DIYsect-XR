@@ -108,9 +108,11 @@ namespace DIYsect.Networking.Tests
             Assert.AreEqual(StepResult.Accepted, answers[2].Item2);
             yield return WaitFor(() => clientProgress.Stage == DissectionStage.RectusOpen, "the client to see the rectus open");
             yield return WaitFor(() => HingesAre(serverRectus, true) && HingesAre(clientRectus, true), "the rectus halves to swing open on server and client");
-            // The transversus stays where it is, and the omentum is still down.
+            // The transversus opens with the rectus so the cavity shows; the omentum is still down.
+            LayerHinge[] clientTransversus = HingesOf(clientProgress, "transversus");
+            Assert.AreEqual(2, clientTransversus.Length, "The body needs one hinge per transversus half.");
+            yield return WaitFor(() => HingesAre(clientTransversus, true), "the transversus halves to open with the rectus");
             AssertHinges(HingesOf(clientProgress, "omentum"), open: false);
-            Assert.AreEqual(0, HingesOf(clientProgress, "transversus").Length);
         }
 
         [UnityTest]
@@ -219,7 +221,7 @@ namespace DIYsect.Networking.Tests
             // for a moment, so wait for the pose rather than asserting the very first frame.
             LayerHinge[] all = lateProgress.GetComponentsInChildren<LayerHinge>(true);
             yield return WaitFor(() => HingesAre(all, true), "every hinge to be open on the late client");
-            Assert.AreEqual(5, all.Length);
+            Assert.AreEqual(7, all.Length, "Two skin, two rectus, two transversus and one omentum hinge.");
         }
 
         [UnityTest]
