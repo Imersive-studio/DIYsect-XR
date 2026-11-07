@@ -93,6 +93,9 @@ namespace DIYsect.Editor
             {
                 UnityEngine.Object.DestroyImmediate(root);
             }
+
+            // A rebuilt body must stay networked.
+            AnatomyBodyNetworking.ApplyToPrefab();
         }
 
         private static List<ManifestEntry> ReadManifest()
