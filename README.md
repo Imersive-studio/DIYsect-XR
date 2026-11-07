@@ -85,6 +85,8 @@ Keep the whole visible scene below approximately **750,000 triangles**. Individu
 
 [GitHub issues](https://github.com/Imersive-studio/DIYsect-XR/issues) track implementation. [Starter checklist](docs/UNITY_BACKLOG.md) defines the 16 Unity tasks and role ownership.
 
+See [deployment and OpenXR notes](docs/DEPLOYMENT.md) to build, install and run on Quest 3.
+
 `Assets/` holds Unity content. `Tools/blender/` holds reproducible asset processing. `docs/` is the existing documentation directory (keep this casing on every platform). `SourceAssets/` is local only. The template must supply `Packages/` and `ProjectSettings/` before this is a runnable Unity project; the scaffold alone is not a working multiplayer demo.
 
 The earlier frog browser prototype remains in `server/`, `shared/`, `vr/`, `audience/` and `public/`. Run it with `npm ci`, `npm start`, and `npm test`. Its WebSocket/WebXR implementation is separate from the Unity Netcode/OpenXR work. Other older documents describe that prototype; this README and the Unity architecture/checklist describe the current direction.
