@@ -1,6 +1,8 @@
-// Authority: none. The scalpel is local to each client. The server (DissectionProgress) decides what its contacts do.
+// Authority: none of its own. Every client has a copy of the scalpel, but only the steerer's copy reports contacts.
+// The server (DissectionProgress) decides what the contacts do.
 using System.Collections;
 using DIYsect.Dissection;
+using DIYsect.Networking;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
@@ -10,7 +12,10 @@ namespace DIYsect.Interaction
     /// A minimal scalpel. While the blade tip is inside an <see cref="IncisionTrigger"/> it reports the tip
     /// position to the target on a timer, and only if the tip moved since the last report. When the incision
     /// this scalpel is still cutting becomes complete, it asks for the skin to be opened. The server still checks
-    /// every sample and the request. The scalpel needs a Rigidbody and a trigger collider on the tip so Unity
+    /// every sample and the request. When the scalpel is shared (it has a <see cref="ScalpelSteering"/> that is
+    /// spawned), only the client that steers it reports; the others see the same tip but stay quiet. The reported
+    /// tip is the effective tip: if a guide controls the depth, the tip transform already carries that depth.
+    /// The scalpel needs a Rigidbody and a trigger collider on the tip so Unity
     /// raises the trigger events.
     /// </summary>
     [RequireComponent(typeof(XRGrabInteractable), typeof(Rigidbody))]
@@ -21,6 +26,7 @@ namespace DIYsect.Interaction
         [SerializeField, Min(0.01f)] private float _sendIntervalSeconds = 0.05f;
         [SerializeField, Min(0.0005f)] private float _minMoveMeters = 0.003f;
 
+        private ScalpelSteering _steering;
         private ICuttable _target;
         private Coroutine _sampling;
         private Vector3 _lastSent;
@@ -31,6 +37,7 @@ namespace DIYsect.Interaction
 
         private void Awake()
         {
+            _steering = GetComponent<ScalpelSteering>();
             Validate();
         }
 
@@ -93,7 +100,7 @@ namespace DIYsect.Interaction
             while (true)
             {
                 Vector3 tip = _tip.position;
-                if (!_hasSent || Vector3.Distance(tip, _lastSent) >= _minMoveMeters)
+                if (MayReport && (!_hasSent || Vector3.Distance(tip, _lastSent) >= _minMoveMeters))
                 {
                     _target.SubmitContact(tip);
                     _lastSent = tip;
@@ -102,6 +109,9 @@ namespace DIYsect.Interaction
                 yield return wait;
             }
         }
+
+        // A scalpel that is not networked (or not spawned yet) reports on its own; a shared one only for its steerer.
+        private bool MayReport => _steering == null || !_steering.IsSpawned || _steering.IsSteeredByLocalClient;
 
         private void StopSampling()
         {
