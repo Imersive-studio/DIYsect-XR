@@ -1,0 +1,19 @@
+{
+  "name": "DIYsect.Editor.Build",
+  "rootNamespace": "DIYsect.Editor",
+  "references": [
+    "Unity.XR.Management",
+    "Unity.XR.Management.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
