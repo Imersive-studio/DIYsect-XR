@@ -1,4 +1,7 @@
 {
   "name": "DIYsect.Dissection",
-  "rootNamespace": "DIYsect.Dissection"
+  "rootNamespace": "DIYsect.Dissection",
+  "references": [
+    "Unity.Netcode.Runtime"
+  ]
 }

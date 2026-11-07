@@ -3,6 +3,7 @@
   "rootNamespace": "DIYsect.Interaction",
   "references": [
     "DIYsect.Networking",
+    "DIYsect.Dissection",
     "Unity.Netcode.Runtime",
     "Unity.XR.Interaction.Toolkit"
   ]
