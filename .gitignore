@@ -3,3 +3,47 @@ node_modules/
 *.log
 .env
 recordings/
+
+# Local instructions and session exports
+AGENTS.md
+CLAUDE.md
+.codex/
+.claude/
+**/*session*.jsonl
+docs/setup.md
+docs/PROMPTS.md
+# Source downloads and Python
+SourceAssets/
+*.blend
+*.blend1
+.venv/
+__pycache__/
+# Unity caches and local builds
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+.vs/
+.idea/
+.gradle/
+*.csproj
+*.sln
+*.suo
+*.user
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+*.apk
+*.aab
+*.unitypackage
+sysinfo.txt
+crashlytics-build.properties

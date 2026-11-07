@@ -30,7 +30,7 @@ phones, and the interface keeps all of them aware of each other's views, questio
 4. **Class awareness inside the headset.** Glowing dots with counts show the teacher where students are
    looking, and "?" pins show open questions. (Built.)
 
-## Rules the code enforces (not the AI, not the clients)
+## Rules enforced by the server
 You cannot take out the heart before the skin and muscle; you cannot put the muscle back while an organ is
 still out; only teacher and learner can cut; only the teacher can answer. These live in
 `shared/protocol.js` and the server checks them.
