@@ -187,6 +187,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: OperatingLight
       objectReference: {fileID: 0}
+    - target: {fileID: -123542221471053533, guid: c9c0f7564d02546aaa1b5ebdfa37b8a3,
+        type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -285,7 +290,7 @@ GameObject:
   m_Component:
   - component: {fileID: 333155906}
   - component: {fileID: 333155907}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Spot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2629,7 +2634,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967039
+    m_Bits: 4294966527
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: 638315ea3d01d49a8a0eba26c4a609d8, type: 2}
   m_TargetDisplay: 0
