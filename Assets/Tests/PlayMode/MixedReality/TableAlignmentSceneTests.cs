@@ -3,6 +3,7 @@ using System.Collections;
 using DIYsect.Networking;
 using DIYsect.MixedReality;
 using NUnit.Framework;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
@@ -38,7 +39,26 @@ namespace DIYsect.MixedReality.Tests
             _root = GameObject.Find("DIYsect").transform;
         }
 
-        [TearDown]
+        // The loaded scene would stay behind for every test that runs after this one, template network manager included.
+        [UnityTearDown]
+        public IEnumerator UnloadScene()
+        {
+            LogAssert.ignoreFailingMessages = true;
+            foreach (NetworkManager manager in Object.FindObjectsByType<NetworkManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                manager.Shutdown();
+                Object.DestroyImmediate(manager.gameObject);
+            }
+            Scene professor = SceneManager.GetSceneByPath(ScenePath);
+            Scene empty = SceneManager.CreateScene("AfterTableAlignmentTests");
+            SceneManager.SetActiveScene(empty);
+            if (professor.IsValid() && professor.isLoaded)
+                yield return SceneManager.UnloadSceneAsync(professor);
+            yield return null;
+        }
+
+        // Destroying the template's objects logs errors of its own after the test body, so checking resumes only once the fixture is done.
+        [OneTimeTearDown]
         public void RestoreLogChecks()
         {
             LogAssert.ignoreFailingMessages = false;
