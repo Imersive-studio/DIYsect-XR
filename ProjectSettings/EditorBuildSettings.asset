@@ -11,6 +11,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/MRTabletopAssets/Games/Chess/Scenes/SlicesChess.unity
     guid: 7b10018d527adf74a93f47002beec580
+  - enabled: 1
+    path: Assets/Scenes/LectureHall_VR.unity
+    guid: a8c46a0c2c7064dc8b13ca0299767f53
+  - enabled: 1
+    path: Assets/Scenes/Professor_MR.unity
+    guid: 334e2f090d8834a68a231e900f4d2389
+  - enabled: 1
+    path: Assets/Scenes/Classmate_Desktop.unity
+    guid: 6012ebff08bb74c74bba66925f44b72c
   m_configObjects:
     com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: bf7e823c1be0db345b05de1c9c9beb5e,
       type: 2}
