@@ -20,6 +20,8 @@ Built for the **Immersion Studio Hackathon, November 6–9, 2026**. Deadline: **
    bash Tools/blender/fetch_zanatomy.sh
    .venv/bin/python -I Tools/blender/extract_organs.py
    .venv/bin/python -I Tools/blender/make_skin.py
+   .venv/bin/python -I Tools/blender/make_drapes.py
+   .venv/bin/python -I Tools/blender/make_surgical_lamp.py
    .venv/bin/python -I Tools/blender/render_previews.py
    ```
 
@@ -32,7 +34,7 @@ Built for the **Immersion Studio Hackathon, November 6–9, 2026**. Deadline: **
 
    Substitute the actual filename. In Blender, separate the instruments and simplify each to **10,000 triangles maximum**, then export them to `Assets/Models/Instruments/`. Keep textures beside `.gltf` input files. A4 is an optional non-commercial backup, not a required download.
 7. **MANUAL:** Verify GLB import support in the template before dragging models into scenes. Unity does not universally import GLB by default. If no compatible importer is installed, open the GLBs in Blender and export FBX while preserving transforms and materials; do not rename their extensions. TODO: record the team's chosen import method and version.
-8. Run **Tools > DIYsect > Create Classroom Props** to create table, tray and screen prefabs. The command preserves existing prefabs. Place them in scenes derived from the working template rigs: `LectureHall_VR`, `Professor_MR`, and `Classmate_Desktop`, under `Assets/Scenes/`. Assign `CloseUp.renderTexture` to an overhead camera and exclude the screen from its culling mask. Render Texture output is local; each network client renders its own synchronized scene.
+8. Run **Tools > DIYsect > Create Classroom Props** to create table, tray and screen prefabs. The command preserves existing prefabs. Place them in scenes derived from the working template rigs: `LectureHall_VR`, `Professor_MR`, and `Classmate_Desktop`, under `Assets/Scenes/`. Assign `CloseUp.renderTexture` to an overhead camera and exclude the screen from its culling mask. Render Texture output is local; each network client renders its own synchronized scene. Then run **Tools > DIYsect > Apply Realistic Look**: it re-measures the incision and flap hinges on the current skin, adds the cut line, the surgical drapes and wet-tissue materials to the body prefab, and hangs the operating light in `LectureHall_VR` and `Classmate_Desktop`. Rerun it after re-exporting the skin, drapes or lamp.
 9. **MANUAL:** Configure the template's service/project credentials using Unity's UI, then test two connected clients. Build an ARM64 Android APK for Quest 3 and test on hardware. Never commit credentials. Check the [architecture and acceptance checklist](docs/ARCHITECTURE.md).
 
 **Quest on Mac:** [Meta Horizon Link](https://developers.meta.com/vr/documentation/unity/unity-link/) is Windows only. Build a standalone APK from Mac; use the simulator for iteration or a Windows PC with Link for a PC-streamed demo.
@@ -47,6 +49,8 @@ Built for the **Immersion Studio Hackathon, November 6–9, 2026**. Deadline: **
 | A4 | Charité operating room — ChrisRE | [Sketchfab](https://sketchfab.com/3d-models/charite-university-hospital-operating-room-9ec46c4d615a4581a235eebfb162f574) | CC BY-NC 4.0 | Optional non-commercial backup; about 335k triangles before simplification |
 | A5 | EzySlice — David Arayan | [Source](https://github.com/DavidArayan/ezy-slice) | MIT | Included source; optional whole-mesh planar cutting |
 | A6 | Table, tray, screen | Unity primitives | Project-authored | Editor menu builds prefabs |
+| A7 | Surgical drapes | `Tools/blender/make_drapes.py` (cloth simulation around the anatomy) | Project-authored | Committed GLB; rerun the script after changing the anatomy |
+| A8 | Surgical lamp | `Tools/blender/make_surgical_lamp.py` | Project-authored | Committed GLB |
 
 See [full credits](docs/CREDITS.md). Derived anatomy and its previews remain CC BY-SA 4.0. The source has colored materials and no texture images. Unsupported stylized shader groups are converted to simple export materials using their source color controls; this preserves the color palette, not the original shader effects. The skin flaps are a simplified prototype, not a supplied anatomical skin layer. Do not use paid frog packs, the NIH frog kit, or an unverified laboratory pack.
 
@@ -56,6 +60,11 @@ These previews show the exported organ set with its source material color palett
 
 ![Front organ preview](docs/previews/front.png)
 ![Three-quarter organ preview](docs/previews/three_quarter.png)
+
+The Unity scene previews show `LectureHall_VR` from where the student stands: intact under the operating light, then with the skin, rectus, transversus and omentum opened. Refresh them with **Tools > DIYsect > Capture Scene Previews** (batch mode needs graphics, not `-nographics`). The lecture hall itself is still the placeholder until A2 is downloaded.
+
+![Intact body on the draped table](docs/previews/scene_intact.png)
+![Body wall opened down to the organs](docs/previews/scene_opened.png)
 
 ## Performance
 
