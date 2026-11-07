@@ -15,7 +15,7 @@ namespace DIYsect.Networking.Tests
         private const float ViewportTolerance = 0.01f;
 
         [UnityTest]
-        public IEnumerator ClientCloseUpCameraSeesTheOrganTheHostMoved()
+        public IEnumerator ClientSyncedOrganMovesInACloseUpStyleView()
         {
             yield return StartHostAndSpawnBody();
             Unity.Netcode.NetworkManager client = StartClient("Client");
@@ -37,7 +37,8 @@ namespace DIYsect.Networking.Tests
             Assert.Greater(shift, ViewportTolerance, "The close-up view did not change when the host moved the organ.");
         }
 
-        // Same mounting as the scene camera: one metre above the body, looking straight down, 50 degree field of view.
+        // A stand-in with the same mounting as the scene camera (one metre above the body, looking straight down, 50 degree
+        // field of view). The scene camera itself is checked by the edit tests in CloseUpSceneTests.
         private static Camera CreateCloseUpCameraAbove(Transform body)
         {
             var cameraObject = new GameObject("CloseUpCameraUnderTest");
