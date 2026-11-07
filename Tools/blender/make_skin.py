@@ -5,7 +5,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import *
 import bmesh
 from mathutils import Matrix
-from skin_layers import flap_axis, split_skin_layers
+from skin_layers import finish_flap, flap_axis
 
 def main():
     args = arguments(__doc__)
@@ -63,7 +63,8 @@ def main():
         obj.data.materials.clear()
         obj.data.materials.append(material)
         simplify(obj,15000)
-        split_skin_layers(obj, axis)
+        # Skin over the wall it was built from, never under it, with a fat layer inside.
+        finish_flap(obj, sources + [o for o in bpy.data.objects if o.type == 'MESH' and 'costal cartilage' in o.name.lower()], axis)
         for poly in obj.data.polygons:
             poly.use_smooth=True
         entries.append(export(obj,args.output/'Skin'/f'{obj.name}.glb','skin'))
