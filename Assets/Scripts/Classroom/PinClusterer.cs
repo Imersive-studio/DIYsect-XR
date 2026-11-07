@@ -1,3 +1,4 @@
+// No network state: a plain class that groups pins the same way on every client.
 using System.Collections.Generic;
 using UnityEngine;
 

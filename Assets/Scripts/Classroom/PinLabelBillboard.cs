@@ -1,3 +1,4 @@
+// Authority: none. Local presentation only; it never touches network state.
 using UnityEngine;
 
 namespace DIYsect.Classroom

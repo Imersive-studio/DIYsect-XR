@@ -1,3 +1,4 @@
+// Authority: none. Local presentation only; the server owns the pins it describes.
 using System.Collections.Generic;
 using UnityEngine;
 

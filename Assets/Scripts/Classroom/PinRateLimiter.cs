@@ -1,3 +1,4 @@
+// Authority: server only. The server asks it before accepting a pin; clients never use it.
 using System.Collections.Generic;
 
 namespace DIYsect.Classroom
