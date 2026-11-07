@@ -9,7 +9,7 @@ namespace DIYsect.Classroom.Tests
 
         private static QuestionPin Pin(int id, int organ, float x)
         {
-            return new QuestionPin { Id = id, OrganIndex = organ, LocalPoint = new Vector3(x, 0f, 0f) };
+            return new QuestionPin(id, organ, new Vector3(x, 0f, 0f), 0, default);
         }
 
         [Test]

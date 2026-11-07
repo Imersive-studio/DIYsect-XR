@@ -111,14 +111,7 @@ namespace DIYsect.Classroom
                 return;
             }
 
-            _pins.Add(new QuestionPin
-            {
-                Id = _nextId++,
-                OrganIndex = organIndex,
-                LocalPoint = organLocalPoint,
-                AuthorClientId = sender,
-                Text = new FixedString64Bytes(cleaned),
-            });
+            _pins.Add(new QuestionPin(_nextId++, organIndex, organLocalPoint, sender, new FixedString64Bytes(cleaned)));
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
