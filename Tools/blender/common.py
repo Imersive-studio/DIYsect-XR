@@ -1,5 +1,6 @@
 """Shared mesh operations. Imported by the command-line processing scripts."""
 import argparse
+import colorsys
 import json
 import re
 import sys
@@ -70,6 +71,84 @@ def simplify(obj, budget):
 def slug(name):
     return re.sub(r'[^a-z0-9]+', '_', name.lower()).strip('_')
 
+def _rgba(value):
+    if hasattr(value, '__len__'):
+        return tuple(value) + (1.0,) * (4 - len(value))
+    return (value, value, value, 1.0)
+
+def _blend(kind, factor, a, b):
+    if kind == 'MIX':
+        return [x + (y - x) * factor for x, y in zip(a, b)]
+    if kind == 'MULTIPLY':
+        return [x * (1 - factor) + x * y * factor for x, y in zip(a, b)]
+    if kind == 'SCREEN':
+        return [1 - ((1 - factor) + factor * (1 - y)) * (1 - x) for x, y in zip(a, b)]
+    if kind == 'ADD':
+        return [x + factor * y for x, y in zip(a, b)]
+    raise ValueError(f'unsupported mix blend {kind}')
+
+def evaluate(socket, group_inputs=None):
+    """Evaluate the simple color nodes feeding a socket to one RGBA constant.
+
+    Handles RGB, Gamma, Mix, Hue/Saturation/Value, Bright/Contrast, linear ColorRamp,
+    reroutes and group inputs. Attribute nodes read 0, because the source drives them with
+    per-object custom properties (key_color, comic_shader) that are 0 on every object.
+    Ambient Occlusion reads as unoccluded (1). Anything else raises ValueError.
+    """
+    if not socket.is_linked:
+        return _rgba(socket.default_value)
+    link = socket.links[0]
+    node = link.from_node
+    def value(name):
+        return evaluate(node.inputs[name], group_inputs)
+    if node.type == 'REROUTE':
+        return evaluate(node.inputs[0], group_inputs)
+    if node.type == 'RGB':
+        return _rgba(node.outputs[0].default_value)
+    if node.type == 'GROUP_INPUT':
+        if group_inputs is None or link.from_socket.name not in group_inputs:
+            raise ValueError('unbound group input')
+        return group_inputs[link.from_socket.name]
+    if node.type == 'ATTRIBUTE':
+        return _rgba(0.0)
+    if node.type == 'AMBIENT_OCCLUSION':
+        return _rgba(1.0)
+    if node.type == 'GAMMA':
+        color, gamma = value('Color'), value('Gamma')[0]
+        return tuple(c ** gamma for c in color[:3]) + (color[3],)
+    if node.type == 'VALTORGB':
+        return tuple(node.color_ramp.evaluate(value('Fac')[0]))
+    if node.type == 'MIX' and node.data_type == 'RGBA':
+        pick = lambda name: evaluate(next(i for i in node.inputs if i.name == name and i.type == 'RGBA'), group_inputs)
+        factor = value('Factor')[0]
+        if node.clamp_factor:
+            factor = min(max(factor, 0.0), 1.0)
+        return tuple(_blend(node.blend_type, factor, pick('A'), pick('B')))
+    if node.type == 'BRIGHTCONTRAST':
+        color, bright, contrast = value('Color'), value('Bright')[0], value('Contrast')[0]
+        gain, offset = 1 + contrast, bright - contrast * 0.5
+        return tuple(max(c * gain + offset, 0.0) for c in color[:3]) + (color[3],)
+    if node.type == 'HUE_SAT':
+        color, factor = value('Color'), value('Fac')[0]
+        hue, sat, val = colorsys.rgb_to_hsv(*color[:3])
+        shifted = colorsys.hsv_to_rgb((hue + value('Hue')[0] - 0.5) % 1.0, min(sat * value('Saturation')[0], 1.0),
+                                      val * value('Value')[0])
+        return tuple(c + (n - c) * factor for c, n in zip(color[:3], shifted)) + (color[3],)
+    raise ValueError(f'unsupported node {node.type}')
+
+def group_color(node):
+    """Visible base color of a shader group: its Principled Base Color with Color2 bound."""
+    try:
+        inputs = {socket.name: evaluate(socket) for socket in node.inputs}
+        principled = next(n for n in node.node_tree.nodes if n.type == 'BSDF_PRINCIPLED')
+        return evaluate(principled.inputs['Base Color'], inputs)
+    except (ValueError, StopIteration, KeyError):
+        pass
+    try:
+        return evaluate(node.inputs['Color2'])
+    except ValueError:
+        return None
+
 def source_color(material):
     """Read the source's color controls without exporting unsupported shader groups."""
     def visit(tree, seen):
@@ -78,7 +157,9 @@ def source_color(material):
         seen.add(tree.name)
         for node in tree.nodes:
             if node.type == 'GROUP' and 'Color2' in node.inputs:
-                return tuple(node.inputs['Color2'].default_value)
+                color = group_color(node)
+                if color is not None:
+                    return color
         for node in tree.nodes:
             if node.type == 'BSDF_PRINCIPLED':
                 return tuple(node.inputs['Base Color'].default_value)

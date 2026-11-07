@@ -43,6 +43,8 @@ def main():
     bpy.ops.object.modifier_apply(modifier=mod.name)
     material = bpy.data.materials.new('Skin')
     material.diffuse_color = (0.65, 0.38, 0.24, 1)
+    material.use_nodes = True
+    material.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value = material.diffuse_color
     entries = []
     for side in ['l', 'r']:
         obj = shell.copy()
