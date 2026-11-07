@@ -30,6 +30,10 @@ namespace DIYsect.Interaction
         private XRGrabInteractable _interactable;
         private Coroutine _streaming;
 
+        // True from the moment this client asks for the organ until it gives it back. The replicated holder list
+        // can lag behind the server's answer, so release decisions cannot rely on it alone.
+        private bool _mayHold;
+
         /// <summary>Raised on this client when the holder of this organ changes (new holder id or <see cref="OrganGrabAuthority.NoHolder"/>). Hook for ownership feedback.</summary>
         public event Action<ulong> HolderChanged;
 
@@ -71,8 +75,9 @@ namespace DIYsect.Interaction
         private void OnDisable()
         {
             // Do not leave the server holding an organ nobody can move any more.
-            if (_authority != null && _authority.IsSpawned && _authority.IsHeldByLocalClient(_organIndex))
+            if (_authority != null && _authority.IsSpawned && (_mayHold || _authority.IsHeldByLocalClient(_organIndex)))
             {
+                _mayHold = false;
                 _authority.SendPose(_organIndex, transform.localPosition, transform.localRotation);
                 _authority.Release(_organIndex);
             }
@@ -117,13 +122,16 @@ namespace DIYsect.Interaction
 
         private void OnSelectEntered(SelectEnterEventArgs args)
         {
-            if (_authority.IsSpawned)
-                _authority.RequestGrab(_organIndex);
+            if (!_authority.IsSpawned)
+                return;
+            _mayHold = true;
+            _authority.RequestGrab(_organIndex);
         }
 
         private void OnSelectExited(SelectExitEventArgs args)
         {
             StopStreaming();
+            _mayHold = false;
             if (!_authority.IsSpawned)
                 return;
             // The server ignores both calls unless this client is the holder, so they are safe after a rejection.
@@ -135,6 +143,7 @@ namespace DIYsect.Interaction
         {
             if (organIndex != _organIndex)
                 return;
+            _mayHold = granted;
             if (!_interactable.isSelected)
                 return;
 
