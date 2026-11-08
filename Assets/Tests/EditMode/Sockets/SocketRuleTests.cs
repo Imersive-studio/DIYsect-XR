@@ -139,5 +139,96 @@ namespace DIYsect.Networking.Tests
             Assert.Throws<System.ArgumentOutOfRangeException>(() => new SocketRule(0.1f, -1f));
             Assert.Throws<System.ArgumentOutOfRangeException>(() => new SocketRule(0.1f, float.PositiveInfinity));
         }
+
+        // Capture radius tests use a small rule: 3 cm tolerance, 6 cm capture.
+        private static SocketRule CaptureRule()
+        {
+            return new SocketRule(0.03f, AngleTolerance, 0.06f);
+        }
+
+        private static List<Pose> Line(params float[] xs)
+        {
+            var poses = new List<Pose>();
+            foreach (float x in xs)
+                poses.Add(new Pose(new Vector3(x, 0f, 0f), Quaternion.identity));
+            return poses;
+        }
+
+        [Test]
+        public void InsideTheCaptureRadiusIsAcceptedWhenItsOwnSocketIsNearest()
+        {
+            List<Pose> sockets = Line(0f, 0.2f);
+            var organ = new Pose(new Vector3(0.05f, 0f, 0f), Quaternion.identity);
+            SnapDecision decision = CaptureRule().Evaluate(0, organ, sockets);
+            Assert.AreEqual(SnapOutcome.Accepted, decision.Outcome);
+            Assert.AreEqual(0, decision.SocketIndex);
+        }
+
+        [Test]
+        public void InsideTheCaptureRadiusWithAnotherSocketNearerIsRejectedWhenWithinToleranceOfIt()
+        {
+            List<Pose> sockets = Line(0f, 0.07f);
+            var organ = new Pose(new Vector3(0.05f, 0f, 0f), Quaternion.identity);
+            SnapDecision decision = CaptureRule().Evaluate(0, organ, sockets);
+            Assert.AreEqual(SnapOutcome.Rejected, decision.Outcome);
+            Assert.AreEqual(1, decision.SocketIndex);
+        }
+
+        [Test]
+        public void InsideTheCaptureRadiusWithAnotherSocketNearerButOutsideItsToleranceDoesNothing()
+        {
+            // The other socket is 4 cm away (nearer than the own socket at 5 cm) but beyond the 3 cm tolerance.
+            List<Pose> sockets = Line(0f, 0.09f);
+            var organ = new Pose(new Vector3(0.05f, 0f, 0f), Quaternion.identity);
+            SnapDecision decision = CaptureRule().Evaluate(0, organ, sockets);
+            Assert.AreEqual(SnapOutcome.None, decision.Outcome);
+            Assert.AreEqual(-1, decision.SocketIndex);
+        }
+
+        [Test]
+        public void ATieWithAnIdenticalSocketCentreCountsAsOwn()
+        {
+            List<Pose> sockets = Line(0f, 0f);
+            var organ = new Pose(new Vector3(0.05f, 0f, 0f), Quaternion.identity);
+            SnapDecision decision = CaptureRule().Evaluate(0, organ, sockets);
+            Assert.AreEqual(SnapOutcome.Accepted, decision.Outcome);
+            Assert.AreEqual(0, decision.SocketIndex);
+        }
+
+        [Test]
+        public void BeyondTheCaptureRadiusDoesNothing()
+        {
+            List<Pose> sockets = Line(0f, 0.5f);
+            var organ = new Pose(new Vector3(0.07f, 0f, 0f), Quaternion.identity);
+            SnapDecision decision = CaptureRule().Evaluate(0, organ, sockets);
+            Assert.AreEqual(SnapOutcome.None, decision.Outcome);
+            Assert.AreEqual(-1, decision.SocketIndex);
+        }
+
+        [Test]
+        public void TheCaptureRadiusStillNeedsTheRotationToBeRight()
+        {
+            List<Pose> sockets = Line(0f, 0.5f);
+            var organ = new Pose(new Vector3(0.05f, 0f, 0f), Quaternion.Euler(0f, 90f, 0f));
+            Assert.AreEqual(SnapOutcome.None, CaptureRule().Evaluate(0, organ, sockets).Outcome);
+        }
+
+        [Test]
+        public void TheTwoArgumentConstructorCapturesOnlyWithinThePositionTolerance()
+        {
+            var rule = new SocketRule(0.03f, AngleTolerance);
+            List<Pose> sockets = Line(0f, 0.5f);
+            Assert.AreEqual(SnapOutcome.Accepted, rule.Evaluate(0, new Pose(new Vector3(0.03f, 0f, 0f), Quaternion.identity), sockets).Outcome);
+            Assert.AreEqual(SnapOutcome.None, rule.Evaluate(0, new Pose(new Vector3(0.05f, 0f, 0f), Quaternion.identity), sockets).Outcome);
+        }
+
+        [Test]
+        public void TheCaptureRadiusMustBeFiniteAndAtLeastThePositionTolerance()
+        {
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => new SocketRule(0.03f, 10f, 0.02f));
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => new SocketRule(0.03f, 10f, float.PositiveInfinity));
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => new SocketRule(0.03f, 10f, float.NaN));
+            Assert.DoesNotThrow(() => new SocketRule(0.03f, 10f, 0.03f));
+        }
     }
 }
