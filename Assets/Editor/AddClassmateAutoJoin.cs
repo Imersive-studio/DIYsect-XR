@@ -37,6 +37,16 @@ namespace DIYsect.Editor
             if (classmateCamera.GetComponent<ClassmateOrbitCamera>() == null)
                 classmateCamera.gameObject.AddComponent<ClassmateOrbitCamera>();
 
+            int hidden = HideWelcomePanel(scene);
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            Debug.Log($"[AddClassmateAutoJoin] Auto join and status line are on {manager.name}; orbit camera is on {classmateCamera.name}; {hidden} welcome panel(s) switched off.");
+        }
+
+        /// <summary>Switches off every instance of the template's welcome panel in the scene. Returns how many it switched off.</summary>
+        public static int HideWelcomePanel(Scene scene)
+        {
             int hidden = 0;
             foreach (GameObject root in scene.GetRootGameObjects())
             {
@@ -54,10 +64,7 @@ namespace DIYsect.Editor
                     }
                 }
             }
-
-            EditorSceneManager.MarkSceneDirty(scene);
-            EditorSceneManager.SaveScene(scene);
-            Debug.Log($"[AddClassmateAutoJoin] Auto join and status line are on {manager.name}; orbit camera is on {classmateCamera.name}; {hidden} welcome panel(s) switched off.");
+            return hidden;
         }
 
         private static Camera FindClassmateCamera()
