@@ -29,6 +29,7 @@ namespace DIYsect.Build.Tests
             var loadersBefore = new List<XRLoader>(xr.Manager.activeLoaders);
             string idBefore = PlayerSettings.GetApplicationIdentifier(NamedBuildTarget.Android);
             string nameBefore = PlayerSettings.productName;
+            AndroidSdkVersions minSdkBefore = PlayerSettings.Android.minSdkVersion;
             var before = new SerializedObject(UnityEngine.Resources.FindObjectsOfTypeAll<PlayerSettings>()[0]);
             bool overrideBefore = before.FindProperty("overrideDefaultApplicationIdentifier").boolValue;
 
@@ -38,12 +39,14 @@ namespace DIYsect.Build.Tests
                 Assert.AreEqual(0, xr.Manager.activeLoaders.Count);
                 Assert.AreEqual(idBefore + ".classmate", PlayerSettings.GetApplicationIdentifier(NamedBuildTarget.Android));
                 Assert.AreNotEqual(nameBefore, PlayerSettings.productName);
+                Assert.AreEqual(PhoneBuildSettingsScope.PhoneMinSdk, PlayerSettings.Android.minSdkVersion);
             }
 
             Assert.AreEqual(initBefore, xr.InitManagerOnStart);
             CollectionAssert.AreEqual(loadersBefore, new List<XRLoader>(xr.Manager.activeLoaders));
             Assert.AreEqual(idBefore, PlayerSettings.GetApplicationIdentifier(NamedBuildTarget.Android));
             Assert.AreEqual(nameBefore, PlayerSettings.productName);
+            Assert.AreEqual(minSdkBefore, PlayerSettings.Android.minSdkVersion);
             var settings = new SerializedObject(UnityEngine.Resources.FindObjectsOfTypeAll<PlayerSettings>()[0]);
             Assert.AreEqual(overrideBefore, settings.FindProperty("overrideDefaultApplicationIdentifier").boolValue);
         }
