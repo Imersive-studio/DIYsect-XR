@@ -1,6 +1,7 @@
 // Starts a real in-process Netcode host over UnityTransport on localhost (no cloud services).
 // Authority under test: none. The window only reads the server-owned pins and moves its own camera to the stored view.
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using DIYsect.Classroom;
 using NUnit.Framework;
@@ -99,6 +100,7 @@ namespace DIYsect.Networking.Tests
         public IEnumerator NoPinsHidesThePanel()
         {
             yield return StartHostWithWindow();
+            Assert.AreEqual(StudentViewMode.Hidden, _window.Mode);
             Assert.IsFalse(_panel.activeSelf);
             Assert.AreEqual(-1, _window.SelectedId);
             Assert.IsFalse(_camera.enabled, "The window camera renders on demand only.");
@@ -114,6 +116,7 @@ namespace DIYsect.Networking.Tests
             yield return WaitFor(() => _panel.activeSelf, "the panel to show");
 
             Assert.AreEqual(_server[0].Id, _window.SelectedId);
+            Assert.AreEqual(StudentViewMode.FollowingNewest, _window.Mode);
             AssertCameraAt(pose, "single pin");
         }
 
@@ -149,10 +152,12 @@ namespace DIYsect.Networking.Tests
 
             _window.Previous();
             Assert.AreEqual(olderId, _window.SelectedId);
+            Assert.AreEqual(StudentViewMode.Pinned, _window.Mode);
             AssertCameraAt(older, "previous");
 
             _window.Next();
             Assert.AreEqual(newerId, _window.SelectedId);
+            Assert.AreEqual(StudentViewMode.FollowingNewest, _window.Mode);
             AssertCameraAt(newer, "next");
         }
 
@@ -200,6 +205,89 @@ namespace DIYsect.Networking.Tests
             yield return WaitForPins(0);
             yield return WaitFor(() => !_panel.activeSelf, "the panel to hide");
             Assert.AreEqual(-1, _window.SelectedId);
+            Assert.AreEqual(StudentViewMode.Hidden, _window.Mode);
+        }
+
+        [UnityTest]
+        public IEnumerator RemovingThePinnedQuestionFallsBackAndFollowsNewQuestionsAgain()
+        {
+            yield return StartHostWithWindow();
+            var modes = new List<StudentViewMode>();
+            _window.ModeChanged += modes.Add;
+            RequestWithView("Q1", WorldPoseLookingAtBody(LocalPositionA));
+            yield return WaitForPins(1);
+            RequestWithView("Q2", WorldPoseLookingAtBody(LocalPositionB));
+            yield return WaitForPins(2);
+            int olderId = _server[0].Id;
+            int newerId = _server[1].Id;
+            yield return WaitFor(() => _window.SelectedId == newerId, "the window to follow the newest pin");
+
+            _window.Previous();
+            Assert.AreEqual(StudentViewMode.Pinned, _window.Mode);
+            Assert.AreEqual(olderId, _window.SelectedId);
+
+            _server.RequestRemove(olderId);
+            yield return WaitForPins(1);
+            yield return WaitFor(() => _window.SelectedId == newerId, "the window to fall back to the newest pin", () => $"Shows {_window.SelectedId}.");
+            Assert.AreEqual(StudentViewMode.FollowingNewest, _window.Mode, "Losing the pinned question must go back to following.");
+            Assert.AreEqual(StudentViewMode.Pinned, modes[modes.Count - 2], "The mode should have passed through Pinned.");
+            Assert.AreEqual(StudentViewMode.FollowingNewest, modes[modes.Count - 1]);
+
+            RequestWithView("Q3", WorldPoseLookingAtBody(LocalPositionA));
+            yield return WaitForPins(2);
+            int thirdId = _server[1].Id;
+            yield return WaitFor(() => _window.SelectedId == thirdId, "the window to follow the new question", () => $"Shows {_window.SelectedId}.");
+        }
+
+        [UnityTest]
+        public IEnumerator SteppingWithNoViewsHidesAndFollowsNewQuestionsAgain()
+        {
+            yield return StartHostWithWindow();
+            RequestWithView("Q1", WorldPoseLookingAtBody(LocalPositionA));
+            yield return WaitForPins(1);
+            RequestWithView("Q2", WorldPoseLookingAtBody(LocalPositionB));
+            yield return WaitForPins(2);
+            int olderId = _server[0].Id;
+            int newerId = _server[1].Id;
+            yield return WaitFor(() => _window.SelectedId == newerId, "the window to follow the newest pin");
+            _window.Previous();
+            Assert.AreEqual(StudentViewMode.Pinned, _window.Mode);
+
+            // While the window is off it hears nothing, so it still thinks the old question is pinned when the button is pressed.
+            _window.enabled = false;
+            _server.RequestRemove(olderId);
+            yield return WaitForPins(1);
+            _server.RequestRemove(newerId);
+            yield return WaitForPins(0);
+            _window.Next();
+            Assert.AreEqual(StudentViewMode.Hidden, _window.Mode);
+            Assert.AreEqual(-1, _window.SelectedId);
+            Assert.IsFalse(_panel.activeSelf);
+
+            _window.enabled = true;
+            RequestWithView("Q3", WorldPoseLookingAtBody(LocalPositionA));
+            yield return WaitForPins(1);
+            RequestWithView("Q4", WorldPoseLookingAtBody(LocalPositionB));
+            yield return WaitForPins(2);
+            int fourthId = _server[1].Id;
+            yield return WaitFor(() => _window.SelectedId == fourthId, "the window to follow the newest question", () => $"Shows {_window.SelectedId}.");
+            Assert.AreEqual(StudentViewMode.FollowingNewest, _window.Mode);
+        }
+
+        [UnityTest]
+        public IEnumerator DisablingTheWindowHidesThePanelAndEnablingRestoresIt()
+        {
+            yield return StartHostWithWindow();
+            RequestWithView("Q1", WorldPoseLookingAtBody(LocalPositionA));
+            yield return WaitForPins(1);
+            yield return WaitFor(() => _panel.activeSelf, "the panel to show");
+
+            _window.enabled = false;
+            Assert.IsFalse(_panel.activeSelf, "A disabled window must not leave its last picture showing.");
+
+            _window.enabled = true;
+            Assert.IsTrue(_panel.activeSelf);
+            Assert.AreEqual(StudentViewMode.FollowingNewest, _window.Mode);
         }
     }
 }
