@@ -25,6 +25,13 @@ namespace XRMultiplayer
         public const string k_SceneKeyIdentifier = "s";
         public const string k_EditorKeyIdentifier = "e";
 
+        /// <summary>
+        /// Value stored under <see cref="k_SceneKeyIdentifier"/> and used to filter lobbies. The template used the name
+        /// of the active scene, so a professor in Professor_MR, a student in LectureHall_VR and a classmate in
+        /// Classmate_Desktop could never see each other's lobby. All DIYsect roles share this one value instead.
+        /// </summary>
+        public const string k_SharedSceneKey = "DIYsect";
+
         static bool s_HideEditorInLobbies;
 
         [Tooltip("This will prevent joining into rooms that are being hosted in different scenes.\nThis should almost always be false.")]
@@ -186,7 +193,7 @@ namespace XRMultiplayer
                         },
                         {
                             // Set Scene Key
-                            k_SceneKeyIdentifier, new DataObject(DataObject.VisibilityOptions.Public, SceneManager.GetActiveScene().name, DataObject.IndexOptions.S2)
+                            k_SceneKeyIdentifier, new DataObject(DataObject.VisibilityOptions.Public, k_SharedSceneKey, DataObject.IndexOptions.S2)
                         },
                         {
                             // Set Editor Key
@@ -203,7 +210,7 @@ namespace XRMultiplayer
 
                 // RATE LIMIT: 2 request per 6 seconds
                 var lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, playerCount, options);
-                Utils.Log($"{k_DebugPrepend}Created Lobby with Join Code: {joinCode}, Region: {alloc.Region}, Build ID: {Application.version}, Scene: {SceneManager.GetActiveScene().name}, Editor: {hideEditorFromLobby}");
+                Utils.Log($"{k_DebugPrepend}Created Lobby with Join Code: {joinCode}, Region: {alloc.Region}, Build ID: {Application.version}, Scene: {k_SharedSceneKey}, Editor: {hideEditorFromLobby}");
 
                 // Stop the heartbeat routine if one exists, and starts a new one. This keeps the lobby active for visibility
                 if (m_HeartBeatRoutine != null) StopCoroutine(m_HeartBeatRoutine);
@@ -247,7 +254,7 @@ namespace XRMultiplayer
             QueryFilter applicationVersionIdFilter = new QueryFilter(field: QueryFilter.FieldOptions.S1, value: Application.version, QueryFilter.OpOptions.EQ);
 
             // Create Filter Option for different scenes.
-            QueryFilter sceneNameFilter = new QueryFilter(field: QueryFilter.FieldOptions.S2, value: SceneManager.GetActiveScene().name, QueryFilter.OpOptions.EQ);
+            QueryFilter sceneNameFilter = new QueryFilter(field: QueryFilter.FieldOptions.S2, value: k_SharedSceneKey, QueryFilter.OpOptions.EQ);
 
             // Create Filter Option for hiding editor created rooms from builds.
             QueryFilter editorFilter = new QueryFilter(field: QueryFilter.FieldOptions.S3, value: hideEditorFromLobby.ToString(), QueryFilter.OpOptions.EQ);
@@ -452,12 +459,30 @@ namespace XRMultiplayer
             return await LobbyService.Instance.QueryLobbiesAsync(lobbyOptions);
         }
 
+        /// <summary>
+        /// Returns the first lobby this client may join, or null when none exists yet. Unlike
+        /// <see cref="QuickJoinLobby"/> it never creates a lobby, so a classmate cannot become the host.
+        /// </summary>
+        public async Task<Lobby> FindJoinableLobbyAsync()
+        {
+            QueryResponse response = await GetLobbiesAsync();
+            foreach (Lobby lobby in response.Results)
+            {
+                if (CheckForLobbyFilter(lobby) || CheckForIncompatibilityFilter(lobby))
+                    continue;
+                if (lobby.AvailableSlots <= 0 || !CanJoinLobby(lobby))
+                    continue;
+                return lobby;
+            }
+            return null;
+        }
+
         public static bool CheckForLobbyFilter(Lobby lobby)
         {
             // If the lobby is not in the same scene, skip it
             if (lobby.Data.TryGetValue(k_SceneKeyIdentifier, out DataObject sceneData))
             {
-                if (sceneData.Value != SceneManager.GetActiveScene().name)
+                if (sceneData.Value != k_SharedSceneKey)
                 {
                     return true;
                 }
