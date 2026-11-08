@@ -3,6 +3,8 @@
   "rootNamespace": "DIYsect.Classroom",
   "references": [
     "DIYsect.Networking",
+    "DIYsect.Interaction",
+    "DIYsect.Dissection",
     "Unity.Netcode.Runtime",
     "Unity.Collections",
     "Unity.InputSystem",
