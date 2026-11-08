@@ -92,7 +92,7 @@ namespace XRMultiplayer
         public override void OnDestroy()
         {
             base.OnDestroy();
-            if (IsOwner)
+            if (IsOwner && m_XRModalityManager != null)
             {
                 m_XRModalityManager.trackedHandModeStarted.RemoveListener(SwapToHands);
                 m_XRModalityManager.motionControllerModeStarted.RemoveListener(SwapToControllers);
@@ -131,6 +131,10 @@ namespace XRMultiplayer
             if (IsOwner)
             {
                 m_XROrigin = FindAnyObjectByType<XROrigin>();
+                // A client with no XR rig, such as the classmate phone, has no hands to replicate. Staying uninitialized
+                // keeps Update from reading controllers that do not exist.
+                if (m_XROrigin == null)
+                    return;
                 if (m_XROrigin.TryGetComponent(out m_XRModalityManager))
                 {
                     SetupLocalHands();
