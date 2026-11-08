@@ -121,14 +121,17 @@ namespace DIYsect.Networking.Tests
             yield return new WaitForSeconds(0.7f);
             Assert.IsTrue(Near(_bodyA, localPosition, localRotation), "The holder's organ snapped back toward the stale server pose.");
 
-            // The server ends up at a different pose, so the holder must move to it after release.
-            Vector3 serverPosition = localPosition + new Vector3(-0.1f, 0.05f, 0f);
-            Quaternion serverRotation = Quaternion.Euler(0f, 20f, 0f);
-            _authorityA.SendPose(OrganIndex, serverPosition, serverRotation);
+            // Release over the open body, a little above the organ's home. The server puts an organ released there
+            // back home (Returned, or Accepted/Rejected near a socket: all three end at home), so the final pose is
+            // deterministic. Releasing outside the body would leave the organ falling, so the pose would keep changing.
+            Pose home = _serverBody.Organs[OrganIndex].GetComponent<ISnappable>().HomeRootPose;
+            Vector3 serverPosition = OrganDropSpots.DropRootPosition(_serverBody, OrganIndex, new Vector3(0f, 0.1f, 0f));
+            _authorityA.SendPose(OrganIndex, serverPosition, home.rotation);
+            yield return WaitFor(() => Near(_serverBody, serverPosition, home.rotation), "the server organ to reach the drop pose");
             _authorityA.Release(OrganIndex);
 
-            yield return WaitFor(() => Near(_serverBody, serverPosition, serverRotation), "the server organ to reach the final pose");
-            yield return WaitFor(() => Near(_bodyA, serverPosition, serverRotation), "the holder to converge to the server pose after release");
+            yield return WaitFor(() => Near(_serverBody, home.position, home.rotation, 0.0005f), "the server organ to ease home");
+            yield return WaitFor(() => Near(_bodyA, home.position, home.rotation), "the holder to converge to the server pose after release");
         }
 
         [UnityTest]
@@ -215,10 +218,10 @@ namespace DIYsect.Networking.Tests
             Assert.AreEqual(expectGranted, granted, expectGranted ? "The grab should have been granted." : "The grab should have been rejected.");
         }
 
-        private static bool Near(SharedBody body, Vector3 position, Quaternion rotation)
+        private static bool Near(SharedBody body, Vector3 position, Quaternion rotation, float tolerance = PositionTolerance)
         {
             Transform organ = body.Organs[OrganIndex].transform;
-            return Vector3.Distance(organ.localPosition, position) < PositionTolerance && Quaternion.Angle(organ.localRotation, rotation) < 0.5f;
+            return Vector3.Distance(organ.localPosition, position) < tolerance && Quaternion.Angle(organ.localRotation, rotation) < 0.5f;
         }
     }
 }
