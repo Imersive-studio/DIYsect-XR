@@ -16,8 +16,12 @@ namespace DIYsect.Classroom
     public class PointerGestureTracker : MonoBehaviour
     {
         // Windows reports a wheel notch as 120; other platforms report small numbers.
+        // Windows reports 120 per mouse-wheel notch. macOS and Linux report about 1 per notch, and a trackpad sends
+        // many small values in a row, so those are scaled down instead of divided.
         private const float WindowsWheelNotch = 120f;
-        private const float RawWheelThreshold = 10f;
+        private const float NonWindowsScrollScale = 0.15f;
+        // Caps one frame of wheel or trackpad zoom at one notch, so a fast flick cannot jump straight to a limit.
+        private const float MaxWheelUnitsPerFrame = 1f;
 
         [SerializeField, Min(1f), Tooltip("A press that moves farther than this many pixels is a drag, not a tap.")]
         private float _dragPixels = 10f;
@@ -173,7 +177,9 @@ namespace DIYsect.Classroom
             float scroll = mouse.scroll.ReadValue().y;
             if (Mathf.Approximately(scroll, 0f) || IsOverUi(-1))
                 return;
-            FrameZoom += Mathf.Abs(scroll) >= RawWheelThreshold ? scroll / WindowsWheelNotch : scroll;
+            bool windows = Application.platform == RuntimePlatform.WindowsPlayer || Application.platform == RuntimePlatform.WindowsEditor;
+            float units = windows ? scroll / WindowsWheelNotch : scroll * NonWindowsScrollScale;
+            FrameZoom += Mathf.Clamp(units, -MaxWheelUnitsPerFrame, MaxWheelUnitsPerFrame);
         }
 
         private void Finish(Vector2 position, float now)
