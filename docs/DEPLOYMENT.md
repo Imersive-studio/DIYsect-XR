@@ -77,7 +77,7 @@ The method exits with code 0 on success and 1 on failure. The `-batchmode -quit 
 
 ### Where the APK lands
 
-`Builds/Android/DIYsect.apk` inside the project folder. The earlier build was 90 MB, with 5 warnings and a licensing handshake error in the log, and it still completed (`docs/SETUP_STATUS.md`).
+`Builds/Android/DIYsect.apk` inside the project folder. The first build (7 November 2026) was 90 MB. The build of 8 November 2026 from `main` is **158 MB** (the realistic body, drapes and the 246k-triangle lecture hall are in it now). The classmate phone APK, `Builds/Android-Classmate/DIYsect-Classmate.apk`, is **84 MB**. Both are ARM64 IL2CPP builds; the Quest one is a development build and the phone one is not (`docs/SETUP_STATUS.md`).
 
 ### Install on the headset
 
@@ -92,19 +92,44 @@ Mac note from the README: Meta Horizon Link is Windows only. From a Mac, build a
 
 ## 5. Joining a session with several devices
 
-What the repository says:
+How it works (checked in the code and in a run on 8 November 2026):
 
-- The project keeps the template's Netcode for GameObjects and Unity Gaming Services packages (README step 3). The installed packages include Authentication, Core, Multiplayer Services and Vivox (see section 7).
-- The scenes come from the Mixed Reality Multiplayer Tabletop template. The intent is to use the template's session flow (one client creates a session, the others join it); the repository does not confirm how this is wired in the scenes. `docs/ARCHITECTURE.md` says the server validates dissection transitions and ownership requests and that organ poses and layer state are shared.
-- Unity project credentials must be set up by a person in Unity's own UI and never committed (README step 9).
+- The scenes use the Mixed Reality Multiplayer Tabletop template's Unity Gaming Services flow: sign in anonymously, then **create** or **join** a lobby, and the players connect through Relay with Netcode for GameObjects. One client is the host and acts as the server (it validates dissection steps, ownership and question pins).
+- **All three scenes share one lobby.** The template filtered lobbies by the active scene's name, so a professor in `Professor_MR`, a student in `LectureHall_VR` and a classmate in `Classmate_Desktop` could never see each other. `LobbyManager.k_SharedSceneKey` ("DIYsect") is now stored in every lobby and used in every filter. The build version must still match (both sides built from the same project settings), and editor-created lobbies are visible to builds.
+- **Room size is 8 players** (`XRINetworkGameManager.maxPlayers`; the template had 4).
+- **The classmate never hosts.** `ClassmateAutoJoin` (on the network manager in `Classmate_Desktop`) looks for an existing lobby every 5 seconds once signed in and joins the first one. It never creates a lobby, so the professor's headset stays the host. The phone has no menu; a line in the corner shows the state (`ClassmateStatusLabel`: "Signing in…", "Looking for the professor's room…", "Joining the room…", "Connected to … · N in the room").
+- Maximum players, the lobby key and the auto join are in `Assets/XRMP/Scripts/Network/NetworkManagers/`.
 
-What is **unverified or not written down**:
+Unity Cloud project (linked in `ProjectSettings`, not a secret): project **DIYsect-XR**, organization `arjungyawali001`, id `15cf1a93-d87c-41f9-ba01-1b3c6768a81c`. To use it in the editor, open **Edit > Project Settings > Services** and link that project; if it is missing from the list, the organization owner must add your account as a member. Authentication, Lobby and Relay worked from the editor and from an Android phone on 8 November 2026. Vivox voice chat also logged in and joined its channel from the phone once the project's Vivox settings (server, domain and issuer; the token key is empty) were saved in `ProjectSettings/Packages/com.unity.services.vivox/Settings.json`. Never commit a token key.
 
-- Whether the Unity Gaming Services project is linked on your machine. `docs/SETUP_STATUS.md` lists "the Unity Gaming Services project link" as not tested. The project file has a cloud project id, but the repository does not say whether it is the team's own project or the template's leftover.
-- The exact join steps (session name, join code, or a list shown in the app). The repository has no click-by-click steps. Ask Aaditya (networking owner) to add them here.
-- Any test with two or more devices. None has been done.
+### Host a room without a headset (Mac editor)
 
-When someone does a multi-device test, use the checklist in `docs/ARCHITECTURE.md` ("Two clients agree on organ transforms, ownership and dissection layer state") and the device test in `docs/MR_TABLE_ALIGNMENT.md`.
+The headset scenes only offer a VR menu to create a lobby, which the editor cannot click, so use the editor menu instead:
+
+1. Open the project with Unity 6000.3.28f1 and check the project is linked (above).
+2. Open `Assets/Scenes/Classmate_Desktop.unity` and press **Play**. (It runs without a headset. `Professor_MR` needs an XR runtime and has not been tried on a Mac.)
+3. Wait until the Console shows "Initializing Voice Chat" (signed in; the Vivox warnings are expected without voice setup).
+4. Choose **Tools > DIYsect > Host Test Lobby (Play Mode)**. The item is greyed out until the scene has signed in. The log shows `Created Lobby with Join Code: …` and `Connected to game session. Lobby: DIYsect test room.`
+5. Open **DIYsect Classmate** on the phone and keep it on screen. Within about 5 seconds it logs `[ClassmateAutoJoin] Joining lobby DIYsect test room.` and the editor server logs `Pending Client-1 connection approved!`.
+
+A phone that goes to the background loses its connection (the host logs a protocol timeout), so keep the app open during a test.
+
+### Classmate controls (phone and laptop)
+
+- Drag one finger (or hold the mouse button) to orbit the body; pinch (or scroll) to zoom.
+- **Tap** an organ to pin a question on it. The pin is placed when the finger lifts, and only if it did not move, so a drag never drops a pin. A second finger cancels the tap.
+
+### The professor's class roster
+
+`Professor_MR` has a **ClassRoster** panel on the professor's right (opposite the student view window). It lists every student in the room: name, "headset" or "phone/laptop", and how many questions they have pinned. A student's name can show a moment after they join. Rebuild it with **Tools > DIYsect > Add Class Roster**. It shows who is connected and what they asked; it does not show where students are looking from.
+
+What is **still unverified**:
+
+- A pin placed by a finger on the phone reaching the host and appearing in the professor's view (an `adb` tap did nothing; a real tap has not been checked).
+- The roster and the student view window on a real Quest.
+- Joining from a Quest. The headset scenes use the same lobby key, but no headset has joined a room.
+
+For a multi-device test, use the checklist in `docs/ARCHITECTURE.md` ("Two clients agree on organ transforms, ownership and dissection layer state") and the device test in `docs/MR_TABLE_ALIGNMENT.md`.
 
 ## 6. Rebuilding the assets
 
@@ -144,19 +169,19 @@ Package versions in use (`Packages/manifest.json`, with the lock file checked):
 
 | Check | Status | Evidence |
 |---|---|---|
-| Editor batch tests | Passed | PlayMode 60 of 60 and EditMode 54 of 54 passed in batch mode on Unity 6000.3.28f1 on 7 November 2026 (result supplied by the team; no test report file is stored in the repository). |
+| Editor batch tests | Passed | EditMode 113 of 113 and PlayMode 93 of 93 passed in batch mode on Unity 6000.3.28f1 on 8 November 2026. Run EditMode and then PlayMode back to back; a PlayMode run on its own sometimes aborts with "Playmode tests were aborted because the player was stopped" (Unity's tutorial window stops play mode) and passes when run again. No test report file is stored in the repository. |
 | XR validation (editor) | Passed | 0 OpenXR Project Validation issues and 0 XR Core Utils issues for Android and desktop, from **Tools > DIYsect > Report XR Validation** (`docs/SETUP_STATUS.md`). |
-| Quest APK build | Built, not installed | ARM64 IL2CPP development build, 90 MB, built in batch mode (`docs/SETUP_STATUS.md`). Never installed on a headset. |
+| Quest APK build | Built, not installed | ARM64 IL2CPP development build, 158 MB on 8 November 2026 (90 MB on 7 November), built in batch mode (`docs/SETUP_STATUS.md`). Never installed on a headset. |
 | Meta XR Simulator | Not run | Not installed on the setup machine; no run and no screenshot (`docs/SETUP_STATUS.md`). |
 | Quest 3 hardware | Not tested | No hardware test yet. The device test in `docs/MR_TABLE_ALIGNMENT.md` is written but not done; the acceptance gate in `docs/ARCHITECTURE.md` is still open. |
-| Two-device multiplayer | Not tested | No multi-device session test; the Unity Gaming Services project link is also untested (`docs/SETUP_STATUS.md`). |
-| Android phone classmate | Not tested | The README names Android phones as classmate devices, but the repository has no Android phone build steps, and the only Android build is the Quest APK. Unverified. |
+| Two-device multiplayer | Partly tested | 8 November 2026: the Mac editor hosted a lobby and an Android phone joined it over Relay (both logs agree: `Pending Client-1 connection approved!` on the host, `Connected to game session` on the phone). Authentication, Lobby, Relay and Vivox worked. A pin from the phone and any headset in the room are not tested. |
+| Android phone classmate | Partly tested | `Tools > DIYsect > Build Classmate Phone APK` (84 MB, minimum Android 10) installed and ran on an LG LM-G900TM with Android 12 on 8 November 2026: it signs in, joins the room and joins the voice channel. Touch orbit and the status line were added afterwards and have not been run on the phone. Pins from a finger: unchecked. |
 
 Read this table as: the code compiles, builds and passes its automated tests; nothing has yet been seen running on a headset or across two devices.
 
 ## Open questions for the team
 
 1. Exact steps for Quest developer mode and install (and whether Meta Quest Developer Hub is used).
-2. Join steps for a session and which Unity Gaming Services project is linked.
+2. (Answered, see section 5.) Which headset hosts: the join code is created by whoever makes the lobby first; a headset has to create it from the template's VR menu, which has not been tried.
 3. `.gitignore` already ignores the `Builds/` folder (`[Bb]uilds/`), so the APK is never committed. Keep it that way: the README forbids files over 100 MB.
-4. How an Android phone classmate is built and installed, if at all.
+4. (Answered.) The phone APK is built with `Tools > DIYsect > Build Classmate Phone APK` and installed with `adb install -r Builds/Android-Classmate/DIYsect-Classmate.apk` (USB debugging on; the Unity-bundled `adb` is under `PlaybackEngines/AndroidPlayer/SDK/platform-tools`).

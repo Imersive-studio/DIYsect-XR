@@ -36,3 +36,11 @@ Not tested: a real Quest 3, the Meta XR Simulator, multiplayer and the Unity Gam
 Not yet verified earlier in setup: performance and the Sketchfab room and instrument downloads, which need a human login. Room simplification passed the synthetic test; it has not been run on the lecture-hall asset.
 
 Use the README's numbered setup and `ARCHITECTURE.md` acceptance checklist to complete these steps. Follow `WORKFLOW.md` for the parent branch, task branches and PR dependencies.
+
+## 8 November 2026 update
+
+- Quest APK (`Build Quest APK`, from `main`): 158 MB. Classmate phone APK (`Build Classmate Phone APK`): 84 MB, minimum Android 10 (the Quest build keeps Android 14), not a development build.
+- Tests: EditMode 113 of 113 and PlayMode 93 of 93 passed in batch mode. Run EditMode and PlayMode back to back; PlayMode on its own sometimes aborts (the tutorial window stops play mode) and passes on a second run.
+- Multi-device: the Mac editor hosted a lobby (`Tools > DIYsect > Host Test Lobby (Play Mode)`) and an LG LM-G900TM phone (Android 12) joined it through Relay and joined the Vivox voice channel. The Unity Gaming Services project link works (project `15cf1a93-d87c-41f9-ba01-1b3c6768a81c`).
+- Still not tested: a real Quest 3, a pin placed by a finger on the phone, the new class roster and student view window on a headset, the Meta XR Simulator.
+- Join steps are now in `docs/DEPLOYMENT.md` section 5.
