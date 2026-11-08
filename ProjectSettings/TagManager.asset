@@ -19,10 +19,10 @@ TagManager:
   - Mirror
   - RenderOnTop
   - CloseUpScreen
+  - Environment
+  - SeatedOrgan
+  - LooseOrgan
   - OperatingLight
-  - 
-  - 
-  - 
   - 
   - 
   - 
