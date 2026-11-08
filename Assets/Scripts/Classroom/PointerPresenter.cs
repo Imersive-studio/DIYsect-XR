@@ -38,6 +38,7 @@ namespace DIYsect.Classroom
         private DissectionProgress _progress;
         private Camera _viewCamera;
         private MaterialPropertyBlock _block;
+        private bool _warnedNoCamera;
 
         /// <summary>The pointers shown right now: the professor's first, then the student's.</summary>
         public IReadOnlyList<PointerEntry> Entries => _entries;
@@ -125,7 +126,12 @@ namespace DIYsect.Classroom
         {
             Camera view = _viewCamera != null ? _viewCamera : Camera.main;
             if (view == null)
+            {
+                if (!_warnedNoCamera)
+                    Debug.LogError($"{name}: PointerPresenter has no camera to place pointers for. Tag the classmate camera MainCamera or call SetViewCamera.", this);
+                _warnedNoCamera = true;
                 return;
+            }
             for (int i = 0; i < _entries.Count; i++)
             {
                 Vector3 viewport = view.WorldToViewportPoint(CentreOf(_renderers[i]));
