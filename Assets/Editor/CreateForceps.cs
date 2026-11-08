@@ -60,12 +60,12 @@ namespace DIYsect.Editor
                 tipCollider.radius = 0.004f;
 
                 var body = root.AddComponent<Rigidbody>();
-                body.isKinematic = true;
-                body.useGravity = false;
 
                 var grab = root.AddComponent<XRGrabInteractable>();
-                grab.movementType = XRBaseInteractable.MovementType.Kinematic;
-                grab.throwOnDetach = false;
+                // Gravity, mass, damping and throw values live in one shared place.
+                ToolPhysicsSettings.Apply(body, grab);
+                // Default layer for the root and the kept arm collider (the trigger tip is untouched).
+                ToolPhysicsSettings.SetToolLayer(root);
 
                 var forceps = root.AddComponent<ForcepsTool>();
                 var serialized = new SerializedObject(forceps);

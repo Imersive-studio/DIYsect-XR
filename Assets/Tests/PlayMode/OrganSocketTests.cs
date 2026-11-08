@@ -24,6 +24,25 @@ namespace DIYsect.Networking.Tests
         private SharedBody _bodyB;
         private OrganGrabAuthority _authorityA;
         private readonly Dictionary<string, SnapOutcome> _outcomes = new Dictionary<string, SnapOutcome>();
+        private GameObject _ground;
+        private Vector3 _gravity;
+
+        // The drop test depends on gravity, so pin it and put it back afterwards.
+        [SetUp]
+        public void PinGravity()
+        {
+            _gravity = Physics.gravity;
+            Physics.gravity = new Vector3(0f, -9.81f, 0f);
+        }
+
+        [UnityTearDown]
+        public IEnumerator RestoreGravity()
+        {
+            Physics.gravity = _gravity;
+            if (_ground != null)
+                Object.Destroy(_ground);
+            yield break;
+        }
 
         [UnityTest]
         public IEnumerator GrabbingShowsTheOrganNameOnEveryClientAndReleaseHidesIt()
@@ -110,22 +129,43 @@ namespace DIYsect.Networking.Tests
         }
 
         [UnityTest]
-        public IEnumerator ReleaseAwayFromEverySocketLeavesTheOrganWhereItWas()
+        public IEnumerator ReleaseAwayFromEverySocketAndTheBodyLetsTheOrganFallWithoutAVerdict()
         {
             yield return StartTwoClients();
             yield return Grab(_liver);
             Pose root = Home(_liver);
-            Vector3 dropped = root.position + new Vector3(0.5f, 0.3f, 0.4f);
+
+            // Far to the side and lower than the body, so it is outside the body zone; a floor catches the organ.
+            Vector3 dropped = OrganDropSpots.DropRootPosition(_serverBody, _liver, new Vector3(1f, -0.1f, 0f));
+            Transform serverOrgan = _serverBody.Organs[_liver].transform;
+            float droppedWorldY = serverOrgan.parent.TransformPoint(dropped).y;
+            _ground = OrganDropSpots.CreateGround(droppedWorldY - 0.4f, serverOrgan.parent.TransformPoint(dropped));
+
             _authorityA.SendPose(_liver, dropped, root.rotation);
-            yield return new WaitForSeconds(0.3f);
+            yield return WaitFor(() => Vector3.Distance(serverOrgan.localPosition, dropped) < ExactTolerance, "the server organ to reach the drop point");
+            OrganSocketKeeper keeper = _serverBody.GetComponent<OrganSocketKeeper>();
+            Assert.IsFalse(keeper.IsOverBody(_liver), "The drop point must be outside the body zone for this test.");
+
+            OrganPhysics physics = _serverBody.GetComponent<OrganPhysics>();
+            Rigidbody serverRigidbody = serverOrgan.GetComponent<Rigidbody>();
             _outcomes.Clear();
             _authorityA.Release(_liver);
             yield return WaitFor(() => _server.GetHolder(_liver) == OrganGrabAuthority.NoHolder, "the release");
-            yield return new WaitForSeconds(0.5f);
 
+            yield return WaitFor(() => physics.IsLoose(_liver), "the organ to become loose on the server");
+            Assert.AreEqual(LayerMask.NameToLayer(OrganPhysics.LooseLayerName), serverOrgan.gameObject.layer, "A loose organ is on the LooseOrgan layer.");
+            Assert.IsTrue(serverRigidbody.useGravity);
+            float startY = serverOrgan.position.y;
+            yield return WaitFor(() => serverOrgan.position.y < startY - 0.02f, "the organ to fall under gravity");
+
+            // Clients never simulate it: their Rigidbody stays kinematic and they follow the server pose.
+            foreach (SharedBody body in new[] { _bodyA, _bodyB })
+            {
+                Assert.IsTrue(body.Organs[_liver].GetComponent<Rigidbody>().isKinematic, $"The organ must stay kinematic on {body.name}.");
+                SharedBody peer = body;
+                yield return WaitFor(() => peer.Organs[_liver].transform.position.y < startY - 0.02f, $"the fall to show on {body.name}");
+            }
             Assert.IsEmpty(_outcomes, "Nothing was judged, so nobody gets an outcome.");
-            Assert.Less(Vector3.Distance(_serverBody.Organs[_liver].transform.localPosition, dropped), ExactTolerance);
-            Assert.Less(Vector3.Distance(_bodyB.Organs[_liver].transform.localPosition, dropped), PeerTolerance);
         }
 
         [UnityTest]

@@ -33,6 +33,20 @@ namespace DIYsect.Networking.Tests
                 Object.Destroy(_forceps);
         }
 
+        // The forceps falls under gravity when nobody holds it. These tests move it by hand as a held tool, and XRI
+        // makes a held tool kinematic, so the test copy is kinematic too and stays where the test puts it.
+        private static GameObject InstantiateHeldForceps()
+        {
+            GameObject forceps = Object.Instantiate(LoadForcepsPrefab());
+            var body = forceps.GetComponent<Rigidbody>();
+            Assert.IsNotNull(body, "The forceps prefab needs a Rigidbody.");
+            body.isKinematic = true;
+            body.useGravity = false;
+            // The test moves the transform directly; interpolation would blend that move away between physics steps.
+            body.interpolation = RigidbodyInterpolation.None;
+            return forceps;
+        }
+
         [Test]
         public void LayerOrderRuleAllowsEachStepOnlyInItsPlace()
         {
@@ -52,7 +66,7 @@ namespace DIYsect.Networking.Tests
         [UnityTest]
         public IEnumerator TouchTriggerWithoutTargetDisablesItselfAndForcepsIgnoreIt()
         {
-            _forceps = Object.Instantiate(LoadForcepsPrefab());
+            _forceps = InstantiateHeldForceps();
             var tool = _forceps.GetComponent<ForcepsTool>();
             var zone = new GameObject("BrokenLayerTrigger");
             var box = zone.AddComponent<BoxCollider>();
@@ -129,7 +143,7 @@ namespace DIYsect.Networking.Tests
             Assert.IsTrue(_server.TryOpen());
             yield return WaitFor(() => clientProgress.Stage == DissectionStage.SkinOpen, "the client to see the skin open");
 
-            _forceps = Object.Instantiate(LoadForcepsPrefab());
+            _forceps = InstantiateHeldForceps();
             var tool = _forceps.GetComponent<ForcepsTool>();
             Assert.IsNotNull(tool, "The forceps prefab needs a ForcepsTool.");
             Assert.IsInstanceOf<ITool>(tool);
@@ -169,7 +183,7 @@ namespace DIYsect.Networking.Tests
         {
             yield return StartHostAndSpawnBody();
             _server = _serverBody.GetComponent<DissectionProgress>();
-            _forceps = Object.Instantiate(LoadForcepsPrefab());
+            _forceps = InstantiateHeldForceps();
             var tool = _forceps.GetComponent<ForcepsTool>();
             Transform rectusZone = _serverBody.transform.Find("RectusTrigger");
             Assert.IsNotNull(rectusZone, "The body needs a RectusTrigger. Run Tools > DIYsect > Add Body Dissection.");

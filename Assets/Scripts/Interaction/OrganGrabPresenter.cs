@@ -94,6 +94,9 @@ namespace DIYsect.Interaction
             OrganGhost ghost = GetOrCreateGhost(organIndex);
             if (ghost == null)
                 return;
+            // Returned is not a verdict (the organ was put back over the body), so it gets no colour.
+            if (outcome == SnapOutcome.Returned)
+                return;
             ghost.Flash(outcome == SnapOutcome.Accepted ? _acceptedColor : _rejectedColor, _flashSeconds);
         }
 

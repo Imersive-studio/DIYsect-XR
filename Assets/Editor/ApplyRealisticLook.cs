@@ -21,6 +21,7 @@ namespace DIYsect.Editor
             AddLectureHall.Apply();
             AddOperatingLight.Apply();
             ArrangeInstrumentStand.Apply();
+            AddFloorCollider.Apply();
             UseRealInstruments.Apply();
             AssetDatabase.SaveAssets();
         }
