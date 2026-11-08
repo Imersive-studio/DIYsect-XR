@@ -22,6 +22,20 @@ namespace DIYsect.MixedReality
             return new Pose(hitPoint - rotation * tableTopLocal, rotation);
         }
 
+        /// <summary>
+        /// Where the middle of the table top goes when there is no real table to use: straight ahead of the viewer on the
+        /// floor plane, <paramref name="distance"/> away, and <paramref name="below"/> beneath the viewer's eyes.
+        /// A viewer looking straight up or down keeps the world forward.
+        /// </summary>
+        public static Vector3 InFrontOfViewer(Vector3 viewerPosition, Vector3 viewerForward, float distance, float below)
+        {
+            Vector3 flat = new Vector3(viewerForward.x, 0f, viewerForward.z);
+            flat = flat.sqrMagnitude < 1e-4f ? Vector3.forward : flat.normalized;
+            Vector3 point = viewerPosition + flat * distance;
+            point.y = viewerPosition.y - below;
+            return point;
+        }
+
         /// <summary>Upright rotation whose forward points from the viewer to the target on the floor plane.</summary>
         public static Quaternion FacingRotation(Vector3 target, Vector3 viewerPosition, Quaternion fallback)
         {
