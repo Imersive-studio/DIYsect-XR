@@ -245,6 +245,7 @@ namespace DIYsect.Networking.Tests
             holder.SetActive(false);
             var input = holder.AddComponent<PinPlacementInput>();
             typeof(PinPlacementInput).GetField("_board", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(input, _server);
+            typeof(PinPlacementInput).GetField("_gestures", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(input, holder.AddComponent<PointerGestureTracker>());
             holder.SetActive(true);
             try
             {
