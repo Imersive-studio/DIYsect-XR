@@ -1,5 +1,6 @@
 // Run Tools > DIYsect > Add Classmate Auto Join after Create Scenes.
 using System;
+using DIYsect.Classroom;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -9,13 +10,15 @@ using XRMultiplayer;
 namespace DIYsect.Editor
 {
     /// <summary>
-    /// Makes Classmate_Desktop usable by touch: the classmate joins the professor's lobby on its own, and the
-    /// headset template's welcome panel, which a finger cannot press, is switched off. Safe to run more than once.
+    /// Makes Classmate_Desktop usable by touch: the classmate joins the professor's lobby on its own, shows a status line
+    /// saying whether they are in the room, can orbit and zoom the camera with a finger or the mouse, and the headset
+    /// template's welcome panel, which a finger cannot press, is switched off. Safe to run more than once.
     /// </summary>
     public static class AddClassmateAutoJoin
     {
         public const string ScenePath = "Assets/Scenes/Classmate_Desktop.unity";
         public const string WelcomePanelPrefab = "CoachingUI.prefab";
+        public const string ClassmateCameraName = "ClassmateCamera";
 
         [MenuItem("Tools/DIYsect/Add Classmate Auto Join")]
         public static void Apply()
@@ -27,6 +30,12 @@ namespace DIYsect.Editor
                 throw new InvalidOperationException($"{ScenePath} has no XRINetworkGameManager.");
             if (manager.GetComponent<ClassmateAutoJoin>() == null)
                 manager.gameObject.AddComponent<ClassmateAutoJoin>();
+            if (manager.GetComponent<ClassmateStatusLabel>() == null)
+                manager.gameObject.AddComponent<ClassmateStatusLabel>();
+
+            Camera classmateCamera = FindClassmateCamera();
+            if (classmateCamera.GetComponent<ClassmateOrbitCamera>() == null)
+                classmateCamera.gameObject.AddComponent<ClassmateOrbitCamera>();
 
             int hidden = 0;
             foreach (GameObject root in scene.GetRootGameObjects())
@@ -48,7 +57,16 @@ namespace DIYsect.Editor
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
-            Debug.Log($"[AddClassmateAutoJoin] Auto join is on {manager.name}; {hidden} welcome panel(s) switched off.");
+            Debug.Log($"[AddClassmateAutoJoin] Auto join and status line are on {manager.name}; orbit camera is on {classmateCamera.name}; {hidden} welcome panel(s) switched off.");
+        }
+
+        private static Camera FindClassmateCamera()
+        {
+            GameObject cameraObject = GameObject.Find(ClassmateCameraName);
+            Camera camera = cameraObject != null ? cameraObject.GetComponentInChildren<Camera>(true) : null;
+            if (camera == null)
+                throw new InvalidOperationException($"{ScenePath} has no {ClassmateCameraName} with a Camera.");
+            return camera;
         }
 
         // Batch entry point: -executeMethod DIYsect.Editor.AddClassmateAutoJoin.ApplyBatch

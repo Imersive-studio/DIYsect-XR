@@ -7,10 +7,11 @@ using DIYsect.Networking;
 namespace DIYsect.Classroom
 {
     /// <summary>
-    /// Lets a desktop or phone classmate tap an organ to pin a question on it. A press from the Input System's
+    /// Lets a desktop or phone classmate tap an organ to pin a question on it. A tap from the Input System's
     /// Pointer (mouse click or first touch) casts a ray from the camera through the pointer, finds which organ
     /// was hit and sends the hit point in that organ's local space
-    /// together with the camera pose, so the professor can later see what the asker saw.
+    /// together with the camera pose, so the professor can later see what the asker saw. The pin is placed when the press
+    /// ends, and only if it did not move: a drag orbits the camera (<see cref="ClassmateOrbitCamera"/>) instead.
     /// There is no text entry yet: every pin carries <see cref="DefaultText"/> ("?"). Set <see cref="PendingText"/>
     /// from a UI field later to ask a real question.
     /// </summary>
@@ -27,6 +28,9 @@ namespace DIYsect.Classroom
 
         private InputAction _point;
         private InputAction _press;
+        private Vector2 _pressStart;
+        private Vector2 _lastPressedPosition;
+        private bool _pressCountsAsTap;
 
         /// <summary>Text sent with the next pin. Empty means <see cref="DefaultText"/>.</summary>
         public string PendingText { get; set; } = string.Empty;
@@ -49,11 +53,13 @@ namespace DIYsect.Classroom
             _point.Enable();
             _press.Enable();
             _press.performed += HandlePress;
+            _press.canceled += HandleRelease;
         }
 
         private void OnDisable()
         {
             _press.performed -= HandlePress;
+            _press.canceled -= HandleRelease;
             _press.Disable();
             _point.Disable();
         }
@@ -64,14 +70,43 @@ namespace DIYsect.Classroom
             _point?.Dispose();
         }
 
+        // A press only pins on release, and only if it stayed put. Dragging orbits the camera instead, and a second finger
+        // (a pinch) cancels the tap.
         private void HandlePress(InputAction.CallbackContext context)
         {
-            if (IsPointerOverUi(context))
+            _pressStart = _point.ReadValue<Vector2>();
+            _lastPressedPosition = _pressStart;
+            _pressCountsAsTap = !IsPointerOverUi(context);
+        }
+
+        private void Update()
+        {
+            // The pointer position can reset once a touch ends, so the last position while pressed is kept for the release.
+            if (_press.IsPressed())
+                _lastPressedPosition = _point.ReadValue<Vector2>();
+            if (_pressCountsAsTap && Touchscreen.current != null)
+            {
+                int fingers = 0;
+                foreach (var touch in Touchscreen.current.touches)
+                    if (touch.press.isPressed)
+                        fingers++;
+                if (fingers > 1)
+                    _pressCountsAsTap = false;
+            }
+        }
+
+        private void HandleRelease(InputAction.CallbackContext context)
+        {
+            if (!_pressCountsAsTap)
+                return;
+            _pressCountsAsTap = false;
+            Vector2 release = _lastPressedPosition;
+            if (!ClassmateOrbitMath.IsTap(_pressStart, release, ClassmateOrbitCamera.TapThresholdPixels))
                 return;
             Camera view = ResolveCamera();
             if (view == null)
                 return;
-            TryRequestPin(view.ScreenPointToRay(_point.ReadValue<Vector2>()));
+            TryRequestPin(view.ScreenPointToRay(release));
         }
 
         private Camera ResolveCamera()
