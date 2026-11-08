@@ -1,5 +1,6 @@
 // Loads the real Professor_MR scene and drives TableAlignment without a headset. No network session is started.
 using System.Collections;
+using System.Collections.Generic;
 using DIYsect.Networking;
 using DIYsect.MixedReality;
 using NUnit.Framework;
@@ -110,32 +111,128 @@ namespace DIYsect.MixedReality.Tests
             Assert.IsFalse(table.enabled, "The virtual table should be hidden once placed.");
         }
 
+        [UnityTest]
+        public IEnumerator PhaseFollowsTheHandleFromDetectingToCarryingToPlaced()
+        {
+            var handle = GameObject.Find("TableAlignmentHandle").GetComponent<XRGrabInteractable>();
+            var phases = new List<AlignmentPhase>();
+            _alignment.PhaseChanged += phases.Add;
+            Assert.AreEqual(AlignmentPhase.Detecting, _alignment.Phase, "Start should begin plane detection in the editor.");
+
+            yield return Grab(handle);
+            Assert.AreEqual(AlignmentPhase.Carrying, _alignment.Phase);
+
+            Release(handle);
+            yield return null;
+            Assert.AreEqual(AlignmentPhase.Placed, _alignment.Phase);
+            CollectionAssert.AreEqual(new[] { AlignmentPhase.Carrying, AlignmentPhase.Placed }, phases);
+            Object.Destroy(_handObject);
+        }
+
+        // Planes cannot be faked here (ARPlane comes from the headset), so the detected table is simulated through PlaceOnTableAt,
+        // the call PlaceOnDetectedTable makes once it has picked a plane.
+        [UnityTest]
+        public IEnumerator ADetectedTableWhileCarryingDoesNotPlaceOrHideTheTable()
+        {
+            var handle = GameObject.Find("TableAlignmentHandle").GetComponent<XRGrabInteractable>();
+            Renderer table = _root.Find("DissectionTable").GetComponentInChildren<Renderer>();
+            var sources = new List<TableAlignment.Source>();
+            _alignment.Placed += sources.Add;
+
+            yield return Grab(handle);
+            yield return MoveHand(handle, new Vector3(0.4f, 0f, 0.3f), 0f);
+            Pose carried = _alignment.RootPose;
+
+            bool placed = _alignment.PlaceOnTableAt(new Vector3(5f, 0.74f, 5f));
+
+            Assert.IsFalse(placed, "A detected table must not win over the carry.");
+            Assert.AreEqual(0f, Vector3.Distance(carried.position, _alignment.RootPose.position), 0.001f, "The root must stay with the handle.");
+            Assert.IsTrue(table.enabled, "The virtual table must stay visible while it is carried.");
+            Assert.AreEqual(AlignmentPhase.Carrying, _alignment.Phase);
+            Assert.AreEqual(TableAlignment.Source.None, _alignment.LastSource);
+            Assert.IsEmpty(sources);
+
+            Release(handle);
+            yield return null;
+            Assert.AreEqual(AlignmentPhase.Placed, _alignment.Phase);
+            Assert.AreEqual(TableAlignment.Source.Handle, _alignment.LastSource, "Letting go places by the handle, not by the detected table.");
+            Assert.AreEqual(new[] { TableAlignment.Source.Handle }, sources);
+            Object.Destroy(_handObject);
+        }
+
+        [UnityTest]
+        public IEnumerator DisablingMidCarryStopsFollowingAndKeepsTheTableVisible()
+        {
+            var handle = GameObject.Find("TableAlignmentHandle").GetComponent<XRGrabInteractable>();
+            Renderer table = _root.Find("DissectionTable").GetComponentInChildren<Renderer>();
+            var sources = new List<TableAlignment.Source>();
+            _alignment.Placed += sources.Add;
+
+            yield return Grab(handle);
+            yield return MoveHand(handle, new Vector3(0.4f, 0f, 0.3f), 0f);
+            Assert.AreEqual(AlignmentPhase.Carrying, _alignment.Phase);
+
+            _alignment.enabled = false;
+            Pose stopped = _alignment.RootPose;
+            Assert.AreEqual(AlignmentPhase.Detecting, _alignment.Phase, "A cut short carry goes back to the phase before the grab.");
+            Assert.IsTrue(table.enabled, "The virtual table must stay visible.");
+
+            _handObject.transform.position += new Vector3(0.5f, 0f, 0f);
+            yield return new WaitForSeconds(0.3f);
+            Assert.AreEqual(0f, Vector3.Distance(stopped.position, _alignment.RootPose.position), 0.001f, "The root must stop following the handle.");
+
+            // Letting go after the carry was cut short places nothing.
+            Release(handle);
+            yield return null;
+            Assert.IsEmpty(sources);
+            Assert.AreEqual(AlignmentPhase.Detecting, _alignment.Phase);
+            Object.Destroy(_handObject);
+        }
+
         // An interactor with no input device. XRBaseInteractor reports select as active, so a selection made through the manager lasts.
         private sealed class TestHand : XRBaseInteractor
         {
         }
 
-        private static IEnumerator Carry(XRGrabInteractable handle, Vector3 move, float turnDegrees)
+        private GameObject _handObject;
+        private TestHand _hand;
+
+        private IEnumerator Grab(XRGrabInteractable handle)
         {
             var manager = handle.interactionManager;
             Assert.IsNotNull(manager, "The handle has no interaction manager.");
-            var interactorObject = new GameObject("TestInteractor");
-            var interactor = interactorObject.AddComponent<TestHand>();
-            interactorObject.transform.position = handle.transform.position;
+            _handObject = new GameObject("TestInteractor");
+            _hand = _handObject.AddComponent<TestHand>();
+            _handObject.transform.position = handle.transform.position;
             yield return null;
 
-            manager.SelectEnter((IXRSelectInteractor)interactor, (IXRSelectInteractable)handle);
+            manager.SelectEnter((IXRSelectInteractor)_hand, (IXRSelectInteractable)handle);
             yield return null;
             Assert.IsTrue(handle.isSelected, "The handle was not selected.");
+        }
+
+        private IEnumerator MoveHand(XRGrabInteractable handle, Vector3 move, float turnDegrees)
+        {
             Vector3 before = handle.transform.position;
-            interactorObject.transform.position += move;
-            interactorObject.transform.rotation = Quaternion.Euler(0f, turnDegrees, 0f);
+            _handObject.transform.position += move;
+            _handObject.transform.rotation = Quaternion.Euler(0f, turnDegrees, 0f);
             // The grab eases the handle toward the hand, so give it time to arrive.
             yield return new WaitForSeconds(0.6f);
             Assert.AreEqual(move.magnitude, Vector3.Distance(before, handle.transform.position), 0.05f, "The handle did not follow the hand.");
-            manager.SelectExit((IXRSelectInteractor)interactor, (IXRSelectInteractable)handle);
+        }
+
+        private void Release(XRGrabInteractable handle)
+        {
+            handle.interactionManager.SelectExit((IXRSelectInteractor)_hand, (IXRSelectInteractable)handle);
+        }
+
+        private IEnumerator Carry(XRGrabInteractable handle, Vector3 move, float turnDegrees)
+        {
+            yield return Grab(handle);
+            yield return MoveHand(handle, move, turnDegrees);
+            Release(handle);
             yield return null;
-            Object.Destroy(interactorObject);
+            Object.Destroy(_handObject);
         }
     }
 }
