@@ -34,6 +34,9 @@ namespace DIYsect.Networking
         /// <summary>Raised on the requesting client when the server answers a control request.</summary>
         public event Action<bool> ControlResolved;
 
+        /// <summary>Raised on the guide's client when the server ended its control (the student put the scalpel down).</summary>
+        public event Action ControlRevoked;
+
         public ulong Controller => IsSpawned ? _controller.Value : NoController;
         public bool HasController => Controller != NoController;
         public bool IsControlledByLocalClient => IsSpawned && NetworkManager != null && _controller.Value == NetworkManager.LocalClientId;
@@ -143,10 +146,21 @@ namespace DIYsect.Networking
         }
 
         // Guiding only makes sense while the student steers, and a client cannot guide its own steering.
+        // The guide is told explicitly: a NetworkVariable set and cleared in the same tick may never reach it as a
+        // change, but this message always arrives after the grant answer (messages to one client stay in order).
         private void HandleSteererChanged(ulong steerer)
         {
-            if (_controller.Value != NoController && (steerer == ScalpelSteering.NoSteerer || steerer == _controller.Value))
-                Clear();
+            ulong controller = _controller.Value;
+            if (controller == NoController || (steerer != ScalpelSteering.NoSteerer && steerer != controller))
+                return;
+            Clear();
+            ControlRevokedRpc(RpcTarget.Single(controller, RpcTargetUse.Temp));
+        }
+
+        [Rpc(SendTo.SpecifiedInParams)]
+        private void ControlRevokedRpc(RpcParams rpcParams = default)
+        {
+            ControlRevoked?.Invoke();
         }
 
         private void HandleControllerChanged(ulong previous, ulong current)

@@ -14,7 +14,7 @@ namespace DIYsect.Interaction
     /// control of the depth. While granted, lowering the handle makes the cut deeper and raising it makes it shallower
     /// (<see cref="TravelMeters"/> of travel covers the full depth range). Letting go gives the depth back to the
     /// student and the handle returns to its resting place. If the server says no, or the student puts the scalpel
-    /// down, the grab is cancelled.
+    /// down (the server revokes control), the grab is cancelled. The request follows <see cref="GrabRequest"/>.
     /// </summary>
     [RequireComponent(typeof(XRGrabInteractable))]
     public class DepthControlInput : MonoBehaviour, IXRSelectFilter
@@ -27,9 +27,12 @@ namespace DIYsect.Interaction
         private Coroutine _streaming;
         private Vector3 _restPosition;
         private Quaternion _restRotation;
-        private bool _mayControl;
+        private readonly GrabRequest _request = new GrabRequest();
 
         public float TravelMeters => _travelMeters;
+
+        /// <summary>This client's phase in controlling the depth.</summary>
+        public GrabPhase Phase => _request.Phase;
 
         bool IXRSelectFilter.canProcess => isActiveAndEnabled;
 
@@ -61,21 +64,20 @@ namespace DIYsect.Interaction
             _interactable.selectEntered.AddListener(OnSelectEntered);
             _interactable.selectExited.AddListener(OnSelectExited);
             _hand.ControlResolved += OnControlResolved;
-            _hand.ControllerChanged += OnControllerChanged;
+            _hand.ControlRevoked += OnControlRevoked;
         }
 
         private void OnDisable()
         {
-            if (_hand != null && _hand.IsSpawned && (_mayControl || _hand.IsControlledByLocalClient))
-            {
-                _mayControl = false;
-                _hand.ReleaseControl();
-            }
+            GrabRequest.Actions onDisable = _request.Handle(GrabRequest.Event.Disable);
+            if ((onDisable & GrabRequest.Actions.SendRelease) == 0 && _hand != null && _hand.IsSpawned && _hand.IsControlledByLocalClient)
+                onDisable |= GrabRequest.Actions.SendRelease;
+            Apply(onDisable);
             _interactable.selectFilters.Remove(this);
             _interactable.selectEntered.RemoveListener(OnSelectEntered);
             _interactable.selectExited.RemoveListener(OnSelectExited);
             _hand.ControlResolved -= OnControlResolved;
-            _hand.ControllerChanged -= OnControllerChanged;
+            _hand.ControlRevoked -= OnControlRevoked;
             StopStreaming();
         }
 
@@ -87,45 +89,40 @@ namespace DIYsect.Interaction
 
         private void OnSelectEntered(SelectEnterEventArgs args)
         {
-            if (!_hand.IsSpawned)
-                return;
-            _mayControl = true;
-            _hand.RequestControl();
+            if (_hand.IsSpawned)
+                Apply(_request.Handle(GrabRequest.Event.Select));
         }
 
         private void OnSelectExited(SelectExitEventArgs args)
         {
-            StopStreaming();
-            bool hadControl = _mayControl;
-            _mayControl = false;
-            if (_hand.IsSpawned && hadControl)
-                _hand.ReleaseControl();
+            Apply(_request.Handle(GrabRequest.Event.Exit));
             transform.SetPositionAndRotation(_restPosition, _restRotation);
         }
 
         private void OnControlResolved(bool granted)
         {
-            _mayControl = granted;
-            if (!_interactable.isSelected)
-                return;
+            Apply(_request.HandleAnswer(granted));
+        }
 
-            if (granted)
+        // The student put the scalpel down, so the server ended our control: let go of the handle.
+        private void OnControlRevoked()
+        {
+            Apply(_request.Handle(GrabRequest.Event.Revoked));
+        }
+
+        // Carries out what the grab state machine asked for, in this bridge's own terms.
+        private void Apply(GrabRequest.Actions actions)
+        {
+            if ((actions & GrabRequest.Actions.SendRequest) != 0)
+                _hand.RequestControl();
+            if ((actions & GrabRequest.Actions.StopStreaming) != 0)
+                StopStreaming();
+            if ((actions & GrabRequest.Actions.SendRelease) != 0 && _hand != null && _hand.IsSpawned)
+                _hand.ReleaseControl();
+            if ((actions & GrabRequest.Actions.StartStreaming) != 0)
                 _streaming ??= StartCoroutine(StreamDepth());
-            else
-                Cancel();
-        }
-
-        // The student put the scalpel down, or the server ended our control: let go of the handle.
-        private void OnControllerChanged(ulong controller)
-        {
-            if (_mayControl && _streaming != null && !_hand.IsControlledByLocalClient)
-                Cancel();
-        }
-
-        private void Cancel()
-        {
-            _mayControl = false;
-            _interactable.interactionManager.CancelInteractableSelection((IXRSelectInteractable)_interactable);
+            if ((actions & GrabRequest.Actions.CancelSelection) != 0 && _interactable.isSelected)
+                _interactable.interactionManager.CancelInteractableSelection((IXRSelectInteractable)_interactable);
         }
 
         // Sends on a timer and only when the depth changed, so it needs no Update.
