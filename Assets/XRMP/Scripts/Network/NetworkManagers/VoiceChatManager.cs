@@ -191,6 +191,16 @@ namespace XRMultiplayer
             }
         }
 
+        /// <summary>
+        /// Shows a HUD message when the HUD exists. A scene or build without a notification HUD, such as the classmate
+        /// phone, skips the message instead of throwing.
+        /// </summary>
+        static void Notify(string message, float duration)
+        {
+            if (PlayerHudNotification.Instance != null)
+                PlayerHudNotification.Instance.ShowText(message, duration);
+        }
+
         void ConnectionStateUpdated(XRINetworkGameManager.ConnectionState connectionState)
         {
             if (!m_IsInitialized && connectionState == XRINetworkGameManager.ConnectionState.Authenticated)
@@ -213,7 +223,7 @@ namespace XRMultiplayer
         IEnumerator ShowPermissionsAfterDelay(float delay = 1.0f)
         {
             Utils.Log($"{k_DebugPrepend}Requesting Microphone Permissions");
-            PlayerHudNotification.Instance.ShowText("Requesting Microphone Permissions", 3.0f);
+            Notify("Requesting Microphone Permissions", 3.0f);
             yield return new WaitForSeconds(delay);
             PermissionCallbacks permissionCallbacks = new();
             permissionCallbacks.PermissionDenied += PermissionDeniedCallback;
@@ -233,7 +243,7 @@ namespace XRMultiplayer
         {
             if (permissionName == Permission.Microphone)
             {
-                PlayerHudNotification.Instance.ShowText("Microphone Permissions Denied", 3.0f);
+                Notify("Microphone Permissions Denied", 3.0f);
             }
         }
 
@@ -241,7 +251,7 @@ namespace XRMultiplayer
         {
             Utils.Log($"{k_DebugPrepend}Microphone Permissions Granted");
             s_HasMicrophonePermission.Value = true;
-            PlayerHudNotification.Instance.ShowText("Microphone Permissions Granted", 3.0f);
+            Notify("Microphone Permissions Granted", 3.0f);
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
@@ -457,7 +467,7 @@ namespace XRMultiplayer
 #endif
             if (!Permission.HasUserAuthorizedPermission(Permission.Microphone))
             {
-                PlayerHudNotification.Instance.ShowText(k_MicrophonePersmissionDialogue, 3.0f);
+                Notify(k_MicrophonePersmissionDialogue, 3.0f);
             }
         }
 
@@ -498,7 +508,7 @@ namespace XRMultiplayer
                 XRINetworkPlayer.LocalPlayer.SetVoiceId(m_LocalParticpant.PlayerId);
                 Utils.Log($"{k_DebugPrepend}Joined Voice Channel: {m_CurrentLobbyId}");
                 m_ConnectionStatus.Value = "Joined Voice Channel";
-                PlayerHudNotification.Instance.ShowText("Joined Voice Chat", 3.0f);
+                Notify("Joined Voice Chat", 3.0f);
             }
             else
             {
@@ -526,7 +536,7 @@ namespace XRMultiplayer
                 m_ConnectionStatus.Value = "Left Voice Channel";
                 m_ConnectedToRoom = false;
                 m_LocalParticpant = null;
-                PlayerHudNotification.Instance.ShowText("Voice Chat Disconnected", 3.0f);
+                Notify("Voice Chat Disconnected", 3.0f);
             }
         }
 #endif

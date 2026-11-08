@@ -21,6 +21,14 @@ namespace DIYsect.Build.Tests
         }
 
         [Test]
+        public void Options_AreNotADevelopmentBuild_SoNoErrorConsoleCoversThePhoneScreen()
+        {
+            BuildPlayerOptions options = BuildAndroidClassmate.CreateOptions();
+
+            Assert.AreEqual(BuildOptions.None, options.options & BuildOptions.Development);
+        }
+
+        [Test]
         public void Scope_TurnsXrOffInsideAndRestoresQuestSettingsAfter()
         {
             XRGeneralSettings xr = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Android);
