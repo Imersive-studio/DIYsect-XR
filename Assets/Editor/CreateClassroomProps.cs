@@ -53,6 +53,7 @@ namespace DIYsect.Editor
             foreach (float x in new[] { -0.32f, 0.32f })
                 foreach (float z in new[] { -0.85f, 0.85f })
                     AddCube(root.transform, "Leg", new Vector3(x, 0.43f, z), new Vector3(0.06f, 0.86f, 0.06f), material);
+            ToolPhysicsSettings.SetEnvironmentLayer(root); // solid colliders on the Environment layer
             PrefabUtility.SaveAsPrefabAsset(root, path);
             Object.DestroyImmediate(root);
         }
@@ -63,6 +64,7 @@ namespace DIYsect.Editor
             if (File.Exists(path)) return;
             var root = new GameObject(name);
             AddCube(root.transform, "Surface", Vector3.zero, scale, material);
+            ToolPhysicsSettings.SetEnvironmentLayer(root); // solid collider on the Environment layer
             PrefabUtility.SaveAsPrefabAsset(root, path);
             Object.DestroyImmediate(root);
         }
