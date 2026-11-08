@@ -131,7 +131,7 @@ namespace DIYsect.Editor
         {
             int layer = LayerMask.NameToLayer(EnvironmentLayerName);
             if (layer == -1)
-                throw new InvalidOperationException($"The \"{EnvironmentLayerName}\" layer does not exist. Add it in Project Settings > Tags and Layers (layer 9).");
+                throw new InvalidOperationException($"The \"{EnvironmentLayerName}\" layer does not exist. Add it in Project Settings > Tags and Layers.");
             return layer;
         }
     }
