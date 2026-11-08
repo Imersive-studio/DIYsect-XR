@@ -98,6 +98,16 @@ namespace XRMultiplayer
         }
 
         /// <summary>
+        /// Shows the toast when the scene has a HUD, and does nothing when it has none. The classmate phone scene has no
+        /// notification HUD, so callers that must not fail there use this instead of <see cref="Instance"/>.
+        /// </summary>
+        public static void TryShowText(string textToShow, float displayTime = 3.0f)
+        {
+            if (Instance != null)
+                Instance.ShowText(textToShow, displayTime);
+        }
+
+        /// <summary>
         /// Shows the toast with the given text.
         /// </summary>
         public void ShowText(string textToShow, float displayTime = 3.0f)
