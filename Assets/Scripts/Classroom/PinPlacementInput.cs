@@ -9,7 +9,8 @@ namespace DIYsect.Classroom
     /// <summary>
     /// Lets a desktop or phone classmate tap an organ to pin a question on it. A press from the Input System's
     /// Pointer (mouse click or first touch) casts a ray from the camera through the pointer, finds which organ
-    /// was hit and sends the hit point in that organ's local space.
+    /// was hit and sends the hit point in that organ's local space
+    /// together with the camera pose, so the professor can later see what the asker saw.
     /// There is no text entry yet: every pin carries <see cref="DefaultText"/> ("?"). Set <see cref="PendingText"/>
     /// from a UI field later to ask a real question.
     /// </summary>
@@ -67,10 +68,15 @@ namespace DIYsect.Classroom
         {
             if (IsPointerOverUi(context))
                 return;
-            Camera view = _camera != null ? _camera : Camera.main;
+            Camera view = ResolveCamera();
             if (view == null)
                 return;
             TryRequestPin(view.ScreenPointToRay(_point.ReadValue<Vector2>()));
+        }
+
+        private Camera ResolveCamera()
+        {
+            return _camera != null ? _camera : Camera.main;
         }
 
         // A press on a screen-space panel must not also pin the organ behind it.
@@ -98,7 +104,12 @@ namespace DIYsect.Classroom
 
             Transform organ = _board.Body.Organs[organIndex].transform;
             string text = string.IsNullOrWhiteSpace(PendingText) ? DefaultText : PendingText;
-            _board.RequestPin(organIndex, organ.InverseTransformPoint(hit.point), text);
+            Vector3 organLocalPoint = organ.InverseTransformPoint(hit.point);
+            Camera view = ResolveCamera();
+            if (view != null)
+                _board.RequestPin(organIndex, organLocalPoint, text, view.transform.position, view.transform.rotation);
+            else
+                _board.RequestPin(organIndex, organLocalPoint, text);
             return true;
         }
 

@@ -12,7 +12,8 @@ namespace DIYsect.Classroom
     /// The shared list of question pins on the anatomy body. A pin is stored against an organ index and an
     /// organ-local point, never a world point. The server rejects a request when the organ index is wrong,
     /// the point is not finite or not on the organ, the text is empty or too long, or the sender asked for
-    /// too many pins recently. A pin can be removed by its author or by the host.
+    /// too many pins recently. A request may carry the asker's camera pose, stored in the body's local space; an invalid
+    /// pose never rejects the question, the pin is just stored without a view. A pin can be removed by its author or by the host.
     /// </summary>
     [RequireComponent(typeof(SharedBody))]
     public class QuestionBoard : NetworkBehaviour
@@ -79,7 +80,18 @@ namespace DIYsect.Classroom
         /// <summary>Asks the server to add a pin. The point is in the local space of the organ.</summary>
         public void RequestPin(int organIndex, Vector3 organLocalPoint, string text)
         {
-            AddPinRpc(organIndex, organLocalPoint, text ?? string.Empty);
+            AddPinRpc(organIndex, organLocalPoint, text ?? string.Empty, Vector3.zero, default);
+        }
+
+        /// <summary>
+        /// Asks the server to add a pin that also carries the asker's view. The pose is in world space here and is
+        /// sent in this board's local space (the body root), so the view follows the body.
+        /// </summary>
+        public void RequestPin(int organIndex, Vector3 organLocalPoint, string text, Vector3 viewWorldPosition, Quaternion viewWorldRotation)
+        {
+            Vector3 localPosition = transform.InverseTransformPoint(viewWorldPosition);
+            Quaternion localRotation = Quaternion.Inverse(transform.rotation) * viewWorldRotation;
+            AddPinRpc(organIndex, organLocalPoint, text ?? string.Empty, localPosition, localRotation);
         }
 
         /// <summary>Asks the server to remove a pin. Only its author or the host is obeyed.</summary>
@@ -89,7 +101,8 @@ namespace DIYsect.Classroom
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void AddPinRpc(int organIndex, Vector3 organLocalPoint, string text, RpcParams rpcParams = default)
+        private void AddPinRpc(int organIndex, Vector3 organLocalPoint, string text,
+            Vector3 viewPosition, Quaternion viewRotation, RpcParams rpcParams = default)
         {
             ulong sender = rpcParams.Receive.SenderClientId;
             if (organIndex < 0 || organIndex >= _organBounds.Length)
@@ -114,7 +127,13 @@ namespace DIYsect.Classroom
                 return;
             }
 
-            _pins.Add(new QuestionPin(_nextId++, organIndex, organLocalPoint, sender, new FixedString64Bytes(cleaned)));
+            // A zero rotation means "no view". A bad view is dropped, never a reason to refuse the question.
+            if (!PinRules.TryCleanView(viewPosition, viewRotation, out Quaternion cleanedRotation))
+            {
+                viewPosition = Vector3.zero;
+                cleanedRotation = default;
+            }
+            _pins.Add(new QuestionPin(_nextId++, organIndex, organLocalPoint, sender, new FixedString64Bytes(cleaned), viewPosition, cleanedRotation));
         }
 
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
