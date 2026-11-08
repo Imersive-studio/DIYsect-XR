@@ -23,8 +23,16 @@ namespace DIYsect.Editor
         }
 
         /// <summary>Options of the phone build: only the classmate scene, written to <see cref="OutputPath"/>.</summary>
-        public static BuildPlayerOptions CreateOptions() =>
-            BuildAndroid.CreateOptions(new[] { ScenePath }, OutputPath);
+        /// <remarks>
+        /// Not a development build: that mode puts Unity's red on-screen error console over the classmate's view.
+        /// Logs still reach logcat.
+        /// </remarks>
+        public static BuildPlayerOptions CreateOptions()
+        {
+            BuildPlayerOptions options = BuildAndroid.CreateOptions(new[] { ScenePath }, OutputPath);
+            options.options &= ~BuildOptions.Development;
+            return options;
+        }
 
         /// <summary>Builds the phone APK. The XR, identifier and name changes are undone even if the build fails.</summary>
         public static bool Build()

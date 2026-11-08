@@ -17,6 +17,10 @@ namespace DIYsect.Editor
         public const string IdentifierSuffix = ".classmate";
         public const string PhoneProductName = "DIYsect Classmate";
 
+        /// <summary>The phone build runs on Android 10 and newer. The Quest build keeps its own, higher minimum.</summary>
+        public const AndroidSdkVersions PhoneMinSdk = AndroidSdkVersions.AndroidApiLevel29;
+
+        private readonly AndroidSdkVersions _minSdk;
         private readonly XRGeneralSettings _xrSettings;
         private readonly bool _initManagerOnStart;
         private readonly List<XRLoader> _loaders;
@@ -29,6 +33,7 @@ namespace DIYsect.Editor
         {
             _identifier = PlayerSettings.GetApplicationIdentifier(NamedBuildTarget.Android);
             _productName = PlayerSettings.productName;
+            _minSdk = PlayerSettings.Android.minSdkVersion;
             _overrideIdentifier = ReadOverrideIdentifier();
             _xrSettings = XRGeneralSettingsPerBuildTarget.XRGeneralSettingsForBuildTarget(BuildTargetGroup.Android);
             try
@@ -43,6 +48,7 @@ namespace DIYsect.Editor
                 }
                 PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, _identifier + IdentifierSuffix);
                 PlayerSettings.productName = PhoneProductName;
+                PlayerSettings.Android.minSdkVersion = PhoneMinSdk;
             }
             catch
             {
@@ -63,6 +69,7 @@ namespace DIYsect.Editor
             }
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, _identifier);
             PlayerSettings.productName = _productName;
+            PlayerSettings.Android.minSdkVersion = _minSdk;
             WriteOverrideIdentifier(_overrideIdentifier);
         }
 
