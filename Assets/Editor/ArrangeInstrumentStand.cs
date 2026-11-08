@@ -89,6 +89,7 @@ namespace DIYsect.Editor
                 AddPart(root.transform, PrimitiveType.Cylinder, "Base", new Vector3(0f, 0.01f, 0f), new Vector3(0.45f, 0.01f, 0.45f), steel);
                 AddPart(root.transform, PrimitiveType.Cylinder, "Pole", new Vector3(0f, 0.5f, 0f), new Vector3(0.04f, 0.49f, 0.04f), steel);
                 AddPart(root.transform, PrimitiveType.Cube, "Shelf", new Vector3(0f, 0.99f, 0f), new Vector3(0.36f, 0.02f, 0.5f), steel);
+                ToolPhysicsSettings.SetEnvironmentLayer(root); // solid colliders on the Environment layer
                 PrefabUtility.SaveAsPrefabAsset(root, StandPath);
             }
             finally

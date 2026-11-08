@@ -137,11 +137,11 @@ namespace DIYsect.Editor
                 tip.localPosition = new Vector3(0f, 0f, 0.072f);
 
                 var body = root.AddComponent<Rigidbody>();
-                body.isKinematic = true;
-                body.useGravity = false;
                 var grab = root.AddComponent<XRGrabInteractable>();
-                grab.movementType = XRBaseInteractable.MovementType.Kinematic;
-                grab.throwOnDetach = false;
+                // Gravity, mass, damping and throw values live in one shared place.
+                ToolPhysicsSettings.Apply(body, grab);
+                // The Barrel capsule keeps its solid collider; root and barrel go on the Default layer.
+                ToolPhysicsSettings.SetToolLayer(root);
                 var pen = root.AddComponent<GuideLinePen>();
                 var serialized = new SerializedObject(pen);
                 serialized.FindProperty("_tip").objectReferenceValue = tip;
