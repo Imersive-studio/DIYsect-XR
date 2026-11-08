@@ -39,7 +39,7 @@ Use the README's numbered setup and `ARCHITECTURE.md` acceptance checklist to co
 
 ## 8 November 2026 update
 
-- Quest APK (`Build Quest APK`, from `main`): 158 MB. Classmate phone APK (`Build Classmate Phone APK`): 84 MB, minimum Android 10 (the Quest build keeps Android 14), not a development build.
+- Quest APK (`Build Quest APK`): 158 MB from the evening of 7 November, after #112. The rebuild on 8 November failed in batch mode with `RenderTexture.Create failed` (a camera is rendered during the build and `-nographics` has no graphics device); rebuild from the editor menu. Classmate phone APK (`Build Classmate Phone APK`): 71 MB after the 8 November rebuild, minimum Android 10 (the Quest build keeps Android 14), not a development build.
 - Tests: EditMode 113 of 113 and PlayMode 93 of 93 passed in batch mode. Run EditMode and PlayMode back to back; PlayMode on its own sometimes aborts (the tutorial window stops play mode) and passes on a second run.
 - Multi-device: the Mac editor hosted a lobby (`Tools > DIYsect > Host Test Lobby (Play Mode)`) and an LG LM-G900TM phone (Android 12) joined it through Relay and joined the Vivox voice channel. The Unity Gaming Services project link works (project `15cf1a93-d87c-41f9-ba01-1b3c6768a81c`).
 - Still not tested: a real Quest 3, a pin placed by a finger on the phone, the new class roster and student view window on a headset, the Meta XR Simulator.

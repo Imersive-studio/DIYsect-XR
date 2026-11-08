@@ -77,7 +77,7 @@ The method exits with code 0 on success and 1 on failure. The `-batchmode -quit 
 
 ### Where the APK lands
 
-`Builds/Android/DIYsect.apk` inside the project folder. The first build (7 November 2026) was 90 MB. The build of 8 November 2026 from `main` is **158 MB** (the realistic body, drapes and the 246k-triangle lecture hall are in it now). The classmate phone APK, `Builds/Android-Classmate/DIYsect-Classmate.apk`, is **84 MB**. Both are ARM64 IL2CPP builds; the Quest one is a development build and the phone one is not (`docs/SETUP_STATUS.md`).
+`Builds/Android/DIYsect.apk` inside the project folder. The first build (7 November 2026) was 90 MB. The rebuild on the evening of 7 November, after #112, is **158 MB** (the realistic body, drapes and the 246k-triangle lecture hall are in it). A Quest rebuild on 8 November, after the phone changes, **failed in batch mode** with `RenderTexture.Create failed` and `BlitFinalToBackBuffer: Unable to find surface` (Unity renders a camera during the build and `-nographics` has no graphics device); the earlier 158 MB build had passed the same way, so rebuild from the editor menu **Tools > DIYsect > Build Quest APK** (with graphics) and treat the 158 MB file as out of date. The classmate phone APK, `Builds/Android-Classmate/DIYsect-Classmate.apk`, is **71 MB** after the 8 November rebuild (it was 84 MB earlier the same day). Both are ARM64 IL2CPP builds; the Quest one is a development build and the phone one is not (`docs/SETUP_STATUS.md`).
 
 ### Install on the headset
 
@@ -171,11 +171,11 @@ Package versions in use (`Packages/manifest.json`, with the lock file checked):
 |---|---|---|
 | Editor batch tests | Passed | EditMode 113 of 113 and PlayMode 93 of 93 passed in batch mode on Unity 6000.3.28f1 on 8 November 2026. Run EditMode and then PlayMode back to back; a PlayMode run on its own sometimes aborts with "Playmode tests were aborted because the player was stopped" (Unity's tutorial window stops play mode) and passes when run again. No test report file is stored in the repository. |
 | XR validation (editor) | Passed | 0 OpenXR Project Validation issues and 0 XR Core Utils issues for Android and desktop, from **Tools > DIYsect > Report XR Validation** (`docs/SETUP_STATUS.md`). |
-| Quest APK build | Built, not installed | ARM64 IL2CPP development build, 158 MB on 8 November 2026 (90 MB on 7 November), built in batch mode (`docs/SETUP_STATUS.md`). Never installed on a headset. |
+| Quest APK build | Built, not installed | ARM64 IL2CPP development build, 158 MB on the evening of 7 November 2026 (90 MB earlier that day), built in batch mode (`docs/SETUP_STATUS.md`). A rebuild on 8 November failed in batch mode (see section 4); rebuild from the editor menu. Never installed on a headset. |
 | Meta XR Simulator | Not run | Not installed on the setup machine; no run and no screenshot (`docs/SETUP_STATUS.md`). |
 | Quest 3 hardware | Not tested | No hardware test yet. The device test in `docs/MR_TABLE_ALIGNMENT.md` is written but not done; the acceptance gate in `docs/ARCHITECTURE.md` is still open. |
 | Two-device multiplayer | Partly tested | 8 November 2026: the Mac editor hosted a lobby and an Android phone joined it over Relay (both logs agree: `Pending Client-1 connection approved!` on the host, `Connected to game session` on the phone). Authentication, Lobby, Relay and Vivox worked. A pin from the phone and any headset in the room are not tested. |
-| Android phone classmate | Partly tested | `Tools > DIYsect > Build Classmate Phone APK` (84 MB, minimum Android 10) installed and ran on an LG LM-G900TM with Android 12 on 8 November 2026: it signs in, joins the room and joins the voice channel. Touch orbit and the status line were added afterwards and have not been run on the phone. Pins from a finger: unchecked. |
+| Android phone classmate | Partly tested | `Tools > DIYsect > Build Classmate Phone APK` (71 MB, minimum Android 10) installed and ran on an LG LM-G900TM with Android 12 on 8 November 2026: it signs in, joins the room and joins the voice channel. Touch orbit and the status line were added afterwards and have not been run on the phone. Pins from a finger: unchecked. |
 
 Read this table as: the code compiles, builds and passes its automated tests; nothing has yet been seen running on a headset or across two devices.
 
