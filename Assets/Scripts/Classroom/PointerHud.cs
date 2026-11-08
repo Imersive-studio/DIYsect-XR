@@ -21,6 +21,7 @@ namespace DIYsect.Classroom
 
         private PointerPresenter _presenter;
         private GUIStyle _style;
+        private readonly GUIContent _measure = new GUIContent();
 
         private void Awake()
         {
@@ -67,7 +68,8 @@ namespace DIYsect.Classroom
             GUI.color = savedColor;
 
             // The label sits above (professor) or below (student) the marker; off screen it is pulled toward the screen centre.
-            float width = _style.CalcSize(new GUIContent(entry.Text)).x + 24f * scale;
+            _measure.text = entry.Text;
+            float width = _style.CalcSize(_measure).x + 24f * scale;
             float height = LabelHeight * scale;
             Vector2 labelCentre = anchor;
             if (!place.OnScreen)
