@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9149799454347693675}
   - component: {fileID: 3998937448085159266}
   - component: {fileID: 5962475496927309237}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Pole
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -126,7 +126,7 @@ GameObject:
   - component: {fileID: 769181233761016747}
   - component: {fileID: 4809816678763608173}
   - component: {fileID: 4847356460567903044}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Base
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -274,7 +274,7 @@ GameObject:
   - component: {fileID: 210257795096143038}
   - component: {fileID: 1101264857046240139}
   - component: {fileID: 3026973231675517559}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Shelf
   m_TagString: Untagged
   m_Icon: {fileID: 0}
