@@ -36,6 +36,9 @@ namespace DIYsect.Networking
         /// </summary>
         public event Action<int> ServerReleased;
 
+        /// <summary>Raised on the server only, when a grab is granted, with the organ index. Used to stop its physics while held.</summary>
+        public event Action<int> ServerGranted;
+
         /// <summary>Raised on the requesting client when the server answers a grab request (organ index, granted).</summary>
         public event Action<int, bool> GrabResolved;
 
@@ -114,7 +117,10 @@ namespace DIYsect.Networking
             ulong sender = rpcParams.Receive.SenderClientId;
             bool granted = IsValidIndex(organIndex) && (_holders[organIndex] == NoHolder || _holders[organIndex] == sender);
             if (granted)
+            {
                 _holders[organIndex] = sender;
+                ServerGranted?.Invoke(organIndex);
+            }
             GrabResultRpc(organIndex, granted, RpcTarget.Single(sender, RpcTargetUse.Temp));
         }
 
