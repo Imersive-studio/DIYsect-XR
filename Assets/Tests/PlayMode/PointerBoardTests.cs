@@ -21,16 +21,22 @@ namespace DIYsect.Networking.Tests
         private NetworkManager _managerA;
         private NetworkManager _managerB;
         private GameObject _scalpel;
+        private GameObject _mainCamera;
 
         [TearDown]
         public void DestroyScalpel()
         {
+            if (_mainCamera != null)
+                Object.Destroy(_mainCamera);
             if (_scalpel != null)
                 Object.Destroy(_scalpel);
         }
 
         private IEnumerator StartTwoClients()
         {
+            // The presenter places pointers for the scene's main camera and logs an error without one.
+            _mainCamera = new GameObject("Test main camera") { tag = "MainCamera" };
+            _mainCamera.AddComponent<Camera>();
             yield return StartHostAndSpawnBody();
             _server = _serverBody.GetComponent<PointerBoard>();
             Assert.IsNotNull(_server, "The body prefab has no PointerBoard. Run Tools > DIYsect > Add Organ Pointer.");
