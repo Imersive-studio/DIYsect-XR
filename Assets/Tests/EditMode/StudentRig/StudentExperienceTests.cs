@@ -99,6 +99,22 @@ namespace DIYsect.StudentRig.Tests
             Assert.AreEqual(expectedOffset, EyeHeightMath.OffsetFor(eyeHeight, trackedHead), 0.0001f);
         }
 
+        [TestCase(1.6f, 1.0f, 1f, 0.5f)]
+        [TestCase(1.6f, -1.0f, 1f, -0.5f)]
+        [TestCase(1.6f, 0.3f, 1f, 0f)]
+        [TestCase(1.6f, 1.0f, 0.5f, 0.25f)]
+        public void ThumbstickMovesTheEyesAtASetSpeed(float eyeHeight, float stickY, float seconds, float expected)
+        {
+            Assert.AreEqual(expected, EyeHeightMath.AdjustmentFor(eyeHeight, stickY, seconds, 0.5f, 0.8f, 2.2f), 0.0001f);
+        }
+
+        [Test]
+        public void ThumbstickNeverPassesTheLimits()
+        {
+            Assert.AreEqual(2.2f - 2.19f, EyeHeightMath.AdjustmentFor(2.19f, 1f, 10f, 0.5f, 0.8f, 2.2f), 0.0001f);
+            Assert.AreEqual(0.8f - 0.81f, EyeHeightMath.AdjustmentFor(0.81f, -1f, 10f, 0.5f, 0.8f, 2.2f), 0.0001f);
+        }
+
         [Test]
         public void OnlyRealHeightsAreUsable()
         {

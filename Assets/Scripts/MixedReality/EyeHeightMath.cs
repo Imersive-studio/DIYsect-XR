@@ -13,6 +13,20 @@ namespace DIYsect.MixedReality
             return eyeHeight - trackedHeadHeight;
         }
 
+        /// <summary>
+        /// How far to move the eyes this frame for a thumbstick push. Pushing up raises them, pushing down lowers them,
+        /// at <paramref name="speed"/> metres a second. A push inside the dead zone does nothing, and the result never
+        /// leaves the range <paramref name="min"/> to <paramref name="max"/>.
+        /// </summary>
+        public static float AdjustmentFor(float eyeHeight, float stickY, float deltaTime, float speed, float min, float max, float deadZone = 0.6f)
+        {
+            if (float.IsNaN(stickY) || System.Math.Abs(stickY) < deadZone)
+                return 0f;
+            float wanted = stickY * speed * deltaTime;
+            float target = System.Math.Max(min, System.Math.Min(max, eyeHeight + wanted));
+            return target - eyeHeight;
+        }
+
         /// <summary>False for a value the runtime has not set yet (not a number or infinite).</summary>
         public static bool IsUsable(float trackedHeadHeight)
         {

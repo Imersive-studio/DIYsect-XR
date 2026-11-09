@@ -27,11 +27,20 @@ namespace DIYsect.MixedReality
         [SerializeField, Tooltip("Calibrate anyway after this long if the headset cannot say whether it is worn.")]
         private float _giveUpSeconds = 8f;
 
+        [SerializeField, Tooltip("How fast the right thumbstick raises or lowers the eyes, in metres a second.")]
+        private float _adjustSpeed = 0.5f;
+        [SerializeField, Tooltip("Lowest eye height the thumbstick can set, in metres.")]
+        private float _minEyeHeight = 0.8f;
+        [SerializeField, Tooltip("Highest eye height the thumbstick can set, in metres.")]
+        private float _maxEyeHeight = 2.2f;
+
         private XROrigin _origin;
         private bool _calibrating;
+        private bool _calibrated;
+        private float _currentEyeHeight;
         private readonly List<XRInputSubsystem> _subsystems = new List<XRInputSubsystem>();
 
-        /// <summary>The height the eyes are put at, in metres above the scene floor.</summary>
+        /// <summary>The height the eyes start at after the headset goes on or recenters, in metres above the scene floor.</summary>
         public float EyeHeight => _eyeHeight;
 
         private void Awake()
@@ -55,6 +64,25 @@ namespace DIYsect.MixedReality
             yield return Calibrate();
         }
 
+        // Right thumbstick up raises the eyes, down lowers them. Only after the first calibration, and not while a
+        // recenter is being measured. The head keeps moving the camera by itself, this only shifts the starting height.
+        private void Update()
+        {
+            if (_calibrating || _origin == null || !_calibrated)
+                return;
+            InputDevice right = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+            if (!right.isValid || !right.TryGetFeatureValue(CommonUsages.primary2DAxis, out Vector2 stick))
+                return;
+            // Snap turning uses the sideways push, so only a mostly vertical push changes the height.
+            if (Mathf.Abs(stick.x) > 0.5f)
+                return;
+            float change = EyeHeightMath.AdjustmentFor(_currentEyeHeight, stick.y, Time.deltaTime, _adjustSpeed, _minEyeHeight, _maxEyeHeight);
+            if (change == 0f)
+                return;
+            _currentEyeHeight += change;
+            _origin.CameraYOffset += change;
+        }
+
         private void OnDestroy()
         {
             foreach (XRInputSubsystem subsystem in _subsystems)
@@ -72,13 +100,16 @@ namespace DIYsect.MixedReality
         {
             _calibrating = true;
             yield return new WaitForSeconds(_settleSeconds);
+            // A recenter starts from the starting height again, so a fresh calibration always lands there.
+            _currentEyeHeight = _eyeHeight;
             if (_origin != null && _origin.Camera != null)
             {
                 float trackedHeadHeight = _origin.CameraInOriginSpacePos.y - _origin.CameraYOffset;
                 if (EyeHeightMath.IsUsable(trackedHeadHeight))
                 {
-                    _origin.CameraYOffset = EyeHeightMath.OffsetFor(_eyeHeight, trackedHeadHeight);
-                    Debug.Log($"[EyeHeightCalibration] head {trackedHeadHeight:F2} m, offset {_origin.CameraYOffset:F2} m, eyes at {_eyeHeight:F2} m.");
+                    _origin.CameraYOffset = EyeHeightMath.OffsetFor(_currentEyeHeight, trackedHeadHeight);
+                    _calibrated = true;
+                    Debug.Log($"[EyeHeightCalibration] head {trackedHeadHeight:F2} m, offset {_origin.CameraYOffset:F2} m, eyes at {_currentEyeHeight:F2} m.");
                 }
                 else
                 {
