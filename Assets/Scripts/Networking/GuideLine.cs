@@ -111,6 +111,7 @@ namespace DIYsect.Networking
         {
             ulong sender = rpcParams.Receive.SenderClientId;
             bool granted = _drawer.Value == NoDrawer || _drawer.Value == sender;
+            Debug.Log($"[PhoneTouch] Room {(granted ? "accepted" : "refused")} a stroke on {name} from client {sender}.");
             if (granted)
             {
                 _drawer.Value = sender;
