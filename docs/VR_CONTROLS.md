@@ -1,10 +1,10 @@
 # Student VR controls (Quest)
 
 ## Before you start
-Wear the headset standing. The eyes are fixed at 1.6 m, so you do not need to crouch or stretch. Controllers or bare hands both work.
+Wear the headset standing. The eyes are fixed at 1.6 m, so you do not need to crouch or stretch. The height is set a couple of seconds after you put the headset on, and again after you recenter it (hold the Meta button). Controllers or bare hands both work.
 
 ## Move
-The left thumbstick walks. The right thumbstick snap turns.
+The left thumbstick walks. The right thumbstick snap turns left and right. Push the right thumbstick up to raise your eyes and down to lower them. Crouching and standing up for real also move the view.
 
 ## See where you point
 Every controller and hand shows a ray, at least 0.4 m long. A tool turns yellow when you point at it.
