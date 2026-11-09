@@ -8,6 +8,7 @@
     "Unity.XR.Interaction.Toolkit",
     "Unity.XR.CoreUtils",
     "DIYsect.Presentation",
-    "Unity.TextMeshPro"
+    "Unity.TextMeshPro",
+    "Unity.InputSystem"
   ]
 }
