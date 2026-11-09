@@ -1,110 +1,214 @@
+<div align="center">
+
 # DIYsect
 
-**One dissection, a whole class inside it, across mixed reality, VR, and phones.** A professor in Quest 3 mixed reality guides a student in a virtual lecture hall while classmates on laptops or Android phones pin questions to the same human anatomy. The demo follows a midline incision, opening the abdominal wall, lifting the omentum, and removing and replacing organs.
+### One shared body. Every student has a view.
 
-Built for the **Immersion Studio Hackathon, November 6–9, 2026**. Deadline: **Monday, November 9 at 12 PM** (confirm the event's timezone). Submit a **3–5 minute demo video**, including a code-explanation segment, and this repository link. Make small, frequent commits.
+A multiplayer anatomy classroom across mixed reality, virtual reality, and phones.
 
-## Start Unity now
+![Unity](https://img.shields.io/badge/Unity-6-111827?logo=unity&logoColor=white)
+![Meta Quest](https://img.shields.io/badge/Meta_Quest-3-0081FB?logo=meta&logoColor=white)
+![Android](https://img.shields.io/badge/Android-Classmate-3DDC84?logo=android&logoColor=white)
+![OpenXR](https://img.shields.io/badge/XR-OpenXR-6D5DFB)
 
-1. Install **Unity Hub** and a **Unity 6 LTS** editor (6000.0 or newer), including **Android Build Support, SDK/NDK tools and OpenJDK**. Use the same editor version across the team.
-2. **MANUAL:** In Hub, create a project using **Mixed Reality Multiplayer Tabletop**. Create it in a temporary sibling folder, then copy its `Assets`, `Packages` and `ProjectSettings` into this existing clone, merging folders without replacing existing work. Keep this clone's `.git` folder. Add this clone to Hub and open it. Do not create another repository. See the [template documentation](https://docs.unity.cn/Packages/com.unity.template.mr-multiplayer@1.0/manual/index.html) and [VR multiplayer reference](https://docs.unity3d.com/Packages/com.unity.template.vr-multiplayer@2.1/manual/index.html).
-3. Keep the template's XR Interaction Toolkit, Netcode for GameObjects, Unity Gaming Services and AR Foundation. In Project Settings > XR Plug-in Management, enable **OpenXR** for Android and desktop/Mac. Use OpenXR **1.13.0 or later**. Resolve Project Validation warnings and select Quest controller features. Keep passthrough setup in the professor scene.
-4. Install and activate [Meta XR Simulator](https://developers.meta.com/vr/documentation/unity/xrsim-getting-started/) for Mac testing with **Metal or Vulkan**. Follow the current standalone-runtime instructions; older package-based instructions may differ. Simulator checks do not replace a Quest device test.
-5. Prepare the asset tools from this repository's root:
+**Built for the Immersion Studio Hackathon · November 6–9, 2026**
 
-   ```bash
-   brew install git-lfs
-   git lfs install --local
-   python3.13 -m venv .venv
-   .venv/bin/python -m pip install -r Tools/blender/requirements.txt
-   bash Tools/blender/fetch_zanatomy.sh
-   .venv/bin/python -I Tools/blender/extract_organs.py
-   .venv/bin/python -I Tools/blender/make_skin.py
-   .venv/bin/python -I Tools/blender/make_drapes.py
-   .venv/bin/python -I Tools/blender/make_surgical_lamp.py
-   .venv/bin/python -I Tools/blender/render_previews.py
-   ```
+[The experience](#the-experience) · [Screenshots](#screenshots) · [Run it](#run-it) · [Demo walkthrough](docs/DEMO_SCRIPT.md) · [Architecture](docs/ARCHITECTURE.md)
 
-   Raw downloads stay in ignored `SourceAssets/`. The Blender file's embedded scripts are disabled. The manifest records source object names, triangle counts and Blender world positions; GLBs retain anatomical placement and convert to Y-up. Do not center each organ separately. Measure scale against a meter cube before building the body prefab.
-6. **MANUAL:** Sign into Sketchfab and download A2 and A3 below as GLB. Put the lecture hall in `SourceAssets/LectureHall/lecture_hall.glb` and the instrument set in `SourceAssets/Instruments/surgical_instrument.glb` (`SourceAssets/` is git-ignored; never commit the raw downloads). Then run:
+<img src="docs/media/professor_table_overview.png" alt="Unity editor render of the shared anatomy table, professor's student-view window, question pins and class roster" width="1100">
 
-   ```bash
-   .venv/bin/python -I Tools/blender/simplify_room.py -- --input SourceAssets/LectureHall/lecture_hall.glb --budget 250000
-   .venv/bin/python -I Tools/blender/extract_instruments.py
-   ```
+<sub>Professor-side development capture rendered in Unity. The screenshots below are editor renders; they are not headset or phone recordings.</sub>
 
-   `simplify_room.py` keeps small parts (walls, floor, screen, desks) intact and decimates only the parts above one shared per-object cap (the chair rows), then scales textures to 1024 px or less; the hall goes from about 1.21M to about 246k triangles. `extract_instruments.py` takes the thumb forceps and the scalpel handle out of the instrument set, models a No. 22 style blade into the handle, and writes `Assets/Models/Instruments/forceps.glb` and `scalpel.glb` with their origin on the working tip. A4 is an optional non-commercial backup, not a required download.
-7. **MANUAL:** Verify GLB import support in the template before dragging models into scenes. Unity does not universally import GLB by default. If no compatible importer is installed, open the GLBs in Blender and export FBX while preserving transforms and materials; do not rename their extensions. TODO: record the team's chosen import method and version.
-8. Run **Tools > DIYsect > Create Classroom Props** to create table, tray and screen prefabs. The command preserves existing prefabs. Place them in scenes derived from the working template rigs: `LectureHall_VR`, `Professor_MR`, and `Classmate_Desktop`, under `Assets/Scenes/`. Assign `CloseUp.renderTexture` to an overhead camera and exclude the screen from its culling mask. Render Texture output is local; each network client renders its own synchronized scene. Then run **Tools > DIYsect > Apply Realistic Look**: it re-measures the incision and flap hinges on the current skin, adds the cut line, the surgical drapes and wet-tissue materials to the body prefab, puts the lecture hall around the student's table in `LectureHall_VR` (replacing the room placeholder), hangs the operating light in `LectureHall_VR` and `Classmate_Desktop`, moves the instruments onto a stand beside the table, and gives the scalpel and forceps their real models. Rerun it after re-exporting the skin, drapes or lamp.
-9. **MANUAL:** Configure the template's service/project credentials using Unity's UI, then test two connected clients. Build an ARM64 Android APK for Quest 3 and test on hardware. Never commit credentials. Check the [architecture and acceptance checklist](docs/ARCHITECTURE.md).
+</div>
 
-**Classmate phone APK (no XR):** run **Tools > DIYsect > Build Classmate Phone APK**, or in batch mode `Unity -batchmode -projectPath . -buildTarget Android -executeMethod DIYsect.Editor.BuildAndroidClassmate.BuildBatch -logFile build.log`. It builds the shared `Professor_MR` scene with the classmate role to `Builds/Android-Classmate/DIYsect-Classmate.apk` with XR off and the application id suffixed `.classmate`, so it installs next to the Quest app. The XR, id and name changes last only for the build and are restored afterwards (the shared Android options IL2CPP, ARM64 and APK are the same as the Quest build and stay set); the Quest build (`Build Quest APK`) is unchanged. The phone opens on a name page and a start screen with a Join the room button. In class it shows a live status chip (top left), view pills (top right: Reset view, Follow professor, Follow student, Back to my view) and a dock at the bottom with Unmute, Raise hand, Draw and Clear. A tap shows an organ's name, pressing and holding places a question pin, dragging turns the camera around the body, the scroll wheel or a two-finger pinch zooms, and tilting the phone looks around (`ClassmateOrbitCamera`, `GyroLookRule`). With **Draw** on, a finger on the body draws a violet sketch that every headset and phone sees on the body (`ClassmateSketchInput`, a second `GuideLine` on the body); **Clear** wipes it.
+## Why we built it
 
-**Phone look:** every phone screen is built by `ClassmateUiBuilder` (Inter text, dark glass pills and cards, the mint accent of the headset labels). After changing it or a screen step, run **Tools > DIYsect > Rebuild Phone UI** (batch: `DIYsect.Editor.RebuildPhoneUi.ApplyBatch`), which removes the phone canvases in `Professor_MR` and `Classmate_Desktop` and builds them again.
+An anatomy demonstration has one specimen and a room full of people trying to see it. Students look from different angles, questions lose their context, and a professor wearing a headset cannot easily see who needs help.
 
-**Hands instead of controllers:** run **Tools > DIYsect > Add Controller Hands** (batch: `DIYsect.Editor.AddControllerHands.ApplyBatch`). It hides the white controller models in `Professor_MR` and puts a hand on each controller that holds the handle: the trigger pinches the index finger and the grip closes the hand (`ControllerHand`, `HandPoseRule`). Grabbing, cutting, vibration and the buttons still work through the controllers.
+**DIYsect turns the dissection into a shared classroom.** A professor guides the session, a student performs the dissection in VR, and classmates participate from Android phones or a laptop running the Unity editor. Everyone sees the same anatomy and dissection state while keeping control of their own view.
 
-Shared student scene preparation and remaining validation: [shared student presentation](docs/SHARED_STUDENT_PRESENTATION.md).
+The central idea is **shared state, private views, and questions attached to the anatomy itself**.
 
-**Quest on Mac:** [Meta Horizon Link](https://developers.meta.com/vr/documentation/unity/unity-link/) is Windows only. Build a standalone APK from Mac; use the simulator for iteration or a Windows PC with Link for a PC-streamed demo.
+## The experience
 
-## Assets and licenses
-
-| ID | Asset | Source | License | Acquisition |
-|---|---|---|---|---|
-| A1 | Human anatomy, organs and body wall | [Z-Anatomy](https://github.com/Z-Anatomy/The-blend) | CC BY-SA 4.0 | Fetch and processing scripts; source archive stays local |
-| A2 | University Lecture Hall — Heat Of Fusion | [Sketchfab](https://sketchfab.com/3d-models/university-lecture-hall-452cc01ebd1a47de9925bd43f44d7da4) | CC BY 4.0 | Manual login/download; `simplify_room.py` reduces it to about 246k triangles |
-| A3 | SURGICAL INSTRUMENT — ferofluid | [Sketchfab](https://sketchfab.com/3d-models/surgical-instrument-2971a44d334b45ff926792e92a6bcee7) | CC BY 4.0 | Manual login/download; `extract_instruments.py` keeps the forceps and scalpel handle and adds a project-authored blade |
-| A4 | Charité operating room — ChrisRE | [Sketchfab](https://sketchfab.com/3d-models/charite-university-hospital-operating-room-9ec46c4d615a4581a235eebfb162f574) | CC BY-NC 4.0 | Optional non-commercial backup; about 335k triangles before simplification |
-| A5 | EzySlice — David Arayan | [Source](https://github.com/DavidArayan/ezy-slice) | MIT | Included source; optional whole-mesh planar cutting |
-| A6 | Table, tray, screen | Unity primitives | Project-authored | Editor menu builds prefabs |
-| A7 | Surgical drapes | `Tools/blender/make_drapes.py` (cloth simulation around the anatomy) | Project-authored | Committed GLB; rerun the script after changing the anatomy |
-| A8 | Surgical lamp | `Tools/blender/make_surgical_lamp.py` | Project-authored | Committed GLB |
-
-See [full credits](docs/CREDITS.md). Derived anatomy and its previews remain CC BY-SA 4.0. The source has colored materials and no texture images. Unsupported stylized shader groups are converted to simple export materials using their source color controls; this preserves the color palette, not the original shader effects. The skin flaps are a simplified prototype, not a supplied anatomical skin layer. Do not use paid frog packs, the NIH frog kit, or an unverified laboratory pack.
-
-## Anatomy previews
-
-These previews show the exported organ set with its source material color palette, rendered using Cycles CPU at 48 samples. Inspect synthetic skin coverage separately in Unity.
-
-![Front organ preview](docs/previews/front.png)
-![Three-quarter organ preview](docs/previews/three_quarter.png)
-
-The Unity scene previews show `LectureHall_VR` from where the student stands: intact under the operating light, then with the skin, rectus, transversus and omentum opened. Refresh them with **Tools > DIYsect > Capture Scene Previews** (batch mode needs graphics, not `-nographics`). The wide view shows the table in the front area of the lecture hall, and the close view shows the real scalpel and forceps on their stand.
-
-![Intact body on the draped table](docs/previews/scene_intact.png)
-![Body wall opened down to the organs](docs/previews/scene_opened.png)
-![Lecture hall seen from behind the student](docs/previews/scene_hall.png)
-![Scalpel and forceps on the instrument stand](docs/previews/scene_instruments.png)
-
-Organ labels and step instructions share one look and motion table: see [labels and instructions](docs/LABEL_DESIGN.md).
-
-See the [student controls and seated audience setup](docs/VR_CONTROLS.md) for the lecture hall.
-
-## Performance
-
-Keep the whole visible scene below approximately **750,000 triangles**. Individual limits are ceilings, not allocations: organs 20k, heart chambers/lung lobes 30k, body-wall pieces 20k, skin flaps 15k each, room 300k, instruments 10k each. The extraction script allocates at most **330k across anatomy surfaces**, leaving room for skin, tools, avatars and props. Inspect transparent and double-sided materials, draw calls and frame timing on Quest as well as triangle counts.
-
-## Team and repository
-
-| Role | Owner | Responsibility |
+| Role | Device | What they do |
 |---|---|---|
-| A | Aaditya | Networking, body state, organ ownership, guiding-hand depth control |
-| B | Saurav | Student VR, lecture hall, incision, flaps, organ grab and socket quiz |
-| C | Arjun | Professor MR, desktop/Android classmate, question pins, close-up screen and demo |
+| **Professor** | Meta Quest 3 | Host the class, use passthrough or the virtual classroom, place the anatomy table, draw guidance, control scalpel depth, inspect questions and run quizzes. |
+| **Student** | Meta Quest 3 | Pick up instruments, trace the incision, open the body layers, lift and inspect organs, return them to their sockets and answer quizzes with the controller. |
+| **Classmate** | Android phone or laptop/editor | Join the room, orbit and zoom, follow another view, tap organs for names, pin questions, draw on the body and raise a hand to speak. |
 
-[GitHub issues](https://github.com/Imersive-studio/DIYsect-XR/issues) track implementation. [Starter checklist](docs/UNITY_BACKLOG.md) defines the 16 Unity tasks and role ownership.
+### What makes it a classroom
 
-See [deployment and OpenXR notes](docs/DEPLOYMENT.md) to build, install and run on Quest 3, and the [student VR controls](docs/VR_CONTROLS.md) for what a tester should try.
+- **Anatomy that stays in sync.** The server validates dissection order and organ ownership, so everyone follows the same procedure.
+- **Guidance at the point of action.** A guide line and shared scalpel-depth control help the professor explain a cut while the student performs it.
+- **Questions with a location and a viewpoint.** Pins stay attached to organs. Duplicate questions cluster, and the professor can inspect the asker's view and mark a question answered.
+- **Pointers translated into your view.** A professor's pointer identifies the same organ from each classmate's camera, with an edge arrow when it is off screen.
+- **Participation from a phone.** Tap to identify an organ, hold to ask, drag to explore, or switch on Draw to sketch directly on the shared body. The roster and speaking controls help the professor manage participation.
+- **A learning loop.** Step guidance, organ information and quizzes connect the hands-on procedure to the rest of the class. Headset students answer with a trigger; phone classmates answer with a tap.
 
-`Assets/` holds Unity content. `Tools/blender/` holds reproducible asset processing. `docs/` is the existing documentation directory (keep this casing on every platform). `SourceAssets/` is local only. The template must supply `Packages/` and `ProjectSettings/` before this is a runnable Unity project; the scaffold alone is not a working multiplayer demo.
+## Screenshots
 
-The earlier frog browser prototype remains in `server/`, `shared/`, `vr/`, `audience/` and `public/`. Run it with `npm ci`, `npm start`, and `npm test`. Its WebSocket/WebXR implementation is separate from the Unity Netcode/OpenXR work. Other older documents describe that prototype; this README and the Unity architecture/checklist describe the current direction.
+These development images show selected interaction states. Some labels and panels have evolved since capture. [Capture notes and provenance](docs/media/README.md) describe how the editor renders were produced.
 
-Follow the [task branch and commit workflow](docs/WORKFLOW.md) for every change.
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/media/incision_line.png" alt="Midline incision guide on the anatomy before the skin opens" width="100%">
+      <p><strong>Follow the procedure.</strong> Trace the incision before opening the body layers.</p>
+    </td>
+    <td width="50%">
+      <img src="docs/media/skin_flaps_open.png" alt="Opened skin flaps revealing the anatomy underneath" width="100%">
+      <p><strong>Explore layer by layer.</strong> Reveal the anatomy and work toward organ inspection.</p>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="docs/media/classmate_question_pins.png" alt="Question pins on an organ, including a cluster of five questions and an answered question" width="100%">
+      <p><strong>Ask about this part.</strong> Questions remain anchored to the organ they refer to.</p>
+    </td>
+    <td>
+      <img src="docs/media/professor_student_view.png" alt="Professor's floating window showing the viewpoint saved with a classmate's question" width="100%">
+      <p><strong>See what they meant.</strong> Open the view associated with a question and mark it answered.</p>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="docs/media/classmate_pointer_edge_arrow.png" alt="An orange edge arrow directing a classmate toward the liver the professor is pointing at" width="100%">
+      <p><strong>Keep the explanation in view.</strong> Off-screen pointers help classmates find the same organ.</p>
+    </td>
+    <td>
+      <img src="docs/media/guiding_hand_depth.png" alt="Scalpel depth indicator showing professor control during a staged guiding-hand demonstration" width="100%">
+      <p><strong>Guide the cut together.</strong> The depth indicator shows when the professor controls scalpel depth.</p>
+    </td>
+  </tr>
+</table>
 
-### Immersive dissection checklist
+<div align="center">
+  <img src="docs/media/skin_flaps_opening.gif" alt="Looping Unity editor render of the skin flaps opening after an incision" width="850">
+  <p><em>Dissection progression in motion · Unity editor render</em></p>
+</div>
 
-For the headset guidance upgrade, run **Tools > DIYsect > Add Dissection Checklist** in Unity 6000.3.28f1. It rebuilds the local card, progress list and body cues in `LectureHall_VR` and `Professor_MR`; the desktop scene stays unchanged. Run it after updating scenes from main, including the seated audience work. Setup, controls, validation and outstanding device checks are in [the checklist guide](docs/IMMERSIVE_CHECKLIST.md).
+## The demo in 90 seconds
 
-Failed host/client network starts now initiate lobby cleanup before reporting failure. See [failed-start cleanup and remaining integration checks](docs/DEPLOYMENT.md#failed-network-start-cleanup-166).
+1. **Join the class.** Start the professor app, then the student app and classmates. Join from the phone start screen or enter the room code.
+2. **Guide and dissect.** Draw a guide line, demonstrate scalpel-depth guidance, trace the incision and open the layers.
+3. **Inspect an organ.** Lift an organ, examine it and return it to its socket while the class follows from their own views.
+4. **Ask and answer.** A classmate holds an organ to place a question pin. The professor opens the saved viewpoint and marks the question answered.
+5. **Check understanding.** Start a quiz. The student points and pulls a trigger; phone classmates tap their answers.
+
+See the [rehearsal script](docs/DEMO_SCRIPT.md) and [video plan](docs/VIDEO_PLAN.md) for the full presentation and recording sequence.
+
+## How it works
+
+```mermaid
+flowchart LR
+    P[Professor · Quest 3 host]
+    S[Student · Quest 3 client]
+    C[Classmates · Android / editor clients]
+    P <-->|Netcode over Relay| S
+    P <-->|Netcode over Relay| C
+    P --- A[Shared anatomy state<br/>Dissection · ownership · questions · quiz]
+```
+
+**The host owns the lesson state.** Clients request actions; the server decides whether a cut, grab, dissection step or quiz answer is valid. Each device renders the synchronized anatomy locally. Cameras, follow modes and the close-up Render Texture provide different views of that same state.
+
+| Layer | Technology |
+|---|---|
+| Application | Unity **6000.3.28f1**, C#, Universal Render Pipeline |
+| Headset interaction | OpenXR, XR Interaction Toolkit, Unity Input System |
+| Mixed reality | AR Foundation and Unity's Meta OpenXR integration |
+| Multiplayer | Netcode for GameObjects, Unity Transport, Authentication, Lobby and Relay |
+| Voice | Vivox with classmate speaking controls |
+| Anatomy pipeline | Z-Anatomy, Blender/Python processing and glTFast import |
+
+## Run it
+
+### 1. Open the Unity project
+
+Install **Unity 6000.3.28f1** through Unity Hub, including **Android Build Support**, SDK/NDK tools and OpenJDK. For the complete device demo, use two Quest 3 headsets and an Android phone with internet access.
+
+```bash
+git clone https://github.com/Imersive-studio/DIYsect-XR.git
+cd DIYsect-XR
+git lfs install --local
+git lfs pull
+```
+
+Add this existing folder to Unity Hub and open it. The repository includes `Assets/`, `Packages/` and `ProjectSettings/`; allow package resolution and model imports to finish.
+
+Link the Unity project to the team's Unity Gaming Services project, or configure your own services for Authentication, Lobby, Relay and Vivox. Team accounts need access to the linked cloud project. See [deployment and service setup](docs/DEPLOYMENT.md) for details; keep credentials and service keys out of commits.
+
+### 2. Use the shared scene
+
+Open **`Assets/Scenes/Professor_MR.unity`**. All three role builds use this scene. `ClassroomRole` selects the appropriate headset or phone experience from the app's package suffix; the editor defaults to the classmate view.
+
+For an editor-hosted networking check, enter Play mode, wait for authentication, then use **Tools → DIYsect → Host Test Lobby (Play Mode)**. For the full classroom demo, launch the **Professor app first** so it hosts the session.
+
+`LectureHall_VR` and `Classmate_Desktop` remain development scenes. Build the role apps from the shared scene for a shared classroom session.
+
+### 3. Build and install
+
+Choose **Tools → DIYsect → Build All Demo APKs**. It builds all roles from one commit and records their paths, sizes and commit in `Builds/DemoBuilds.txt`.
+
+| App | Output |
+|---|---|
+| Professor | `Builds/Android-Professor/DIYsect-Professor.apk` |
+| Student | `Builds/Android-Student/DIYsect-Student.apk` |
+| Classmate | `Builds/Android-Classmate/DIYsect-Classmate.apk` |
+
+```bash
+# Replace Unity with the path to your installed editor. Keep graphics enabled.
+Unity -batchmode -projectPath . -buildTarget Android -executeMethod DIYsect.Editor.BuildAllDemoApks.BuildBatch
+
+# Install the appropriate app on each connected device.
+adb install -r Builds/Android-Professor/DIYsect-Professor.apk
+```
+
+The role APKs have separate package suffixes (`.professor`, `.student`, `.classmate`). Use the corresponding APK for each device. [Deployment instructions](docs/DEPLOYMENT.md) cover individual builds, installation and joining.
+
+### 4. Run the checks
+
+In Unity, open **Window → General → Test Runner** and run **EditMode**, then **PlayMode**. The suites cover dissection rules, organ ownership, quiz answers, gestures, scene wiring and multiplayer interactions. Headset comfort, passthrough alignment, readability and performance still need checks on the actual devices.
+
+## Inside the repository
+
+```text
+Assets/
+  Editor/              Repeatable scene, prefab and build setup
+  Scripts/
+    Classroom/         Questions, pointers, camera views and drawing
+    Dissection/        Incision and ordered body-layer progression
+    Interaction/       Instruments, grabbing, labels and feedback
+    Learning/          Organ information, checklist and quizzes
+    MixedReality/     Table placement and alignment
+    Networking/        Shared body state and server authority
+  Tests/               EditMode and PlayMode coverage
+Tools/blender/         Anatomy and environment processing
+docs/                  Architecture, deployment, credits and demo guides
+```
+
+The earlier browser-based frog prototype remains in `server/`, `shared/`, `vr/`, `audience/` and `public/`. It has a separate WebSocket/WebXR stack: use `npm ci`, `npm start` and `npm test` to run it. The human-anatomy classroom described above is the Unity application.
+
+## Team
+
+| Teammate | Focus |
+|---|---|
+| **Aaditya** | Networking, shared body state, organ ownership and guiding-hand depth control |
+| **Saurav** | Student VR, lecture hall, incision, body layers and organ interaction |
+| **Arjun** | Professor experience, desktop/Android classmates, question pins, close-up view and demo |
+
+## Credits and project status
+
+DIYsect is a hackathon educational prototype with simplified anatomy and synthetic skin flaps.
+
+| Asset | Source | License |
+|---|---|---|
+| Human anatomy | [Z-Anatomy](https://github.com/Z-Anatomy/The-blend) | CC BY-SA 4.0; underlying BodyParts3D attribution retained |
+| University Lecture Hall | [Heat Of Fusion](https://sketchfab.com/3d-models/university-lecture-hall-452cc01ebd1a47de9925bd43f44d7da4) | CC BY 4.0 |
+| Surgical instruments | [ferofluid](https://sketchfab.com/3d-models/surgical-instrument-2971a44d334b45ff926792e92a6bcee7) | CC BY 4.0 |
+| Seated audience imagery | [Microsoft Rocketbox](https://github.com/microsoft/Microsoft-Rocketbox) | MIT |
+| Optional planar slicing source | [EzySlice](https://github.com/DavidArayan/ezy-slice) | MIT |
+
+Asset licenses apply to their respective content. Derived anatomy and anatomy previews retain CC BY-SA 4.0. See [full credits and modifications](docs/CREDITS.md) and the [asset rebuilding guide](docs/ASSET_PIPELINE.md).
+
+**More detail:** [Architecture](docs/ARCHITECTURE.md) · [Student controls](docs/VR_CONTROLS.md) · [Learning content](docs/LEARNING.md) · [Table alignment](docs/MR_TABLE_ALIGNMENT.md) · [Related work](docs/RELATED_WORK.md) · [Contribution workflow](docs/WORKFLOW.md)
