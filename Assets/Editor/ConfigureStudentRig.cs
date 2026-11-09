@@ -5,6 +5,7 @@ using Unity.XR.CoreUtils;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 
 namespace DIYsect.Editor
 {
@@ -21,6 +22,8 @@ namespace DIYsect.Editor
     {
         private const string ScenePath = "Assets/Scenes/LectureHall_VR.unity";
         private const float EyeHeight = 1.6f;
+        public const float RayLength = 0.4f;
+        public const float RayWidth = 2f;
 
         [MenuItem("Tools/DIYsect/Configure Student Rig")]
         public static void Apply()
@@ -46,11 +49,37 @@ namespace DIYsect.Editor
             // Move: every provider on it on. Turn: snap turning only (continuous turning makes many people sick).
             Switch(locomotion.Find("Move"), name => true);
             Switch(locomotion.Find("Turn"), name => name == "SnapTurnProvider");
+            int rays = MakeRaysVisible(origin);
 
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))
                 throw new IOException($"Could not save {ScenePath}.");
-            Debug.Log($"{ScenePath}: Device tracking, eye height {EyeHeight} m, move and snap turn on.");
+            Debug.Log($"{ScenePath}: Device tracking, eye height {EyeHeight} m, move and snap turn on, {rays} rays always visible.");
+        }
+
+        // The template draws a very short thin line that disappears when nothing is hit. Controllers and hands keep a
+        // clear pointer: the line always shows, at least RayLength long, and RayWidth times as wide.
+        private static int MakeRaysVisible(XROrigin origin)
+        {
+            int count = 0;
+            foreach (CurveVisualController visual in origin.GetComponentsInChildren<CurveVisualController>(true))
+            {
+                var serialized = new SerializedObject(visual);
+                serialized.FindProperty("m_ExtendLineToEmptyHit").boolValue = true;
+                serialized.FindProperty("m_RestingVisualLineLength").floatValue = RayLength;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                if (visual.TryGetComponent(out LineRenderer line))
+                {
+                    line.widthMultiplier = RayWidth;
+                    EditorUtility.SetDirty(line);
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(line);
+                }
+                PrefabUtility.RecordPrefabInstancePropertyModifications(visual);
+                count++;
+            }
+            if (count == 0)
+                throw new InvalidOperationException("The rig has no ray visuals (CurveVisualController).");
+            return count;
         }
 
         private static void Switch(Transform target, Func<string, bool> enabledFor)
