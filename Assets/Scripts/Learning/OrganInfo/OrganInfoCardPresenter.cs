@@ -14,7 +14,7 @@ namespace DIYsect.Learning
     /// pointer rests on it, and hides it when the organ is let go and no pointer is on it.
     /// It keeps no network state of its own. It listens to events that every peer already gets:
     /// <see cref="OrganGrabAuthority.HolderChanged"/> (picked up or let go, by anyone) and
-    /// <see cref="PointerBoard.PointersChanged"/> (the professor's or the student's pointer). The yes or no of showing a
+    /// <see cref="PointerBoard.PointersChanged"/> (the professor's, the student's or a classmate's pointer). The yes or no of showing a
     /// card is decided by <see cref="OrganInfoCardRules"/> through <see cref="OrganInfoCardTracker"/>.
     /// A device that joins late reads the holders and pointers once when the body spawns.
     ///
@@ -22,7 +22,7 @@ namespace DIYsect.Learning
     /// OrganHoverLabel shows the name while this device's controller points at it. Those stay as they are. The title sits
     /// <c>_titleGap</c> metres above the organ's top, which is above the name label (about 0.07 metres tall), and toward the
     /// organ's far side from the viewer, so the two never cover each other and the title never hides the anatomy.
-    /// A pointer is the professor's or the student's pointer from the PointerBoard, so a card for a pointed organ shows on
+    /// A pointer is the professor's, the student's or a classmate's pointer from the PointerBoard, so a card for a pointed organ shows on
     /// every device a short moment after the pointer settles. Cards are built the first time they are needed and then reused.
     /// </summary>
     [RequireComponent(typeof(SharedBody), typeof(OrganGrabAuthority), typeof(PointerBoard))]
@@ -43,7 +43,7 @@ namespace DIYsect.Learning
         private OrganInfoCardTracker _tracker;
         private readonly Dictionary<int, OrganInfoCard> _cards = new Dictionary<int, OrganInfoCard>();
         private readonly HashSet<int> _warned = new HashSet<int>();
-        private readonly List<int> _pointed = new List<int>(2);
+        private readonly List<int> _pointed = new List<int>(3);
 
         private void Awake()
         {
@@ -111,6 +111,7 @@ namespace DIYsect.Learning
             _pointed.Clear();
             AddPointed(PointerRole.Professor);
             AddPointed(PointerRole.Student);
+            AddPointed(PointerRole.Classmate);
             _tracker.SyncPointers(_pointed);
         }
 
