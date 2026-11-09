@@ -50,6 +50,11 @@ namespace XRMultiplayer
             set => m_ConnectedLobby = value;
         }
         Lobby m_ConnectedLobby;
+        private readonly ILobbyRemovalService _removalService = new LobbyRemovalService();
+        /// <summary>Replaces the real lobby service, so a test can stand in for the cloud. Null means use the real one.</summary>
+        public ILobbyRemovalService RemovalServiceOverride { get; set; }
+
+        protected virtual ILobbyRemovalService RemovalService => RemovalServiceOverride ?? _removalService;
 
         // The Transport used for connection.
         UnityTransport m_Transport;
@@ -395,61 +400,32 @@ namespace XRMultiplayer
         /// <returns></returns>
         public async Task<bool> RemovePlayerFromLobby(string playerId)
         {
-            // Stop heartbeat if active (only runs on host)
-            if (m_HeartBeatRoutine != null) StopCoroutine(m_HeartBeatRoutine);
+            // Capture the room before awaiting a service. A newer room may replace it while cleanup runs.
+            Lobby leaving = m_ConnectedLobby;
+            if (m_HeartBeatRoutine != null)
+            {
+                StopCoroutine(m_HeartBeatRoutine);
+                m_HeartBeatRoutine = null;
+            }
+            if (leaving == null) return true;
 
             try
             {
-                if (m_ConnectedLobby != null)
-                {
-                    // Check if Lobby Host is current Player
-                    if (m_ConnectedLobby.HostId == playerId)
-                    {
-                        // Delete Lobby if current owner
-                        Utils.Log($"{k_DebugPrepend}Owner of lobby, shutting down.");
-                        await LobbyService.Instance.DeleteLobbyAsync(m_ConnectedLobby.Id);
-                        m_ConnectedLobby = null;
-                    }
-                    else
-                    {
-                        //Remove from lobby
-                        await RemoveFromLobby(playerId);
-                    }
-                    return true;
-                }
-            }
-            catch (Exception e)
-            {
-                Utils.Log($"{k_DebugPrepend}Error on Lobby Shutdown:\n\n {e}");
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Attempts to remove the current player from the lobby
-        /// </summary>
-        async Task<bool> RemoveFromLobby(string playerId)
-        {
-            // If lobby id exists try to remove player from
-            if (!string.IsNullOrEmpty(m_ConnectedLobby.Id))
-            {
-                try
-                {
-                    await LobbyService.Instance.RemovePlayerAsync(m_ConnectedLobby.Id, playerId);
+                if (leaving.HostId == playerId)
+                    await RemovalService.DeleteAsync(leaving.Id);
+                else
+                    await RemovalService.RemovePlayerAsync(leaving.Id, playerId);
+                if (ReferenceEquals(m_ConnectedLobby, leaving))
                     m_ConnectedLobby = null;
-                    Utils.Log($"{k_DebugPrepend}Successfully removed player from Lobby.");
-                    return true;
-                }
-                catch (Exception e)
-                {
-                    Utils.Log($"{k_DebugPrepend}Failed to remove player from lobby.\n\n{e}");
-                }
+                return true;
             }
-
-            return false;
+            catch (Exception exception)
+            {
+                // No heartbeat remains if deletion fails. Keep the snapshot for a later cleanup retry.
+                Utils.Log($"{k_DebugPrepend}Error leaving lobby {leaving.Id}: {exception}");
+                return false;
+            }
         }
-
 
         public static async Task<QueryResponse> GetLobbiesAsync()
         {

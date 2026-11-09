@@ -620,12 +620,23 @@ namespace XRMultiplayer
             }
             else
             {
-                Utils.Log($"{k_DebugPrepend}Failed to connect to lobby {m_LobbyManager.connectedLobby.Name}.");
-                m_LobbyManager.OnLobbyFailed?.Invoke($"Failed to connect to lobby {m_LobbyManager.connectedLobby.Name}.");
+                string reason = $"Failed to connect to lobby {m_LobbyManager.connectedLobby.Name}.";
+                // Stop advertising the failed start before failure notification lets the professor retry.
+                // Cleanup captures this lobby and cannot clear a newer room when its service call completes.
+                _ = CleanupFailedStartAsync();
+                Utils.Log($"{k_DebugPrepend}{reason}");
+                m_LobbyManager.OnLobbyFailed?.Invoke(reason);
             }
 
             return connected;
 
+        }
+
+        private async Task CleanupFailedStartAsync()
+        {
+            bool removed = await m_LobbyManager.RemovePlayerFromLobby(AuthenicationId);
+            if (!removed)
+                Debug.LogWarning($"{k_DebugPrepend}Failed room cleanup did not complete. Its heartbeat is stopped; retry cleanup or wait for lobby expiry.");
         }
 
         /// <summary>
