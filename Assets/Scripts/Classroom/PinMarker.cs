@@ -9,6 +9,8 @@ namespace DIYsect.Classroom
     {
         public int OrganIndex { get; private set; }
         public int Count { get; private set; }
+        public int OpenCount { get; private set; }
+        public bool AllAnswered { get; private set; }
         public float Glow { get; private set; }
         public IReadOnlyList<int> PinIds { get; private set; }
 
@@ -16,6 +18,8 @@ namespace DIYsect.Classroom
         {
             OrganIndex = cluster.OrganIndex;
             Count = cluster.Count;
+            OpenCount = cluster.OpenCount;
+            AllAnswered = cluster.AllAnswered;
             Glow = glow;
             PinIds = cluster.PinIds;
         }
