@@ -28,9 +28,9 @@ namespace DIYsect.Invite.Tests
             item.SetActive(false);
             try
             {
-                var manager = item.AddComponent<RemovalTestLobbyManager>();
+                var manager = item.AddComponent<LobbyManager>();
                 var service = new FakeRemoval();
-                manager.Service = service;
+                manager.RemovalServiceOverride = service;
                 manager.connectedLobby = new Lobby(id: "old", hostId: host ? "local" : "remote");
                 Task<bool> pending = manager.RemovePlayerFromLobby("local");
                 var replacement = new Lobby(id: "new", hostId: "local");
@@ -52,9 +52,9 @@ namespace DIYsect.Invite.Tests
             item.SetActive(false);
             try
             {
-                var manager = item.AddComponent<RemovalTestLobbyManager>();
+                var manager = item.AddComponent<LobbyManager>();
                 var service = new FakeRemoval();
-                manager.Service = service;
+                manager.RemovalServiceOverride = service;
                 var room = new Lobby(id: "room", hostId: "local");
                 manager.connectedLobby = room;
                 Task<bool> pending = manager.RemovePlayerFromLobby("local");
@@ -74,7 +74,7 @@ namespace DIYsect.Invite.Tests
             item.SetActive(false);
             try
             {
-                var manager = item.AddComponent<RemovalTestLobbyManager>();
+                var manager = item.AddComponent<LobbyManager>();
                 Assert.That(await manager.RemovePlayerFromLobby("local"), Is.True);
             }
             finally { UnityEngine.Object.DestroyImmediate(item); }

@@ -51,7 +51,10 @@ namespace XRMultiplayer
         }
         Lobby m_ConnectedLobby;
         private readonly ILobbyRemovalService _removalService = new LobbyRemovalService();
-        protected virtual ILobbyRemovalService RemovalService => _removalService;
+        /// <summary>Replaces the real lobby service, so a test can stand in for the cloud. Null means use the real one.</summary>
+        public ILobbyRemovalService RemovalServiceOverride { get; set; }
+
+        protected virtual ILobbyRemovalService RemovalService => RemovalServiceOverride ?? _removalService;
 
         // The Transport used for connection.
         UnityTransport m_Transport;
