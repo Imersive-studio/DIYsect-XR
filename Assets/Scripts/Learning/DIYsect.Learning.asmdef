@@ -1,0 +1,15 @@
+{
+  "name": "DIYsect.Learning",
+  "rootNamespace": "DIYsect.Learning",
+  "references": [
+    "DIYsect.Networking",
+    "DIYsect.Interaction",
+    "DIYsect.Dissection",
+    "DIYsect.Classroom",
+    "Unity.Netcode.Runtime",
+    "Unity.Collections",
+    "Unity.InputSystem",
+    "UnityEngine.UI",
+    "Unity.XR.Interaction.Toolkit"
+  ]
+}
