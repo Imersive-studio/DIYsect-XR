@@ -89,6 +89,12 @@ namespace XRMultiplayer
             SetActive(_studentObjects, student);
             SetEnabled(_studentBehaviours, student);
             SetEnabled(_joiningBehaviours, !professor);
+            // The phone's start screen has the Join button and the scene saves its auto join waiting for it. The student in VR has
+            // no start screen, so it must not wait for a press that can never come.
+            if (student && _joiningBehaviours != null)
+                foreach (Behaviour joining in _joiningBehaviours)
+                    if (joining is ClassmateAutoJoin autoJoin)
+                        autoJoin.WaitForJoinPress = false;
             if (_passthrough != null)
                 _passthrough.enabled = professor;
             if (_headsetCamera != null)

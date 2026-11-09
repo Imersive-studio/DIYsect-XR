@@ -107,7 +107,7 @@ namespace DIYsect.Editor
                     professorObjects.Add(found);
             }
 
-            // The professor can walk with the left thumbstick and snap-turn with the right, and press A or X to bring the table back.
+            // The professor can walk with the left thumbstick and snap-turn with the right, and click a thumbstick to bring the table back.
             EnableProfessorLocomotion(scene);
             var alignment = UnityEngine.Object.FindFirstObjectByType<DIYsect.MixedReality.TableAlignment>(FindObjectsInactive.Include);
             if (alignment != null && alignment.GetComponent<DIYsect.MixedReality.TableRecenterInput>() == null)
@@ -139,8 +139,32 @@ namespace DIYsect.Editor
             var calibration = GetOrAdd<DIYsect.MixedReality.EyeHeightCalibration>(headsetOrigin.gameObject);
             calibration.enabled = false;
             EditorUtility.SetDirty(calibration);
+            // With no room to join, the student hosts a practice session after a wait, so cuts work alone. Student only: a
+            // professor creates the room, and a phone must never host.
+            var practice = GetOrAdd<DIYsect.Networking.PracticeSession>(manager.gameObject);
+            var practiceSerialized = new SerializedObject(practice);
+            SerializedProperty disableOnStart = practiceSerialized.FindProperty("_disableOnStart");
+            disableOnStart.arraySize = 1;
+            disableOnStart.GetArrayElementAtIndex(0).objectReferenceValue = autoJoin;
+            practiceSerialized.ApplyModifiedPropertiesWithoutUndo();
+            practice.enabled = false;
+            EditorUtility.SetDirty(practice);
             SetArray(serialized.FindProperty("_studentObjects"), new[] { hall });
-            SetArray(serialized.FindProperty("_studentBehaviours"), new Behaviour[] { calibration });
+            SetArray(serialized.FindProperty("_studentBehaviours"), new Behaviour[] { calibration, practice });
+
+            // The professor's quiz panel needs its question set saved in the scene (Add Quiz does this too, but a scene taken
+            // from another branch can lose it, and the panel then switches itself off on the headset).
+            var quizPanel = UnityEngine.Object.FindFirstObjectByType<DIYsect.Learning.QuizPanel>(FindObjectsInactive.Include);
+            if (quizPanel != null)
+            {
+                var questionSet = AssetDatabase.LoadAssetAtPath<DIYsect.Learning.QuizQuestionSet>(AddQuiz.QuestionsPath);
+                if (questionSet != null)
+                {
+                    var quizSerialized = new SerializedObject(quizPanel);
+                    quizSerialized.FindProperty("_questions").objectReferenceValue = questionSet;
+                    quizSerialized.ApplyModifiedPropertiesWithoutUndo();
+                }
+            }
 
             var origin = UnityEngine.Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>(FindObjectsInactive.Include);
             serialized.FindProperty("_headsetCamera").objectReferenceValue = origin.Camera;

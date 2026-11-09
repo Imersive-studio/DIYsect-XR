@@ -55,6 +55,8 @@ namespace XRMultiplayer
         {
             JoinPressed = true;
             CodeRejected = false;
+            // A bad or rejected code switched public-room discovery off. Pressing Join asks for any room again, or the pending code.
+            _explicitCodeRequested = false;
         }
 
         /// <summary>The room code waiting to be used, or empty.</summary>

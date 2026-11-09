@@ -26,7 +26,7 @@ namespace DIYsect.Editor
     public static class AddQuiz
     {
         private const string PrefabPath = "Assets/Prefabs/AnatomyBody.prefab";
-        private const string QuestionsPath = "Assets/Scripts/Learning/Quiz/DefaultQuizQuestions.asset";
+        public const string QuestionsPath = "Assets/Scripts/Learning/Quiz/DefaultQuizQuestions.asset";
         private const string ProfessorScenePath = "Assets/Scenes/Professor_MR.unity";
         // Professor_MR is the shared scene: the classmate camera lives there next to the headset rig (see BuildSharedScene).
         private const string ClassmateScenePath = "Assets/Scenes/Professor_MR.unity";
