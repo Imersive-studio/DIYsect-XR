@@ -18,7 +18,8 @@
     "Unity.InputSystem.TestFramework",
     "XRMP",
     "DIYsect.Learning",
-    "Unity.XR.CoreUtils"
+    "Unity.XR.CoreUtils",
+    "Unity.TextMeshPro"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

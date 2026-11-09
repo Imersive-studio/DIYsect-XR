@@ -38,6 +38,7 @@ namespace DIYsect.Editor
 
             Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             ConfigureRoles(scene);
+            HideTemplateClutter.HideIn(scene);
             // Last, so every panel the steps above built ends up on one even arc around the professor.
             ArrangeProfessorPanels.ArrangeIn(scene);
 
@@ -54,6 +55,7 @@ namespace DIYsect.Editor
             {
                 Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
                 ConfigureRoles(scene);
+                HideTemplateClutter.HideIn(scene);
                 ArrangeProfessorPanels.ArrangeIn(scene);
                 EditorSceneManager.MarkSceneDirty(scene);
                 if (!EditorSceneManager.SaveScene(scene))
@@ -131,6 +133,11 @@ namespace DIYsect.Editor
             EditorUtility.SetDirty(classmateUi);
 
             var classroomObjects = SharedStudentPresentation.ApplyToScene(scene);
+            // The big close-up screen is for the hall. The professor stands at the body in the real room, where a 2 m
+            // floating screen is only in the way.
+            GameObject closeUpScreen = FindByName(scene, "CloseUpScreen");
+            if (closeUpScreen != null && !classroomObjects.Contains(closeUpScreen))
+                classroomObjects = classroomObjects.Append(closeUpScreen).ToArray();
             var role = GetOrAdd<ClassroomRole>(manager.gameObject);
             var serialized = new SerializedObject(role);
             SetArray(serialized.FindProperty("_professorObjects"), professorObjects.ToArray());

@@ -133,6 +133,22 @@ namespace DIYsect.StudentRig.Tests
         }
 
         [Test]
+        public void TheTemplatesLobbyMenuAndGridSlabAreOff()
+        {
+            var scene = EditorSceneManager.OpenScene(ProfessorScene, OpenSceneMode.Single);
+            Transform ui = null, table = null;
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                if (root.name == "UI") ui = root.transform;
+                if (root.name == "Virtual Table") table = root.transform;
+            }
+            Transform menu = ui != null ? ui.Find("World Space Canvas") : null;
+            Assert.IsTrue(menu == null || !menu.gameObject.activeSelf, "The template lobby menu clutters the professor's view. Run Tools > DIYsect > Hide Template Clutter.");
+            Transform grid = table != null ? table.Find("TableSystem/TableTop/Plane") : null;
+            Assert.IsTrue(grid == null || !grid.GetComponent<Renderer>().enabled, "The template grid slab clutters the professor's view. Run Tools > DIYsect > Hide Template Clutter.");
+        }
+
+        [Test]
         public void OnlyTheStudentSeesTheChecklistCard()
         {
             EditorSceneManager.OpenScene(ProfessorScene, OpenSceneMode.Single);
@@ -146,6 +162,19 @@ namespace DIYsect.StudentRig.Tests
                     found = true;
             }
             Assert.IsTrue(found, "The checklist card should show only to the student. Run Tools > DIYsect > Build Shared Scene.");
+        }
+
+        [Test]
+        public void TheProfessorDoesNotSeeTheHallsCloseUpScreen()
+        {
+            EditorSceneManager.OpenScene(ProfessorScene, OpenSceneMode.Single);
+            var role = Object.FindFirstObjectByType<XRMultiplayer.ClassroomRole>(FindObjectsInactive.Include);
+            var hall = new SerializedObject(role).FindProperty("_classroomObjects");
+            bool found = false;
+            for (int i = 0; i < hall.arraySize; i++)
+                if (hall.GetArrayElementAtIndex(i).objectReferenceValue is GameObject item && item.name == "CloseUpScreen")
+                    found = true;
+            Assert.IsTrue(found, "The close-up screen should show only in the hall, not in the professor's room. Run Tools > DIYsect > Build Shared Scene.");
         }
 
         // A world space canvas has no renderer bounds, so it is measured from its rectangle.

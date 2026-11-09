@@ -21,7 +21,7 @@ namespace DIYsect.Classroom
         [SerializeField] private QuestionBoard _board;
         [SerializeField] private Camera _viewCamera;
         [SerializeField] private GameObject _panel;
-        [SerializeField] private TextMesh _caption;
+        [SerializeField] private TMPro.TMP_Text _caption;
         [SerializeField, Min(0.05f)] private float _refreshSeconds = 0.2f;
         [SerializeField, Tooltip("Optional. Needed for the Live mode. Lives on the body next to the question board.")]
         private HeadPoseBoard _headBoard;

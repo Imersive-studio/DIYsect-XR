@@ -312,7 +312,7 @@ namespace DIYsect.Networking.Tests
         {
             HeadPoseBoard clientBoard = null;
             yield return StartLive(found => clientBoard = found);
-            var caption = new GameObject("Caption").AddComponent<TextMesh>();
+            var caption = new GameObject("Caption").AddComponent<TMPro.TextMeshPro>();
             caption.transform.SetParent(_panel.transform, false);
             typeof(StudentViewWindow).GetField("_caption", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(_window, caption);
 
