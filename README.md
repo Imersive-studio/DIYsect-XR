@@ -120,6 +120,7 @@ The Unity editor defaults to the classmate experience. For an editor-hosted sess
 | **Aaditya** | Networking, shared anatomy state, organ ownership and depth guidance |
 | **Saurav** | Student VR, classroom environment, incision and organ interaction |
 | **Arjun** | Professor experience, Android classmates, question pins and shared views |
+| **Prajwal** | Learning layer: organ info cards, guided dissection steps, the quiz and sound cues |
 
 ## Acknowledgements
 
