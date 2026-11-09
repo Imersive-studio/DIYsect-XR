@@ -15,7 +15,7 @@ namespace DIYsect.Editor
     /// <summary>
     /// Builds the professor's student-view window in Professor_MR, beside the table on the professor's left and
     /// turned toward the professor: a screen showing its own render texture, a caption with the question, and
-    /// previous and next buttons and an Answered button (the professor marks the shown question answered) (ray-selectable, wired to the window with persistent events). The window's camera
+    /// previous and next buttons, an Answered button (the professor marks the shown question answered) and a Live button (the view follows the student's head) (ray-selectable, wired to the window with persistent events). The window's camera
     /// leaves out the CloseUpScreen layer, which the window also uses, so it never films itself.
     /// It is a child of the DIYsect root, so table alignment carries it along. Safe to run more than once.
     /// </summary>
@@ -32,6 +32,8 @@ namespace DIYsect.Editor
         // From the table centre: to the professor's left, a little nearer, at eye height.
         private static readonly Vector3 OffsetFromTable = new Vector3(-0.95f, 0f, -0.25f);
         private const float Height = 1.45f;
+        private const int TextureWidth = 512;
+        private const int TextureHeight = 288;
 
         [MenuItem("Tools/DIYsect/Add Student View Window")]
         public static void Apply()
@@ -41,6 +43,11 @@ namespace DIYsect.Editor
             QuestionBoard board = root.GetComponentInChildren<QuestionBoard>(true);
             if (board == null)
                 throw new InvalidOperationException($"{ScenePath} has no body with a QuestionBoard. Run Tools > DIYsect > Add Question Board.");
+            HeadPoseBoard headBoard = board.GetComponent<HeadPoseBoard>();
+            if (headBoard == null)
+                headBoard = root.GetComponentInChildren<HeadPoseBoard>(true);
+            if (headBoard == null)
+                throw new InvalidOperationException($"{ScenePath} has no body with a HeadPoseBoard. Run Tools > DIYsect > Add Head Pose.");
             int layer = LayerMask.NameToLayer(ScreenLayerName);
             if (layer < 0)
                 throw new InvalidOperationException($"Layer {ScreenLayerName} is missing. Run Tools > DIYsect > Create Scenes.");
@@ -69,6 +76,8 @@ namespace DIYsect.Editor
             AddButton(panel.transform, "Previous", "<", new Vector3(-ScreenSize.x / 2f - 0.06f, 0f, 0f), window, window.Previous);
             AddButton(panel.transform, "Next", ">", new Vector3(ScreenSize.x / 2f + 0.06f, 0f, 0f), window, window.Next);
             AddButton(panel.transform, "Answered", "Answered", new Vector3(0f, -ScreenSize.y / 2f - 0.12f, 0f), window, window.MarkSelectedAnswered, width: 0.2f);
+            // Left of Answered. Switches between the questions and the live view through the student's eyes.
+            AddButton(panel.transform, "Live", "Live", new Vector3(-0.2f, -ScreenSize.y / 2f - 0.12f, 0f), window, window.ToggleLive, width: 0.12f);
             AddText(panel.transform, "Title", new Vector3(0f, ScreenSize.y / 2f + 0.035f, -0.002f), "Student view", 0.007f);
 
             var cameraObject = new GameObject("ViewCamera");
@@ -88,6 +97,7 @@ namespace DIYsect.Editor
             serialized.FindProperty("_board").objectReferenceValue = board;
             serialized.FindProperty("_viewCamera").objectReferenceValue = viewCamera;
             serialized.FindProperty("_panel").objectReferenceValue = panel;
+            serialized.FindProperty("_headBoard").objectReferenceValue = headBoard;
             serialized.FindProperty("_caption").objectReferenceValue = caption;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             panel.SetActive(false);
@@ -144,8 +154,18 @@ namespace DIYsect.Editor
         {
             var texture = AssetDatabase.LoadAssetAtPath<RenderTexture>(TexturePath);
             if (texture != null)
+            {
+                // An older, bigger texture is shrunk once. Every live render fills it, so smaller is cheaper on Quest.
+                if (texture.width != TextureWidth || texture.height != TextureHeight)
+                {
+                    texture.Release();
+                    texture.width = TextureWidth;
+                    texture.height = TextureHeight;
+                    EditorUtility.SetDirty(texture);
+                }
                 return texture;
-            texture = new RenderTexture(768, 432, 16) { name = "StudentView" };
+            }
+            texture = new RenderTexture(TextureWidth, TextureHeight, 16) { name = "StudentView" };
             AssetDatabase.CreateAsset(texture, TexturePath);
             return texture;
         }

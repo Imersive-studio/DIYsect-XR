@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using DIYsect.Classroom;
 using NUnit.Framework;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -288,6 +289,64 @@ namespace DIYsect.Networking.Tests
             _window.enabled = true;
             Assert.IsTrue(_panel.activeSelf);
             Assert.AreEqual(StudentViewMode.FollowingNewest, _window.Mode);
+        }
+
+        // Live mode: the student is a second client. The host's window reads that head from the head board.
+        private IEnumerator StartLive(System.Action<HeadPoseBoard> clientBoardFound)
+        {
+            yield return StartHostWithWindow();
+            HeadPoseBoard headBoard = _serverBody.GetComponent<HeadPoseBoard>();
+            Assert.IsNotNull(headBoard, "The body prefab has no HeadPoseBoard. Run Tools > DIYsect > Add Head Pose.");
+            _windowObject.SetActive(false);
+            BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
+            typeof(StudentViewWindow).GetField("_headBoard", flags).SetValue(_window, headBoard);
+            _windowObject.SetActive(true);
+            NetworkManager client = StartClient("Student");
+            SharedBody clientBody = null;
+            yield return WaitForBody(client, found => clientBody = found);
+            clientBoardFound(clientBody.GetComponent<HeadPoseBoard>());
+        }
+
+        [UnityTest]
+        public IEnumerator LiveWithoutAStudentShowsTheNotInTheRoomState()
+        {
+            HeadPoseBoard clientBoard = null;
+            yield return StartLive(found => clientBoard = found);
+            var caption = new GameObject("Caption").AddComponent<TextMesh>();
+            caption.transform.SetParent(_panel.transform, false);
+            typeof(StudentViewWindow).GetField("_caption", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(_window, caption);
+
+            _window.ToggleLive();
+            Assert.AreEqual(StudentViewMode.Live, _window.Mode);
+            Assert.IsTrue(_panel.activeSelf);
+            Assert.AreEqual("Student not in the room", caption.text);
+
+            _window.ToggleLive();
+            Assert.AreEqual(StudentViewMode.Hidden, _window.Mode, "No question has a view, so leaving Live hides the window.");
+        }
+
+        [UnityTest]
+        public IEnumerator LiveCameraFollowsTheStudentHeadConvertedToWorld()
+        {
+            HeadPoseBoard clientBoard = null;
+            yield return StartLive(found => clientBoard = found);
+            _window.ToggleLive();
+
+            Quaternion localRotation = Quaternion.Euler(10f, 200f, 0f);
+            clientBoard.Publish(LocalPositionA, localRotation);
+            Transform body = _serverBody.transform;
+            yield return WaitFor(() => (_camera.transform.position - body.TransformPoint(LocalPositionA)).magnitude < PositionTolerance,
+                "the live camera to reach the student's head", () => $"Camera at {_camera.transform.position.ToString("F3")}.");
+            AssertCameraAt(new Pose(body.TransformPoint(LocalPositionA), body.rotation * localRotation), "student head");
+
+            // The body is placed differently on each device, so moving it moves the view with it.
+            body.position += new Vector3(2f, 0f, -1f);
+            body.rotation *= Quaternion.Euler(0f, 35f, 0f);
+            clientBoard.Publish(LocalPositionB, localRotation);
+            yield return WaitFor(() => (_camera.transform.position - body.TransformPoint(LocalPositionB)).magnitude < PositionTolerance,
+                "the live camera to follow the moved body", () => $"Camera at {_camera.transform.position.ToString("F3")}.");
+            AssertCameraAt(new Pose(body.TransformPoint(LocalPositionB), body.rotation * localRotation), "moved body");
+            Assert.IsFalse(_camera.enabled, "The window camera renders on demand only.");
         }
     }
 }
