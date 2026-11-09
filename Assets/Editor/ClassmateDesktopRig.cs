@@ -57,7 +57,10 @@ namespace DIYsect.Editor
             }
             else
             {
-                Debug.Log($"{scenePath} already has the {RigName}, keeping its camera.");
+                // Keep the camera, but always start it from the opening view, so a change to that view reaches existing scenes.
+                Vector3 target = board.transform.position;
+                existingRig.transform.position = target + _cameraOffset;
+                existingRig.transform.rotation = Quaternion.LookRotation(target - existingRig.transform.position, Vector3.up);
             }
             AddRejectionToast(existingRig, board);
             AddOrbitControls(existingRig, board);
