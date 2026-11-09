@@ -22,11 +22,11 @@ At least one author must attend to present.
 
 | Criterion | What we show | Gap to close |
 |---|---|---|
-| Innovation of the 3D user interface | Translated pointer, tap-to-ask with the asker's view, class awareness in the headset | Confirm novelty with a related-work check; make one technique clearly the headline |
-| Support for shared spatial interaction | One shared frog state, private cameras, two headsets plus a class of phones | Show both directions of the loop in the video |
-| Usability and user experience | Joins by QR code, no install, simple gestures | Test with a real teacher and a few students |
-| Technical quality and robustness | Server-enforced rules, tests, offline-capable local assets | Deploy early, test on all devices, backup video |
-| Overall impact and creativity | A real classroom problem (the teacher can't see the class) | Talk to one biology teacher; say what is simulated |
+| Innovation of the 3D user interface | The professor's pointer and guide line shown in each classmate's own view, tap-to-ask with a question pin, the asking student's view in a floating window, and the professor sharing the cut depth with the student | Confirm novelty with a related-work check (#61); make one technique clearly the headline |
+| Support for shared spatial interaction | One shared human body with the server in charge, a professor in mixed reality, a student in virtual reality and classmates on phones or a laptop, each with their own view. Both directions of the loop: professor to student (guide line, depth), student and class to professor (view window, pins, roster) | Show both directions in the video. Two headsets in one room have not been tested yet |
+| Usability and user experience | The apps join the room on their own, one fixed eye height for the student, walking and snap turning, a tint and a haptic tick on tools, a quit menu | Test with a real teacher and a few students (#54, #55) |
+| Technical quality and robustness | The server decides every rule, explicit state machines, automated tests (EditMode 296, PlayMode 128 of 129 on 9 November 2026) | Deploy early, test on all devices, record a backup video |
+| Overall impact and creativity | A real classroom problem: the teacher cannot see the class and students cannot say which part they mean | Talk to one anatomy instructor (#54). Say what is simulated: the skin is a simplified prototype and the instruments are placeholders |
 
 ## Related work to cite and differentiate from (found in our research; read before citing)
 - Anatomy Studio II, a cross-reality dissection system: https://arxiv.org/html/2203.02186
