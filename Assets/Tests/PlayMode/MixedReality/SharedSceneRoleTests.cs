@@ -79,6 +79,7 @@ namespace DIYsect.MixedReality.Tests
                 Assert.IsFalse(FindObject(headsetOnly).activeInHierarchy, $"{headsetOnly} must be off for a classmate.");
             Assert.IsFalse(Object.FindFirstObjectByType<ProfessorAutoHost>(FindObjectsInactive.Include).enabled, "A classmate must not host.");
             Assert.IsTrue(Object.FindFirstObjectByType<ClassmateStatusLabel>(FindObjectsInactive.Include).enabled);
+            Assert.IsTrue(FindObject("ResetViewButton").activeInHierarchy, "A classmate needs the Reset view button.");
 
             int mainCameras = 0;
             foreach (Camera camera in Object.FindObjectsByType<Camera>(FindObjectsSortMode.None))
@@ -118,6 +119,9 @@ namespace DIYsect.MixedReality.Tests
                 Assert.IsTrue(FindObject(headsetOnly).activeInHierarchy, $"{headsetOnly} must be on for the professor.");
             Assert.IsTrue(Object.FindFirstObjectByType<ProfessorAutoHost>(FindObjectsInactive.Include).enabled, "The professor creates the room.");
             Assert.IsFalse(Object.FindFirstObjectByType<ClassmateStatusLabel>(FindObjectsInactive.Include).enabled);
+            Assert.IsFalse(FindObject("ResetViewButton").activeInHierarchy, "The Reset view button must be off for the professor.");
+            int eventSystems = Object.FindObjectsByType<UnityEngine.EventSystems.EventSystem>(FindObjectsSortMode.None).Length;
+            Assert.LessOrEqual(eventSystems, 1, "The professor's headset must not get a second EventSystem.");
 
             ClassroomRole.OverrideForTests = null;
             foreach (NetworkManager manager in Object.FindObjectsByType<NetworkManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
