@@ -14,7 +14,7 @@ namespace DIYsect.Classroom
     /// the point is not finite or not on the organ, the text is empty or too long, or the sender asked for
     /// too many pins recently. A request may carry the asker's camera pose, stored in the body's local space; an invalid
     /// pose never rejects the question, the pin is just stored without a view. A pin can be removed by its author or by the host.
-    /// The professor (see <see cref="PinAnswerRule"/>) can mark a pin answered; the server refuses anyone else and an unknown pin.
+    /// The professor (the host, see <see cref="PinAnswerRule"/>) can mark a pin answered; the server refuses anyone else and an unknown pin.
     /// </summary>
     [RequireComponent(typeof(SharedBody))]
     public class QuestionBoard : NetworkBehaviour
@@ -161,7 +161,7 @@ namespace DIYsect.Classroom
         private void MarkAnsweredRpc(int pinId, RpcParams rpcParams = default)
         {
             ulong sender = rpcParams.Receive.SenderClientId;
-            if (!PinAnswerRule.CanMarkAnswered(sender, ScalpelSteering.FindSteerer(NetworkManager)))
+            if (!PinAnswerRule.CanMarkAnswered(sender))
             {
                 Reject(sender, PinRejection.NotProfessor);
                 return;

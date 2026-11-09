@@ -103,7 +103,7 @@ namespace DIYsect.Classroom
                 RequestRejected?.Invoke(sender, PointerRejection.BadOrgan);
                 return;
             }
-            PointerRole role = PointerRoleRule.For(sender, ScalpelSteering.FindSteerer(NetworkManager));
+            PointerRole role = PointerRoleRule.For(sender, FindSteerer());
             // A client holds one pointer: if its role changed since the last request, the old slot is freed.
             PointerRole other = role == PointerRole.Professor ? PointerRole.Student : PointerRole.Professor;
             if (OwnerOf(other) == sender)
@@ -116,6 +116,15 @@ namespace DIYsect.Classroom
         private void StopRpc(RpcParams rpcParams = default)
         {
             ClearOwnedBy(rpcParams.Receive.SenderClientId);
+        }
+
+        // The scalpel is its own NetworkObject. This runs only on the server and only after a request that passed the rate limit.
+        private ulong FindSteerer()
+        {
+            foreach (NetworkObject spawned in NetworkManager.SpawnManager.SpawnedObjectsList)
+                if (spawned.TryGetComponent(out ScalpelSteering steering) && steering.HasSteerer)
+                    return steering.Steerer;
+            return ScalpelSteering.NoSteerer;
         }
 
         private void HandleDisconnect(ulong clientId)

@@ -1,4 +1,4 @@
-using DIYsect.Networking;
+using Unity.Netcode;
 using NUnit.Framework;
 
 namespace DIYsect.Classroom.Tests
@@ -6,21 +6,16 @@ namespace DIYsect.Classroom.Tests
     public class PinAnswerRuleTests
     {
         [Test]
-        public void ProfessorMayMarkWhenNobodySteers()
+        public void OnlyTheHostMayMark()
         {
-            Assert.IsTrue(PinAnswerRule.CanMarkAnswered(1, ScalpelSteering.NoSteerer));
+            Assert.IsTrue(PinAnswerRule.CanMarkAnswered(NetworkManager.ServerClientId));
         }
 
         [Test]
-        public void ProfessorMayMarkWhileAnotherClientSteers()
+        public void NoClientMayMark()
         {
-            Assert.IsTrue(PinAnswerRule.CanMarkAnswered(0, 2));
-        }
-
-        [Test]
-        public void TheSteeringStudentMayNotMark()
-        {
-            Assert.IsFalse(PinAnswerRule.CanMarkAnswered(2, 2));
+            for (ulong client = 1; client <= 5; client++)
+                Assert.IsFalse(PinAnswerRule.CanMarkAnswered(client), "client " + client);
         }
 
         [Test]

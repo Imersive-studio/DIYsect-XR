@@ -1,5 +1,5 @@
 // Starts a real in-process Netcode host and clients over UnityTransport on localhost (no cloud services).
-// Authority under test: the server alone marks a pin answered, and only for the professor (any client that is not the scalpel steerer).
+// Authority under test: the server alone marks a pin answered, and only for the host (the professor's headset always hosts).
 // Clients only ask by Rpc; every peer, late joiners included, then shows the pin as answered.
 using System.Collections;
 using System.Collections.Generic;
@@ -94,22 +94,12 @@ namespace DIYsect.Networking.Tests
         }
 
         [UnityTest]
-        public IEnumerator AnotherNonSteeringClientIsTheProfessorToo()
-        {
-            yield return StartTwoClients();
-            _boardA.RequestPin(OrganIndex, PointOn(OrganIndex), "why?");
-            yield return WaitForPins(_boardB, 1);
-
-            _boardB.RequestMarkAnswered(_boardB[0].Id);
-            yield return WaitForAnswered(_server, 0, true);
-        }
-
-        [UnityTest]
-        public IEnumerator SteeringStudentIsRefusedAndTheOthersAreToldNothing()
+        public IEnumerator NoClientMayMarkNotEvenTheSteeringOne()
         {
             yield return StartTwoClients();
             _boardA.RequestPin(OrganIndex, PointOn(OrganIndex), "why?");
             yield return WaitForPins(_boardA, 1);
+            yield return WaitForPins(_boardB, 1);
             yield return SpawnScalpelWithSteerer(_managerA, scalpel => _scalpel = scalpel);
 
             var serverRejections = new List<(ulong, PinRejection)>();
@@ -120,12 +110,12 @@ namespace DIYsect.Networking.Tests
             _boardB.LocalRequestRejected += toB.Add;
 
             _boardA.RequestMarkAnswered(_boardA[0].Id);
-            yield return WaitFor(() => toA.Count == 1, "the student to hear the refusal");
+            _boardB.RequestMarkAnswered(_boardB[0].Id);
+            yield return WaitFor(() => toA.Count == 1 && toB.Count == 1, "both clients to hear the refusal");
 
             Assert.AreEqual(PinRejection.NotProfessor, toA[0]);
-            Assert.AreEqual(1, serverRejections.Count);
-            Assert.AreEqual(_managerA.LocalClientId, serverRejections[0].Item1);
-            Assert.AreEqual(0, toB.Count);
+            Assert.AreEqual(PinRejection.NotProfessor, toB[0]);
+            Assert.AreEqual(2, serverRejections.Count);
             Assert.IsFalse(_server[0].Answered);
         }
 
