@@ -64,6 +64,9 @@ namespace DIYsect.Classroom
         /// <summary>Returns the camera to its starting view.</summary>
         public void Reset()
         {
+            // Unity also calls a method named Reset when the component is added in the editor, before _orbit is assigned.
+            if (_orbit == null)
+                return;
             _orbit.ResetView();
         }
     }
