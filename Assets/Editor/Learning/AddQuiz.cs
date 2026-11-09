@@ -151,7 +151,7 @@ namespace DIYsect.Editor
             Debug.Log($"{ProfessorScenePath}: quiz panel at {position} with {questions.Count} questions.");
         }
 
-        private static void AddClassmateControls()
+        public static void AddClassmateControls()
         {
             Scene scene = EditorSceneManager.OpenScene(ClassmateScenePath, OpenSceneMode.Single);
             GameObject rig = null;
@@ -193,7 +193,7 @@ namespace DIYsect.Editor
             AddOrganNameTap.SetClaimers(rig);
             AddClassmatePointInput.SetClaimers(rig);
 
-            Text label = GetOrCreateQuizLine(rig);
+            TMPro.TMP_Text label = GetOrCreateQuizLine(rig);
             var prompt = rig.GetComponent<QuizPrompt>();
             if (prompt == null)
                 prompt = rig.AddComponent<QuizPrompt>();
@@ -206,42 +206,21 @@ namespace DIYsect.Editor
             Debug.Log($"{ClassmateScenePath}: quiz answers and quiz line on {ClassmateRigName}.");
         }
 
-        // A screen overlay with one line of text near the top (the pin message uses the bottom). Hidden until a round starts.
-        private static Text GetOrCreateQuizLine(GameObject rig)
+        // A glass chip with the quiz line above the dock and its notes, where the thumb already is. Hidden until a round starts.
+        private static TMPro.TMP_Text GetOrCreateQuizLine(GameObject rig)
         {
             Transform existing = rig.transform.Find(CanvasName);
             if (existing != null)
             {
-                Text found = existing.GetComponentInChildren<Text>(true);
+                TMPro.TMP_Text found = existing.GetComponentInChildren<TMPro.TMP_Text>(true);
                 if (found != null)
                     return found;
                 UnityEngine.Object.DestroyImmediate(existing.gameObject);
             }
 
-            var canvasObject = new GameObject(CanvasName);
-            canvasObject.transform.SetParent(rig.transform, false);
-            var canvas = canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            var scaler = canvasObject.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1280f, 720f);
-
-            var labelObject = new GameObject("QuizLine");
-            labelObject.transform.SetParent(canvasObject.transform, false);
-            var label = labelObject.AddComponent<Text>();
-            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            label.fontSize = 36;
-            label.alignment = TextAnchor.MiddleCenter;
-            label.color = new Color(1f, 0.92f, 0.4f);
-            label.raycastTarget = false;
-            var shadow = labelObject.AddComponent<Shadow>();
-            shadow.effectColor = new Color(0f, 0f, 0f, 0.8f);
-            var rect = label.rectTransform;
-            rect.anchorMin = new Vector2(0.1f, 0.82f);
-            rect.anchorMax = new Vector2(0.9f, 0.94f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-            labelObject.SetActive(false);
+            Canvas canvas = ClassmateUiBuilder.NewCanvas(rig.transform, CanvasName, clickable: false, sortingOrder: 10);
+            TMPro.TextMeshProUGUI label = ClassmateUiBuilder.AddChip(canvas.transform, "QuizLine", new Vector2(0.5f, 0f), new Vector2(0f, AddClassmateBottomBar.CardLine),
+                ClassmateUiBuilder.BodySize, new Color(1f, 0.92f, 0.55f), hidden: true);
             return label;
         }
 

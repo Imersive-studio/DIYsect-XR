@@ -222,8 +222,8 @@ namespace DIYsect.Editor
             }
         }
 
-        // The start screen, the Mute and Raise hand buttons and the tap-to-name card. The bottom row and the card sit above the
-        // pin message's old place, so the message moves up to stay clear of them.
+        // The start and name pages, the dock with Unmute and Raise hand, and the tap-to-name card. The pin message already floats
+        // above the dock (ClassmateDesktopRig), so nothing has to move.
         private static void AddClassmateControls(Scene scene, GameObject rig, ClassmateAutoJoin autoJoin, ClassmateStatusLabel statusLabel)
         {
             var board = UnityEngine.Object.FindFirstObjectByType<DIYsect.Classroom.QuestionBoard>(FindObjectsInactive.Include)
@@ -238,13 +238,6 @@ namespace DIYsect.Editor
             AddClassmateBottomBar.AddHand(rig, hands);
             AddOrganNameTap.AddTo(rig, board.GetComponent<DIYsect.Networking.SharedBody>());
             AddClassmatePointInput.AddTo(rig, board.GetComponent<DIYsect.Networking.SharedBody>(), board.GetComponent<DIYsect.Classroom.PointerBoard>());
-
-            var toast = rig.GetComponent<DIYsect.Classroom.PinRejectionToast>()
-                ?? throw new InvalidOperationException($"{rig.name} has no PinRejectionToast.");
-            RectTransform message = toast.GetComponentInChildren<UnityEngine.UI.Text>(true).rectTransform;
-            message.anchorMin = new Vector2(0.1f, 0.25f);
-            message.anchorMax = new Vector2(0.9f, 0.35f);
-            EditorUtility.SetDirty(message);
         }
 
         // The template is a tabletop game, so its move and turn providers ship switched off. They are the standard XR Interaction

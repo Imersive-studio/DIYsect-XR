@@ -146,48 +146,30 @@ namespace DIYsect.Editor
             }
         }
 
-        // A screen overlay with one line of text near the bottom. Hidden until the server refuses a pin.
+        // A glass chip just above the dock. Hidden until the server refuses a pin. Safe on a rig whose canvas was removed: it builds a new one.
         private static void AddRejectionToast(GameObject rig, QuestionBoard board)
         {
-            if (rig.GetComponentInChildren<PinRejectionToast>(true) != null)
+            var toast = rig.GetComponent<PinRejectionToast>();
+            if (!ClassmateUiBuilder.NeedsUi(toast, "_label"))
                 return;
+            toast = toast != null ? toast : rig.AddComponent<PinRejectionToast>();
 
-            var canvasObject = new GameObject("PinRejectionCanvas");
-            canvasObject.transform.SetParent(rig.transform, false);
-            var canvas = canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            var scaler = canvasObject.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1280f, 720f);
+            Canvas canvas = ClassmateUiBuilder.NewCanvas(rig.transform, "PinRejectionCanvas", clickable: false);
+            TMPro.TextMeshProUGUI label = ClassmateUiBuilder.AddChip(canvas.transform, "Message", new Vector2(0.5f, 0f), new Vector2(0f, AddClassmateBottomBar.AboveDock),
+                ClassmateUiBuilder.SmallSize, DIYsect.Presentation.GuidePalette.TextPrimary);
 
-            var labelObject = new GameObject("Message");
-            labelObject.transform.SetParent(canvasObject.transform, false);
-            var label = labelObject.AddComponent<Text>();
-            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            label.fontSize = 32;
-            label.alignment = TextAnchor.MiddleCenter;
-            label.color = Color.white;
-            label.raycastTarget = false;
-            var shadow = labelObject.AddComponent<Shadow>();
-            shadow.effectColor = new Color(0f, 0f, 0f, 0.8f);
-            var rect = label.rectTransform;
-            rect.anchorMin = new Vector2(0.1f, 0.08f);
-            rect.anchorMax = new Vector2(0.9f, 0.18f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-
-            var toast = rig.AddComponent<PinRejectionToast>();
             var serialized = new SerializedObject(toast);
             serialized.FindProperty("_board").objectReferenceValue = board;
             serialized.FindProperty("_label").objectReferenceValue = label;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        // A large "Reset view" button in the top-right corner (clear of the body and of the toast at the bottom), plus the
-        // Home and R keys. A UI button needs an EventSystem, which also lets the gesture tracker ignore presses on it.
+        // "Reset view" heads the column of view pills in the top-right corner (clear of the status chip on the left and the dock
+        // at the bottom), plus the Home and R keys. A UI button needs an EventSystem, which also lets the gesture tracker ignore presses on it.
         private static void AddViewReset(GameObject rig)
         {
-            if (rig.GetComponent<ClassmateViewReset>() != null)
+            var reset = rig.GetComponent<ClassmateViewReset>();
+            if (!ClassmateUiBuilder.NeedsUi(reset, "_button"))
                 return;
             if (UnityEngine.Object.FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
             {
@@ -198,56 +180,26 @@ namespace DIYsect.Editor
                 events.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
             }
 
-            var canvasObject = new GameObject("ViewResetCanvas");
-            canvasObject.transform.SetParent(rig.transform, false);
-            var canvas = canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            var scaler = canvasObject.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1280f, 720f);
-            canvasObject.AddComponent<GraphicRaycaster>();
+            Canvas canvas = ClassmateUiBuilder.NewCanvas(rig.transform, "ViewResetCanvas", clickable: true);
+            Button button = MakeButton(canvas.transform, "ResetViewButton", "Reset view", 0, out _);
 
-            Button button = MakeButton(canvasObject.transform, "ResetViewButton", "Reset view", new Vector2(240f, 96f), -24f, 36, out _);
-
-            var reset = rig.AddComponent<ClassmateViewReset>();
+            reset = reset != null ? reset : rig.AddComponent<ClassmateViewReset>();
             var serialized = new SerializedObject(reset);
             serialized.FindProperty("_orbit").objectReferenceValue = rig.GetComponent<ClassmateOrbitCamera>();
             serialized.FindProperty("_button").objectReferenceValue = button;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        // A thumb-sized dark button hanging from the top-right corner, <paramref name="top"/> pixels down (reference resolution).
-        private static Button MakeButton(Transform parent, string name, string text, Vector2 size, float top, int fontSize, out Text label)
-        {
-            var buttonObject = new GameObject(name);
-            buttonObject.transform.SetParent(parent, false);
-            var background = buttonObject.AddComponent<Image>();
-            background.color = new Color(0f, 0f, 0f, 0.65f);
-            var button = buttonObject.AddComponent<Button>();
-            button.targetGraphic = background;
-            var rect = buttonObject.GetComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(1f, 1f);
-            rect.sizeDelta = size;
-            rect.anchoredPosition = new Vector2(-24f, top);
+        public const float ViewButtonWidth = 228f;
 
-            var labelObject = new GameObject("Label");
-            labelObject.transform.SetParent(buttonObject.transform, false);
-            label = labelObject.AddComponent<Text>();
-            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            label.fontSize = fontSize;
-            label.alignment = TextAnchor.MiddleCenter;
-            label.color = Color.white;
-            label.text = text;
-            label.raycastTarget = false;
-            // Long wording ("Following professor") shrinks to fit instead of spilling out of the button.
-            label.resizeTextForBestFit = true;
-            label.resizeTextMinSize = 16;
-            label.resizeTextMaxSize = fontSize;
-            var labelRect = label.rectTransform;
-            labelRect.anchorMin = Vector2.zero;
-            labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = new Vector2(8f, 0f);
-            labelRect.offsetMax = new Vector2(-8f, 0f);
+        // A glass pill in the top-right column, <paramref name="slot"/> places down from the top (0 is the first).
+        private static Button MakeButton(Transform parent, string name, string text, int slot, out TMPro.TextMeshProUGUI label)
+        {
+            Button button = ClassmateUiBuilder.AddButton(parent, name, text, ClassmateUiBuilder.SmallSize, ClassmateUiBuilder.Kind.Glass, out label, ClassmateUiBuilder.SmallButtonHeight);
+            var rect = (RectTransform)button.transform;
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(1f, 1f);
+            rect.sizeDelta = new Vector2(ViewButtonWidth, ClassmateUiBuilder.SmallButtonHeight);
+            rect.anchoredPosition = new Vector2(-ClassmateUiBuilder.Margin, -ClassmateUiBuilder.Margin - slot * (ClassmateUiBuilder.SmallButtonHeight + 10f));
             return button;
         }
 
@@ -272,18 +224,16 @@ namespace DIYsect.Editor
             resetSerialized.FindProperty("_follow").objectReferenceValue = follow;
             resetSerialized.ApplyModifiedPropertiesWithoutUndo();
 
-            if (rig.GetComponent<ClassmateFollowButtons>() != null)
-            {
-                Debug.Log($"{RigName} already has the follow buttons, keeping them.");
+            var buttons = rig.GetComponent<ClassmateFollowButtons>();
+            if (!ClassmateUiBuilder.NeedsUi(buttons, "_professorButton"))
                 return;
-            }
             Transform canvas = rig.transform.Find("ViewResetCanvas") ?? throw new InvalidOperationException($"{RigName} has no ViewResetCanvas.");
-            var size = new Vector2(240f, 96f);
-            Button professor = MakeButton(canvas, "FollowProfessorButton", "Follow professor", size, -136f, 32, out Text professorLabel);
-            Button student = MakeButton(canvas, "FollowStudentButton", "Follow student", size, -248f, 32, out Text studentLabel);
-            Button back = MakeButton(canvas, "BackToMyViewButton", "Back to my view", size, -360f, 32, out _);
+            Transform column = canvas.Find(ClassmateCanvasLayout.PanelName) ?? canvas;
+            Button professor = MakeButton(column, "FollowProfessorButton", "Follow professor", 1, out TMPro.TextMeshProUGUI professorLabel);
+            Button student = MakeButton(column, "FollowStudentButton", "Follow student", 2, out TMPro.TextMeshProUGUI studentLabel);
+            Button back = MakeButton(column, "BackToMyViewButton", "Back to my view", 3, out _);
 
-            var buttons = rig.AddComponent<ClassmateFollowButtons>();
+            buttons = buttons != null ? buttons : rig.AddComponent<ClassmateFollowButtons>();
             var serialized = new SerializedObject(buttons);
             serialized.FindProperty("_follow").objectReferenceValue = follow;
             serialized.FindProperty("_professorButton").objectReferenceValue = professor;
