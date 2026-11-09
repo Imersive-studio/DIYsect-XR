@@ -12,6 +12,7 @@ namespace DIYsect.Classroom
     /// The pin may also carry the viewpoint of the classmate who asked it, in the local space of the QuestionBoard's
     /// transform (the body root), so the view follows the body. A default (all zero) rotation means no view.
     /// <see cref="Id"/> is a server-assigned sequence number and doubles as the creation order.
+    /// <see cref="Answered"/> is set by the server when the professor marks the question answered; it travels with the pin, so late joiners get it.
     /// </summary>
     public struct QuestionPin : INetworkSerializable, IEquatable<QuestionPin>
     {
@@ -22,6 +23,7 @@ namespace DIYsect.Classroom
         private FixedString64Bytes _text;
         private Vector3 _viewPosition;
         private Quaternion _viewRotation;
+        private bool _answered;
 
         /// <summary>A pin without a view.</summary>
         public QuestionPin(int id, int organIndex, Vector3 localPoint, ulong authorClientId, FixedString64Bytes text)
@@ -40,6 +42,7 @@ namespace DIYsect.Classroom
             _text = text;
             _viewPosition = viewPosition;
             _viewRotation = viewRotation;
+            _answered = false;
         }
 
         public int Id => _id;
@@ -47,6 +50,17 @@ namespace DIYsect.Classroom
         public Vector3 LocalPoint => _localPoint;
         public ulong AuthorClientId => _authorClientId;
         public FixedString64Bytes Text => _text;
+
+        /// <summary>True once the professor has marked this question answered.</summary>
+        public bool Answered => _answered;
+
+        /// <summary>A copy of this pin with the answered flag set.</summary>
+        public QuestionPin AsAnswered()
+        {
+            QuestionPin copy = this;
+            copy._answered = true;
+            return copy;
+        }
 
         /// <summary>Where the asker's camera was, in the body root's local space. Only meaningful when <see cref="HasView"/>.</summary>
         public Vector3 ViewPosition => _viewPosition;
@@ -66,6 +80,7 @@ namespace DIYsect.Classroom
             serializer.SerializeValue(ref _text);
             serializer.SerializeValue(ref _viewPosition);
             serializer.SerializeValue(ref _viewRotation);
+            serializer.SerializeValue(ref _answered);
         }
 
         public bool Equals(QuestionPin other)
@@ -74,7 +89,8 @@ namespace DIYsect.Classroom
                 && _authorClientId == other._authorClientId && _text.Equals(other._text)
                 && _viewPosition == other._viewPosition
                 // Quaternion == compares by dot product, so two "no view" (all zero) rotations would never be equal.
-                && _viewRotation.Equals(other._viewRotation);
+                && _viewRotation.Equals(other._viewRotation)
+                && _answered == other._answered;
         }
 
         public override bool Equals(object obj)

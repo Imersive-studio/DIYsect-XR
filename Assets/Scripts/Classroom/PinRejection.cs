@@ -7,5 +7,7 @@ namespace DIYsect.Classroom
         BadPoint,
         BadText,
         RateLimited,
+        NotProfessor,
+        NoSuchPin,
     }
 }
