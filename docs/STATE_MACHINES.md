@@ -38,7 +38,7 @@ The professor has three tools in `Professor_MR`: the guide pen, the depth handle
 |---|---|---|---|
 | Guide pen (`GuideLinePen`) | Grab the pen (grip), hold the trigger to draw | Samples its own tip position. It does not raycast and has no trigger that the scalpel or forceps react to | `GrabRequest` phase on the pen; the server (`GuideLine`) holds the drawer and the points |
 | Depth handle (`DepthControlInput`) | Grab the handle (grip), lower or raise it | Streams the handle height as the cut depth | `GrabRequest` phase on the handle; the server (`GuidingHand`) holds the controller and the depth |
-| Student view window (`StudentViewWindow`) | Ray-select the previous and next buttons; it opens by itself when a question has a view | Moves its own camera; the panel and the buttons are on the `CloseUpScreen` layer and the screen and frame have no collider | `StudentViewMode`, local to the professor's client; derived from the question board |
+| Student view window (`StudentViewWindow`) | Ray-select the previous, next, Answered and Live buttons; it opens by itself when a question has a view | Moves its own camera; the panel and the buttons are on the `CloseUpScreen` layer and the screen and frame have no collider | `StudentViewMode` (`Hidden`, `FollowingNewest`, `Pinned`, `Live`), local to the professor's client; derived from the question board, and in `Live` from the student's head in `HeadPoseBoard`. `StudentViewSourceRule` picks the picture and `StudentViewRenderRule` caps live renders at 15 a second |
 
 What blocks what:
 

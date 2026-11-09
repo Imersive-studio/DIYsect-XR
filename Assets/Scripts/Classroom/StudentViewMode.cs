@@ -11,5 +11,8 @@ namespace DIYsect.Classroom
 
         /// <summary>The professor stepped to an older question, so the window stays on it until it is removed or they return to the newest.</summary>
         Pinned,
+
+        /// <summary>The window shows what the student in VR sees now, following their head. Pins are ignored until the professor leaves Live.</summary>
+        Live,
     }
 }

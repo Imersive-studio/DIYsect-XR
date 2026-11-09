@@ -43,6 +43,7 @@ namespace DIYsect.Learning
         private PointerBoard _board;
         private PointerPresenter _presenter;
         private bool _valid;
+        private int _quizOrgan = PointerBoard.None;
 
         /// <summary>The organ that is risen or rising now, or -1.</summary>
         public int PoppedIndex { get; private set; } = PointerBoard.None;
@@ -93,6 +94,17 @@ namespace DIYsect.Learning
 
         private void OnHolderChanged(int organIndex, ulong holder) => Refresh();
 
+        /// <summary>
+        /// Lifts one more organ for the quiz reveal (the correct answer), without the classmate's name chip. -1 lowers it.
+        /// It rises beside any organ a classmate is pointing at.
+        /// </summary>
+        public void SetQuizLift(int organIndex)
+        {
+            _quizOrgan = organIndex;
+            if (_valid && isActiveAndEnabled)
+                Refresh();
+        }
+
         // Reads the classmate slot and the holders again and turns every organ the right way.
         private void Refresh()
         {
@@ -100,16 +112,25 @@ namespace DIYsect.Learning
             if (wanted < 0 || wanted >= _body.Organs.Count || _authority.GetHolder(wanted) != OrganGrabAuthority.NoHolder)
                 wanted = PointerBoard.None;
             PoppedIndex = wanted;
+            int quiz = _quizOrgan;
+            if (quiz < 0 || quiz >= _body.Organs.Count || _authority.GetHolder(quiz) != OrganGrabAuthority.NoHolder)
+                quiz = PointerBoard.None;
             foreach (PoppedOrgan organ in _organs.Values)
-                if (organ.Index != wanted)
+                if (organ.Index != wanted && organ.Index != quiz)
                     organ.Lower();
-            if (wanted != PointerBoard.None)
-            {
-                PoppedOrgan organ = GetOrCreate(wanted);
-                organ.Raise();
-                if (!_running.Contains(organ))
-                    _running.Add(organ);
-            }
+            Raise(wanted, true);
+            if (quiz != wanted)
+                Raise(quiz, false);
+        }
+
+        private void Raise(int index, bool withChip)
+        {
+            if (index == PointerBoard.None)
+                return;
+            PoppedOrgan organ = GetOrCreate(index);
+            organ.Raise(withChip);
+            if (!_running.Contains(organ))
+                _running.Add(organ);
         }
 
         // Polling exception: the animation needs a clock, and a lifted organ follows its parent while it is up. Runs only while one is up or settling.
@@ -164,8 +185,11 @@ namespace DIYsect.Learning
             /// <summary>True from the first frame of the rise until the organ is fully back down.</summary>
             public bool IsUp => _timeline.IsVisible;
 
-            public void Raise()
+            public void Raise(bool withChip)
             {
+                // The chip follows the reason for the lift: a classmate's name chip only for a classmate's pointer.
+                if (!withChip)
+                    _chip.Hide();
                 RevealPhase before = _timeline.Phase;
                 if (before == RevealPhase.Entering || before == RevealPhase.Shown)
                     return;
@@ -174,7 +198,8 @@ namespace DIYsect.Learning
                         if (_nodes[i] != null)
                             _rest[i] = _nodes[i].localPosition;
                 _timeline.Show();
-                _chip.Show();
+                if (withChip)
+                    _chip.Show();
             }
 
             public void Lower()

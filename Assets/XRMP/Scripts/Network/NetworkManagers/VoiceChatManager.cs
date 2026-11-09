@@ -168,6 +168,10 @@ namespace XRMultiplayer
         private void OnDestroy()
         {
 #if VIVOX_SUPPORTED
+            // The voice service only exists once Unity Services has started. Without that (offline, or in tests) there is
+            // nothing to unsubscribe from, and touching it would throw while the scene is torn down.
+            if (!m_IsInitialized)
+                return;
             VivoxService.Instance.LoggedIn -= LocalUserLoggedIn;
             UnbindParticipantEvents();
 #endif
