@@ -48,6 +48,9 @@ namespace DIYsect.Editor
 
             GameObject classmateRig = FindByName(scene, ClassmateRigName) ?? throw new InvalidOperationException($"{ClassmateRigName} was not created.");
             AddReconnectBanner.AddTo(classmateRig, autoJoin);
+            // The banner canvas is made after the camera tool ran, so it joins the safe area here.
+            foreach (Canvas canvas in classmateRig.GetComponentsInChildren<Canvas>(true))
+                DIYsect.Classroom.ClassmateCanvasLayout.Apply(canvas);
             var professorObjects = new List<GameObject>();
             foreach (string name in ProfessorObjectNames)
             {

@@ -22,6 +22,7 @@ namespace DIYsect.Classroom
         private PointerPresenter _presenter;
         private GUIStyle _style;
         private readonly GUIContent _measure = new GUIContent();
+        private Rect _bounds;
 
         private void Awake()
         {
@@ -38,6 +39,8 @@ namespace DIYsect.Classroom
             EnsureAssets();
 
             float scale = Mathf.Clamp(Mathf.Min(Screen.width, Screen.height) / 540f, 1f, 3f);
+            // Read each repaint, so a rotation or a changed cutout is followed at once.
+            _bounds = ScreenLayoutMath.Inset(ScreenLayoutMath.GuiSafeRect(Screen.safeArea, Screen.width, Screen.height), 4f);
             _style.fontSize = Mathf.RoundToInt(18f * scale);
             float pulse = 1f + 0.12f * (_presenter.Pulse - 0.5f) * 2f;
             foreach (PointerEntry entry in entries)
@@ -51,6 +54,9 @@ namespace DIYsect.Classroom
             PointerPlacement place = entry.Placement;
             var anchor = new Vector2(place.Position.x * Screen.width, (1f - place.Position.y) * Screen.height);
             float size = BaseMarker * scale * pulse;
+            // An edge arrow stays whole inside the safe area, so a notch or a gesture bar never covers it.
+            if (!place.OnScreen)
+                anchor = ScreenLayoutMath.ClampInside(anchor, ScreenLayoutMath.Inset(_bounds, size * 0.5f));
 
             Matrix4x4 saved = GUI.matrix;
             Color savedColor = GUI.color;
@@ -74,13 +80,12 @@ namespace DIYsect.Classroom
             Vector2 labelCentre = anchor;
             if (!place.OnScreen)
             {
-                Vector2 inward = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f) - anchor;
+                Vector2 inward = _bounds.center - anchor;
                 labelCentre += inward.normalized * (size * 0.5f + height * 0.5f);
             }
             labelCentre.y += (professor ? -1f : 1f) * (size * 0.5f + height * 0.5f + 4f * scale);
             var rect = new Rect(labelCentre.x - width * 0.5f, labelCentre.y - height * 0.5f, width, height);
-            rect.x = Mathf.Clamp(rect.x, 4f, Screen.width - width - 4f);
-            rect.y = Mathf.Clamp(rect.y, 4f, Screen.height - height - 4f);
+            rect = ScreenLayoutMath.ClampInside(rect, _bounds);
 
             GUI.color = new Color(0f, 0f, 0f, 0.75f);
             GUI.DrawTexture(rect, _panel);

@@ -63,6 +63,8 @@ namespace DIYsect.Editor
             AddViewReset(existingRig);
             AddReconnectBannerIfJoinExists(existingRig);
             AddFollowControls(existingRig, board);
+            // After every canvas exists, so the follow buttons and the banner are inside the safe area too.
+            FitCanvasesToPhone(existingRig);
 
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))
@@ -120,6 +122,13 @@ namespace DIYsect.Editor
             var pinSerialized = new SerializedObject(pins);
             pinSerialized.FindProperty("_gestures").objectReferenceValue = tracker;
             pinSerialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // Every uGUI canvas under the classmate camera (also ones other tools add) gets a SafeArea panel and an orientation-aware scaler.
+        private static void FitCanvasesToPhone(GameObject rig)
+        {
+            foreach (Canvas canvas in rig.GetComponentsInChildren<Canvas>(true))
+                ClassmateCanvasLayout.Apply(canvas);
         }
 
         // Batch entry point: -executeMethod DIYsect.Editor.ClassmateDesktopRig.ApplyBatch
