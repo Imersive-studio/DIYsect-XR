@@ -56,6 +56,20 @@ namespace DIYsect.StudentRig.Tests
         }
 
         [Test]
+        public void ProfessorRaysAreAlwaysVisibleAndClear()
+        {
+            XROrigin origin = Open(ProfessorScene);
+            var visuals = origin.GetComponentsInChildren<CurveVisualController>(true);
+            Assert.GreaterOrEqual(visuals.Length, 4, "Both controllers and both hands should have a ray.");
+            foreach (CurveVisualController visual in visuals)
+            {
+                Assert.IsTrue(visual.extendLineToEmptyHit, $"{visual.transform.parent.parent.name} ray vanishes when it hits nothing.");
+                Assert.GreaterOrEqual(visual.restingVisualLineLength, 0.4f, $"{visual.transform.parent.parent.name} ray is too short to see.");
+                Assert.GreaterOrEqual(visual.GetComponent<LineRenderer>().widthMultiplier, 2f, $"{visual.transform.parent.parent.name} ray is too thin.");
+            }
+        }
+
+        [Test]
         public void StudentSceneCanWalkAndSnapTurn()
         {
             XROrigin origin = Open(StudentScene);
