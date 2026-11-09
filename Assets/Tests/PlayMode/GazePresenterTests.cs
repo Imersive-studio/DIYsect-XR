@@ -27,13 +27,25 @@ namespace DIYsect.Networking.Tests
 
             Collider organ = clientBody.Organs[0].GetComponentInChildren<Collider>();
             Assert.IsNotNull(organ, "The first organ has no collider.");
+            // Aim from the spawned client's current collider pose, not the previous physics step.
+            Physics.SyncTransforms();
             Vector3 target = organ.bounds.center;
             Vector3 headWorld = target + Vector3.up * 0.4f;
             Quaternion lookWorld = Quaternion.LookRotation(Vector3.down, Vector3.forward);
             Transform body = server.transform;
             server.Publish(body.InverseTransformPoint(headWorld), Quaternion.Inverse(body.rotation) * lookWorld);
 
-            yield return WaitFor(() => presenter.IsShown(PointerRole.Professor), "the professor's gaze dot to appear");
+            yield return WaitFor(() => presenter.IsShown(PointerRole.Professor), "the professor's gaze dot to appear", () =>
+            {
+                var peerBoard = clientBody.GetComponent<HeadPoseBoard>();
+                bool present = peerBoard.TryGetLocalPose(PointerRole.Professor, out Vector3 position, out Quaternion rotation);
+                Vector3 origin = clientBody.transform.TransformPoint(position);
+                Vector3 direction = clientBody.transform.rotation * rotation * Vector3.forward;
+                bool hit = Physics.Raycast(origin, direction, out RaycastHit surface, 3f,
+                    LayerMask.GetMask("Default", "SeatedOrgan", "LooseOrgan"), QueryTriggerInteraction.Ignore);
+                return $"Host pose: {server.IsPresent(PointerRole.Professor)}, peer pose: {present}, target: {target}, "
+                    + $"published head: {headWorld}, peer ray: {origin} / {direction}, hit: {(hit ? surface.collider.name : "none")}.";
+            });
             Assert.IsFalse(presenter.IsShown(PointerRole.Student), "Nobody is publishing a student head.");
             Vector3 dot = presenter.DotPosition(PointerRole.Professor);
             Vector2 sideways = new Vector2(dot.x - target.x, dot.z - target.z);
