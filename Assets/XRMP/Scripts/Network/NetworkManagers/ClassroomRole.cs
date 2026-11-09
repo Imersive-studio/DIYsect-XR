@@ -49,6 +49,12 @@ namespace XRMultiplayer
         private GameObject[] _studentObjects;
         [SerializeField, Tooltip("Scripts only the student in VR runs, for example the eye height calibration.")]
         private Behaviour[] _studentBehaviours;
+        [SerializeField, Tooltip("Objects the professor uses only in the mixed reality view, for example the handle that places the table on a real table.")]
+        private GameObject[] _passthroughOnlyObjects;
+        [SerializeField, Tooltip("Scripts used wherever the headset stands in the hall at a fixed eye height: the student, and the professor in the classroom view.")]
+        private Behaviour[] _hallHeadsetBehaviours;
+        [SerializeField, Tooltip("The root of the table, the body and the hall. The professor's table placing moves it, so it is put back when the professor returns to the classroom.")]
+        private Transform _tableRoot;
         [SerializeField, Tooltip("Join-only behaviours for the student and the phone classmate.")]
         private Behaviour[] _joiningBehaviours;
         [SerializeField] private Camera _headsetCamera;
@@ -60,6 +66,38 @@ namespace XRMultiplayer
 
         /// <summary>The role this device chose at start. Professor until a scene with this component has loaded.</summary>
         public static ClassroomRoleKind Current { get; private set; } = ClassroomRoleKind.Professor;
+
+        /// <summary>Lets a test pick the professor's view before a scene loads. Null means use the kept choice. Never set outside tests.</summary>
+        public static ProfessorViewMode? ProfessorViewOverrideForTests { get; set; }
+
+        /// <summary>Raised on the professor's device when the view changes.</summary>
+        public static event System.Action<ProfessorViewMode> ProfessorViewChanged;
+
+        private ProfessorViewMode _professorView = ProfessorViewRule.Default;
+        private Unity.XR.CoreUtils.XROrigin _origin;
+        private Unity.XR.CoreUtils.XROrigin.TrackingOriginMode _mixedRealityTrackingMode;
+        private float _mixedRealityCameraOffset;
+        private float _mixedRealityOriginHeight;
+        private Pose _tableRootStart;
+
+        /// <summary>How the professor sees the room now. Only meaningful for the professor.</summary>
+        public ProfessorViewMode ProfessorView => _professorView;
+
+        /// <summary>
+        /// Switches the professor between the classroom (the hall the students are in) and mixed reality (the real room). Does nothing on
+        /// another role. The choice is kept for next time.
+        /// </summary>
+        public void SetProfessorView(ProfessorViewMode mode)
+        {
+            if (Current != ClassroomRoleKind.Professor)
+                return;
+            _professorView = mode;
+            // A test picks its own view and must not leave a kept choice behind for the next test or the next run.
+            if (!ProfessorViewOverrideForTests.HasValue && !OverrideForTests.HasValue)
+                PlayerPrefs.SetString(ProfessorViewRule.PrefsKey, mode.ToString());
+            ApplyProfessorView();
+            ProfessorViewChanged?.Invoke(mode);
+        }
 
         /// <summary>The role for a package name. Pure, so it is tested without a device.</summary>
         public static ClassroomRoleKind Decide(string packageName, bool isEditor, ClassroomRoleKind editorRole)
@@ -80,6 +118,18 @@ namespace XRMultiplayer
         {
             Current = OverrideForTests ?? Decide(Application.identifier, Application.isEditor, _editorRole);
             bool professor = Current == ClassroomRoleKind.Professor;
+            _origin = _headsetCamera != null ? _headsetCamera.GetComponentInParent<Unity.XR.CoreUtils.XROrigin>() : null;
+            if (_origin != null)
+            {
+                // What the rig is like in mixed reality, so the professor can come back to it from the classroom.
+                _mixedRealityTrackingMode = _origin.RequestedTrackingOriginMode;
+                _mixedRealityCameraOffset = _origin.CameraYOffset;
+                _mixedRealityOriginHeight = _origin.transform.position.y;
+            }
+            if (_tableRoot != null)
+                _tableRootStart = new Pose(_tableRoot.position, _tableRoot.rotation);
+            if (professor)
+                _professorView = ProfessorViewOverrideForTests ?? ProfessorViewRule.Parse(PlayerPrefs.GetString(ProfessorViewRule.PrefsKey, string.Empty));
             SetActive(_professorObjects, professor);
             bool classmate = Current == ClassroomRoleKind.Classmate;
             SetActive(_classmateObjects, classmate);
@@ -89,6 +139,8 @@ namespace XRMultiplayer
             SetEnabled(_headsetBehaviours, !classmate);
             bool student = Current == ClassroomRoleKind.Student;
             SetActive(_classroomObjects, student || classmate);
+            SetActive(_passthroughOnlyObjects, false);
+            SetEnabled(_hallHeadsetBehaviours, student);
             SetActive(_studentObjects, student);
             SetEnabled(_studentBehaviours, student);
             SetEnabled(_joiningBehaviours, !professor);
@@ -111,7 +163,7 @@ namespace XRMultiplayer
                             autoJoin.enabled = false;
             }
             if (_passthrough != null)
-                _passthrough.enabled = professor;
+                _passthrough.enabled = false;
             if (_headsetCamera != null)
             {
                 if (Current == ClassroomRoleKind.Student)
@@ -126,11 +178,48 @@ namespace XRMultiplayer
                         origin.transform.position = new Vector3(position.x, 0f, position.z);
                     }
                 }
-                _headsetCamera.clearFlags = professor ? CameraClearFlags.SolidColor : CameraClearFlags.Skybox;
-                if (professor)
+                _headsetCamera.clearFlags = CameraClearFlags.Skybox;
+            }
+            if (professor)
+                ApplyProfessorView();
+            Debug.Log($"[ClassroomRole] This device is the {Current}.");
+        }
+
+        // The professor's view: the hall and a fixed eye height in the classroom, the real room and the table placing in mixed reality.
+        private void ApplyProfessorView()
+        {
+            ProfessorViewMode mode = _professorView;
+            bool hall = ProfessorViewRule.HallVisible(mode);
+            bool mixedReality = ProfessorViewRule.PassthroughOn(mode);
+            SetActive(_classroomObjects, hall);
+            SetActive(_passthroughOnlyObjects, ProfessorViewRule.TableAlignmentOn(mode));
+            SetEnabled(_hallHeadsetBehaviours, ProfessorViewRule.FixedEyeHeight(mode));
+            if (_passthrough != null)
+                _passthrough.enabled = mixedReality;
+            if (_headsetCamera != null)
+            {
+                _headsetCamera.clearFlags = mixedReality ? CameraClearFlags.SolidColor : CameraClearFlags.Skybox;
+                if (mixedReality)
                     _headsetCamera.backgroundColor = Color.clear;
             }
-            Debug.Log($"[ClassroomRole] This device is the {Current}.");
+            if (_origin == null)
+                return;
+            Vector3 position = _origin.transform.position;
+            if (ProfessorViewRule.FixedEyeHeight(mode))
+            {
+                // Standing in the hall like the student: one fixed eye height above the hall floor, and the table and hall where they started.
+                _origin.RequestedTrackingOriginMode = Unity.XR.CoreUtils.XROrigin.TrackingOriginMode.Device;
+                _origin.CameraYOffset = 1.6f;
+                _origin.transform.position = new Vector3(position.x, 0f, position.z);
+                if (_tableRoot != null)
+                    _tableRoot.SetPositionAndRotation(_tableRootStart.position, _tableRootStart.rotation);
+            }
+            else
+            {
+                _origin.RequestedTrackingOriginMode = _mixedRealityTrackingMode;
+                _origin.CameraYOffset = _mixedRealityCameraOffset;
+                _origin.transform.position = new Vector3(position.x, _mixedRealityOriginHeight, position.z);
+            }
         }
 
         private static void SetActive(GameObject[] objects, bool active)
