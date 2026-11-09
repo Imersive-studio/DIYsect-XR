@@ -135,7 +135,11 @@ namespace DIYsect.CloseUp.Tests
 
         private static Renderer FindScreenRenderer(string path)
         {
-            GameObject screen = GameObject.Find(ScreenName);
+            // The shared scene saves the screen switched off: only the hall roles turn it on.
+            GameObject screen = null;
+            foreach (Transform t in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (t.name == ScreenName && t.parent != null && t.parent.name == "DIYsect")
+                    screen = t.gameObject;
             Assert.IsNotNull(screen, $"{path} has no {ScreenName}.");
             Renderer renderer = screen.GetComponentInChildren<Renderer>();
             Assert.IsNotNull(renderer, $"{path}: the screen has no renderer.");

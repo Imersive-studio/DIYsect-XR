@@ -164,6 +164,19 @@ namespace DIYsect.StudentRig.Tests
             Assert.IsTrue(found, "The checklist card should show only to the student. Run Tools > DIYsect > Build Shared Scene.");
         }
 
+        [Test]
+        public void TheProfessorDoesNotSeeTheHallsCloseUpScreen()
+        {
+            EditorSceneManager.OpenScene(ProfessorScene, OpenSceneMode.Single);
+            var role = Object.FindFirstObjectByType<XRMultiplayer.ClassroomRole>(FindObjectsInactive.Include);
+            var hall = new SerializedObject(role).FindProperty("_classroomObjects");
+            bool found = false;
+            for (int i = 0; i < hall.arraySize; i++)
+                if (hall.GetArrayElementAtIndex(i).objectReferenceValue is GameObject item && item.name == "CloseUpScreen")
+                    found = true;
+            Assert.IsTrue(found, "The close-up screen should show only in the hall, not in the professor's room. Run Tools > DIYsect > Build Shared Scene.");
+        }
+
         // A world space canvas has no renderer bounds, so it is measured from its rectangle.
         private static Bounds PanelBounds(Transform panel)
         {
