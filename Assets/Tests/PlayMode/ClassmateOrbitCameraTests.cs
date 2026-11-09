@@ -44,7 +44,7 @@ namespace DIYsect.Networking.Tests
             target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance).SetValue(target, value);
         }
 
-        private IEnumerator StartScene()
+        private IEnumerator StartScene(float holdToPinSeconds = 5f)
         {
             yield return StartHostAndSpawnBody();
             _board = _serverBody.GetComponent<QuestionBoard>();
@@ -55,7 +55,7 @@ namespace DIYsect.Networking.Tests
             _camera = _cameraObject.AddComponent<Camera>();
             _cameraObject.transform.position = _serverBody.transform.position + new Vector3(0f, 0.9f, -0.9f);
             var tracker = _cameraObject.AddComponent<PointerGestureTracker>();
-            Set(tracker, "_holdSeconds", 5f); // a slow test frame must not turn a tap into a hold
+            Set(tracker, "_holdToPinSeconds", holdToPinSeconds); // a slow test frame must not turn a drag or a tap into a hold
             _orbit = _cameraObject.AddComponent<ClassmateOrbitCamera>();
             Set(_orbit, "_gestures", tracker);
             Set(_orbit, "_target", _serverBody.transform);
@@ -81,6 +81,17 @@ namespace DIYsect.Networking.Tests
             yield return null;
             _input.Press(_mouse.leftButton);
             yield return null;
+            _input.Release(_mouse.leftButton);
+            yield return null;
+        }
+
+        // A press that stays put long enough to be a hold (the tracker is set to 0.3 s in the tests that use this).
+        private IEnumerator Hold(Vector2 screen)
+        {
+            _input.Set(_mouse.position, screen);
+            yield return null;
+            _input.Press(_mouse.leftButton);
+            yield return new WaitForSeconds(0.5f);
             _input.Release(_mouse.leftButton);
             yield return null;
         }
@@ -123,14 +134,28 @@ namespace DIYsect.Networking.Tests
         }
 
         [UnityTest]
-        public IEnumerator TapPlacesAPinAndDoesNotMoveTheCamera()
+        public IEnumerator HoldPlacesAPinAndDoesNotMoveTheCamera()
         {
-            yield return StartScene();
+            yield return StartScene(0.3f);
+            Quaternion before = _camera.transform.rotation;
+
+            yield return Hold(ScreenPointOnOrgan());
+            yield return WaitFor(() => _board.Count == 1, "the held pin");
+
+            Assert.Less(Quaternion.Angle(before, _camera.transform.rotation), 0.1f, "A hold must not orbit.");
+        }
+
+        [UnityTest]
+        public IEnumerator QuickTapPlacesNoPinAndDoesNotMoveTheCamera()
+        {
+            yield return StartScene(0.3f);
             Quaternion before = _camera.transform.rotation;
 
             yield return Tap(ScreenPointOnOrgan());
-            yield return WaitFor(() => _board.Count == 1, "the tapped pin");
+            for (int i = 0; i < 30; i++)
+                yield return null;
 
+            Assert.AreEqual(0, _board.Count, "A quick tap names the organ; it does not pin it.");
             Assert.Less(Quaternion.Angle(before, _camera.transform.rotation), 0.1f, "A tap must not orbit.");
         }
 
@@ -198,9 +223,9 @@ namespace DIYsect.Networking.Tests
         }
 
         [UnityTest]
-        public IEnumerator OneFingerDragOrbitsAndOneFingerTapPins()
+        public IEnumerator OneFingerDragOrbitsAndOneFingerHoldPins()
         {
-            yield return StartScene();
+            yield return StartScene(0.3f);
             Quaternion before = _camera.transform.rotation;
             Vector2 start = new Vector2(200f, 200f);
 
@@ -219,16 +244,16 @@ namespace DIYsect.Networking.Tests
 
             Vector2 organ = ScreenPointOnOrgan();
             _input.BeginTouch(2, organ);
-            yield return null;
+            yield return new WaitForSeconds(0.5f);
             _input.EndTouch(2, organ);
             yield return null;
-            yield return WaitFor(() => _board.Count == 1, "the touch-tapped pin");
+            yield return WaitFor(() => _board.Count == 1, "the touch-held pin");
         }
 
         [UnityTest]
         public IEnumerator PinStoresTheCameraPoseAfterOrbiting()
         {
-            yield return StartScene();
+            yield return StartScene(0.3f);
             yield return Drag(new Vector2(300f, 200f), new Vector2(180f, 260f));
             _input.Set(_mouse.scroll, new Vector2(0f, 120f));
             yield return null;
@@ -240,7 +265,7 @@ namespace DIYsect.Networking.Tests
             Quaternion expectedRotation = Quaternion.Inverse(_board.transform.rotation) * camera.rotation;
             Assert.Greater(Quaternion.Angle(Quaternion.LookRotation(_serverBody.transform.position - (_serverBody.transform.position + new Vector3(0f, 0.9f, -0.9f))), camera.rotation), 1f, "The camera should have moved from its start.");
 
-            yield return Tap(ScreenPointOnOrgan());
+            yield return Hold(ScreenPointOnOrgan());
             yield return WaitFor(() => _board.Count == 1, "the pin after orbiting");
 
             QuestionPin pin = _board[0];

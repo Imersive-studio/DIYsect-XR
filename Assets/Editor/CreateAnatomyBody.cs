@@ -104,6 +104,8 @@ namespace DIYsect.Editor
             AnatomyHoverFeedback.Apply();
             AddGuideLine.ApplyToPrefab();
             AddOrganPointer.ApplyToPrefab();
+            AddHeadPose.ApplyToPrefab();
+            AnatomyBodyHands.ApplyToPrefab();
             AnatomyBodyLook.ApplyToPrefab();
         }
 

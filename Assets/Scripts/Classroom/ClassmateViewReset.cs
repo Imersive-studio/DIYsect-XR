@@ -16,6 +16,9 @@ namespace DIYsect.Classroom
         [SerializeField, Tooltip("The on-screen button a phone or laptop classmate presses.")]
         private Button _button;
 
+        [SerializeField, Tooltip("Optional. While the camera follows someone, Reset view means back to my view instead.")]
+        private ClassmateFollowCamera _follow;
+
         private InputAction _keys;
 
         private void Awake()
@@ -61,12 +64,20 @@ namespace DIYsect.Classroom
             Reset();
         }
 
-        /// <summary>Returns the camera to its starting view.</summary>
+        /// <summary>
+        /// Returns the camera to its starting view. While following someone it only goes back to my view (where I was before
+        /// I followed), so one press never throws away the framing I chose; a second press then resets it.
+        /// </summary>
         public void Reset()
         {
             // Unity also calls a method named Reset when the component is added in the editor, before _orbit is assigned.
             if (_orbit == null)
                 return;
+            if (_follow != null && _follow.IsFollowing)
+            {
+                _follow.BackToMyView();
+                return;
+            }
             _orbit.ResetView();
         }
     }

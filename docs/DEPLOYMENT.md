@@ -153,15 +153,20 @@ A phone that goes to the background loses its connection (the host logs a protoc
 ### Classmate controls (phone and laptop)
 
 - Drag one finger (or hold the mouse button) to orbit the body; pinch (or scroll) to zoom.
-- **Tap** an organ to pin a question on it. The pin is placed when the finger lifts, and only if it did not move, so a drag never drops a pin. A second finger cancels the tap.
+- The app opens on a **start screen**. Press **Join the room** to join the professor's room (the first public room), or type the room code on that screen and press **Join**. A phone that opened the invite link skips the screen and joins straight away. The screen closes once you are in.
+- **Tap** an organ (a quick press) to see its name and what it does. The card fades after a few seconds. During a quiz round the tap is your answer and no name is shown.
+- **Press and hold** an organ for about half a second to pin a question on it. If the finger moves first, it is a drag and turns the camera; a hold that then moves also turns the camera (the pin is already placed). A second finger cancels it.
+- The bottom row has **Unmute / Mute** (you start muted; everyone in the room hears you when you are unmuted; Android asks for the microphone) and **Raise hand / Lower hand**.
 
 ### The professor's class roster
 
-`Professor_MR` has a **ClassRoster** panel on the professor's right (opposite the student view window). It lists every student in the room: name, "headset" or "phone/laptop", and how many questions they have pinned. A student's name can show a moment after they join. Rebuild it with **Tools > DIYsect > Add Class Roster**. It shows who is connected and what they asked; it does not show where students are looking from.
+`Professor_MR` has a **ClassRoster** panel on the professor's right (opposite the student view window). It lists every student in the room: name, a `[HAND n]` marker when their hand is up (raised hands come first, in the order they went up), "headset" or "phone/laptop", and how many questions they have pinned. Two buttons under the panel, selected with the controller ray, take down the first hand (**Lower next hand**) or every hand (**Lower all hands**). Rebuild the hand board with **Tools > DIYsect > Add Raise Hand**. A student's name can show a moment after they join. Rebuild it with **Tools > DIYsect > Add Class Roster**. It shows who is connected and what they asked; it does not show where students are looking from.
 
 What is **still unverified**:
 
-- A pin placed by a finger on the phone reaching the host and appearing in the professor's view (an `adb` tap did nothing; a real tap has not been checked).
+- A pin placed by a finger held on the phone reaching the host and appearing in the professor's view (an `adb` tap did nothing; a real hold has not been checked), and how the half-second hold feels.
+- The start screen, the Android microphone dialog, and a classmate's voice being heard in the room after Unmute (Vivox needs the cloud service and a real microphone; the tests use a fake voice service).
+- A raised hand from a real phone showing on the professor's roster, and the Lower next hand / Lower all hands buttons with the controller ray on a real Quest.
 - The roster and the student view window on a real Quest.
 - Joining from a Quest. The headset scenes use the same lobby key, but no headset has joined a room.
 

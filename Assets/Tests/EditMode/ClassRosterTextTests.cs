@@ -106,5 +106,51 @@ namespace DIYsect.Classroom.Tests
 
             StringAssert.DoesNotContain("<", text);
         }
-    }
+            [Test]
+        public void ARaisedHand_ShowsNextToTheNameAndCountsInTheHeader()
+        {
+            string text = ClassRosterText.Format(new[]
+            {
+                new RosterEntry(2, "Ana", RosterKind.Screen, 0, handOrder: 1),
+                new RosterEntry(3, "Bo", RosterKind.Screen, 0),
+            });
+
+            string[] lines = text.Split('\n');
+            Assert.AreEqual("Class: 2 students, 1 hand up", lines[0]);
+            Assert.AreEqual("Ana  [HAND 1]  phone/laptop", lines[1]);
+            Assert.AreEqual("Bo  phone/laptop", lines[2]);
+        }
+
+        [Test]
+        public void HandsComeFirstInTheOrderTheyWentUp_ThenTheOthersByName()
+        {
+            string text = ClassRosterText.Format(new[]
+            {
+                new RosterEntry(1, "Ana", RosterKind.Screen, 0),
+                new RosterEntry(2, "Zed", RosterKind.Screen, 0, handOrder: 1),
+                new RosterEntry(3, "Bo", RosterKind.Headset, 2, handOrder: 2),
+                new RosterEntry(4, "Cy", RosterKind.Screen, 0),
+            });
+
+            string[] lines = text.Split('\n');
+            Assert.AreEqual("Class: 4 students, 2 hands up", lines[0]);
+            Assert.AreEqual("Zed  [HAND 1]  phone/laptop", lines[1]);
+            Assert.AreEqual("Bo  [HAND 2]  headset  2 questions", lines[2]);
+            Assert.AreEqual("Ana  phone/laptop", lines[3]);
+            Assert.AreEqual("Cy  phone/laptop", lines[4]);
+        }
+
+        [Test]
+        public void ARaisedHandSurvivesTheLineLimit()
+        {
+            var entries = new List<RosterEntry>();
+            for (int i = 0; i < 12; i++)
+                entries.Add(new RosterEntry((ulong)i, "A" + i.ToString("00"), RosterKind.Screen, 0, handOrder: i == 11 ? 1 : 0));
+
+            string text = ClassRosterText.Format(entries);
+
+            StringAssert.Contains("A11  [HAND 1]", text, "A raised hand is listed even when it is last by name.");
+            StringAssert.Contains("+4 more", text);
+        }
+}
 }

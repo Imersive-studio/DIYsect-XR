@@ -8,10 +8,12 @@ using UnityEngine.InputSystem.Controls;
 namespace DIYsect.Classroom
 {
     /// <summary>
-    /// Reads the mouse and the touchscreen once per frame and turns them into three simple things other scripts can use:
-    /// a tap (<see cref="Tapped"/>), this frame's one-finger or left-button drag (<see cref="FrameDrag"/>) and this frame's
+    /// Reads the mouse and the touchscreen once per frame and turns them into simple things other scripts can use:
+    /// a quick tap (<see cref="Tapped"/>), a press held still for about half a second (<see cref="Held"/>, raised while the
+    /// finger is still down), this frame's one-finger or left-button drag (<see cref="FrameDrag"/>) and this frame's
     /// zoom (<see cref="FrameZoom"/>, from the scroll wheel or a two-finger pinch). A press that starts over a UI element is ignored.
-    /// The orbit camera uses the drag and zoom, the pin placer uses taps, so a drag can never also place a pin.
+    /// The orbit camera uses the drag and zoom, the organ name uses taps and the pin placer uses holds, so a drag can never also
+    /// name an organ or place a pin, and a press raises Tapped or Held, never both.
     /// </summary>
     public class PointerGestureTracker : MonoBehaviour
     {
@@ -25,8 +27,8 @@ namespace DIYsect.Classroom
 
         [SerializeField, Min(1f), Tooltip("A press that moves farther than this many pixels is a drag, not a tap.")]
         private float _dragPixels = 10f;
-        [SerializeField, Min(0.05f), Tooltip("A press held longer than this many seconds is a drag, not a tap.")]
-        private float _holdSeconds = 0.25f;
+        [SerializeField, Min(0.1f), Tooltip("A press that stays put this many seconds is a hold (it places a question pin), not a tap.")]
+        private float _holdToPinSeconds = 0.5f;
         [SerializeField, Min(1f), Tooltip("Pixels of pinch that count as one unit of zoom.")]
         private float _pinchPixelsPerUnit = 300f;
 
@@ -38,8 +40,11 @@ namespace DIYsect.Classroom
         private bool _touchBlocked;
         private float _lastSpread;
 
-        /// <summary>Raised on release when the press was a tap. The value is the screen position in pixels.</summary>
+        /// <summary>Raised on release when the press was a quick tap. The value is the screen position in pixels.</summary>
         public event Action<Vector2> Tapped;
+
+        /// <summary>Raised once, when a press has stayed put long enough, without waiting for the finger to lift. The value is the screen position in pixels.</summary>
+        public event Action<Vector2> Held;
 
         /// <summary>How far the pointer was dragged this frame, in pixels. Zero while the press may still be a tap.</summary>
         public Vector2 FrameDrag { get; private set; }
@@ -52,7 +57,7 @@ namespace DIYsect.Classroom
 
         private void Awake()
         {
-            _classifier = new TapDragClassifier(_dragPixels, _holdSeconds);
+            _classifier = new TapDragClassifier(_dragPixels, _holdToPinSeconds);
         }
 
         private void OnDisable()
@@ -123,7 +128,9 @@ namespace DIYsect.Classroom
                 Finish(position, now);
                 return;
             }
-            FrameDrag = _classifier.Move(mouse.position.ReadValue(), now);
+            Vector2 current = mouse.position.ReadValue();
+            FrameDrag = _classifier.Move(current, now);
+            ReportHold(current);
             ReadWheel();
         }
 
@@ -145,7 +152,15 @@ namespace DIYsect.Classroom
             TouchControl touch = FirstTouch(touchscreen);
             if (_multiTouch || touch == null)
                 return; // after a pinch the remaining finger does nothing until everyone lets go
-            FrameDrag = _classifier.Move(touch.position.ReadValue(), now);
+            Vector2 current = touch.position.ReadValue();
+            FrameDrag = _classifier.Move(current, now);
+            ReportHold(current);
+        }
+
+        private void ReportHold(Vector2 position)
+        {
+            if (_classifier.TakeHold())
+                Held?.Invoke(position);
         }
 
         private void UpdatePinch(Touchscreen touchscreen)
@@ -185,6 +200,7 @@ namespace DIYsect.Classroom
         private void Finish(Vector2 position, float now)
         {
             bool wasTap = _classifier.End(position, now);
+            ReportHold(position); // a hold that was only noticed at release (a slow frame) still counts
             _source = Source.None;
             _multiTouch = false;
             _lastSpread = -1f;

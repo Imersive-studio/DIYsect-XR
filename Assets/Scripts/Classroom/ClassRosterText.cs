@@ -16,18 +16,22 @@ namespace DIYsect.Classroom
     /// <summary>One student as the professor's roster shows them.</summary>
     public readonly struct RosterEntry
     {
-        public RosterEntry(ulong clientId, string name, RosterKind kind, int questions)
+        public RosterEntry(ulong clientId, string name, RosterKind kind, int questions, int handOrder = 0)
         {
             ClientId = clientId;
             Name = name ?? string.Empty;
             Kind = kind;
             Questions = questions;
+            HandOrder = handOrder;
         }
 
         public ulong ClientId { get; }
         public string Name { get; }
         public RosterKind Kind { get; }
         public int Questions { get; }
+        /// <summary>1 for the first hand raised, 2 for the next, and so on. 0 when the student has no hand up.</summary>
+        public int HandOrder { get; }
+        public bool HandUp => HandOrder > 0;
     }
 
     /// <summary>
@@ -77,9 +81,21 @@ namespace DIYsect.Classroom
             if (count == 0)
                 return text.ToString();
 
+            int hands = 0;
+            foreach (RosterEntry entry in entries)
+                if (entry.HandUp)
+                    hands++;
+            if (hands > 0)
+                text.Append(hands == 1 ? ", 1 hand up" : $", {hands} hands up");
+
+            // Raised hands first, in the order they went up; then everyone else by name.
             var sorted = new List<RosterEntry>(entries);
             sorted.Sort((a, b) =>
             {
+                if (a.HandUp != b.HandUp)
+                    return a.HandUp ? -1 : 1;
+                if (a.HandUp && a.HandOrder != b.HandOrder)
+                    return a.HandOrder.CompareTo(b.HandOrder);
                 int byName = string.Compare(Clean(a.Name), Clean(b.Name), StringComparison.OrdinalIgnoreCase);
                 return byName != 0 ? byName : a.ClientId.CompareTo(b.ClientId);
             });
@@ -88,7 +104,10 @@ namespace DIYsect.Classroom
             for (int i = 0; i < shown; i++)
             {
                 RosterEntry entry = sorted[i];
-                text.Append('\n').Append(Label(entry, sorted)).Append("  ").Append(KindLabel(entry.Kind));
+                text.Append('\n').Append(Label(entry, sorted));
+                if (entry.HandUp)
+                    text.Append("  ").Append(HandLabel(entry.HandOrder));
+                text.Append("  ").Append(KindLabel(entry.Kind));
                 if (entry.Questions > 0)
                     text.Append("  ").Append(entry.Questions == 1 ? "1 question" : $"{entry.Questions} questions");
             }
@@ -111,6 +130,9 @@ namespace DIYsect.Classroom
                     sameName++;
             return sameName > 1 ? $"{name} #{entry.ClientId}" : name;
         }
+
+        /// <summary>The marker next to a name whose hand is up. Plain letters, because the headset's text font has no hand symbol.</summary>
+        public static string HandLabel(int handOrder) => $"[HAND {handOrder}]";
 
         public static string KindLabel(RosterKind kind) => kind == RosterKind.Headset ? "headset" : "phone/laptop";
 

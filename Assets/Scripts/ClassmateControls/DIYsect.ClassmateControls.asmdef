@@ -1,0 +1,11 @@
+{
+  "name": "DIYsect.ClassmateControls",
+  "rootNamespace": "DIYsect.ClassmateControls",
+  "references": [
+    "DIYsect.Classroom",
+    "XRMP",
+    "Unity.Netcode.Runtime",
+    "Unity.XR.CoreUtils",
+    "UnityEngine.UI"
+  ]
+}

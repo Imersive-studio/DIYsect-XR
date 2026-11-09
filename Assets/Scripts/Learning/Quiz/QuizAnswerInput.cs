@@ -8,11 +8,11 @@ namespace DIYsect.Learning
     /// Lets a desktop or phone classmate answer a quiz round by tapping an organ. A tap from the PointerGestureTracker
     /// (not a drag, so orbiting still works) casts a ray from the camera through the pointer and sends the organ it hits.
     /// It sends one answer per round; the server also refuses a second one. While a round is running
-    /// <see cref="ClaimsTap"/> is true, which a question-pin input can read to stand aside. PinPlacementInput does not
-    /// read it yet, so for now a tap during a round also drops a "?" pin.
+    /// <see cref="ClaimsTap"/> is true, and PinPlacementInput lists this component as a tap claimer, so the same tap
+    /// answers the quiz and does not also drop a "?" pin.
     /// The ray comes from whatever camera is looking, so it works in every view mode.
     /// </summary>
-    public class QuizAnswerInput : MonoBehaviour
+    public class QuizAnswerInput : MonoBehaviour, ITapClaim
     {
         [SerializeField] private QuizRound _quiz;
         [SerializeField, Tooltip("Reports taps; a drag is never reported, so orbiting cannot answer.")]

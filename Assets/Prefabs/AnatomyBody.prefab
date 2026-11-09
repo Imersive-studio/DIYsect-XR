@@ -653,7 +653,10 @@ GameObject:
   - component: {fileID: 9192066475461398655}
   - component: {fileID: 2657206760088828526}
   - component: {fileID: 4826594396617255947}
-  - component: {fileID: 4492855818238052184}
+  - component: {fileID: 8674618737327867512}
+  - component: {fileID: 1850258603045987558}
+  - component: {fileID: 6160963879642040971}
+  - component: {fileID: 8734446530695835648}
   m_Layer: 0
   m_Name: AnatomyBody
   m_TagString: Untagged
@@ -956,7 +959,56 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: DIYsect.Learning::DIYsect.Learning.QuizRound
   ShowTopMostFoldoutHeaderGroup: 1
---- !u!114 &4492855818238052184
+--- !u!114 &8674618737327867512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2832709544761105719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a8670d79c2ce49baa67efffbfcfd74e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Classroom::DIYsect.Classroom.HeadPoseBoard
+  ShowTopMostFoldoutHeaderGroup: 1
+  _maxRequestsPerWindow: 60
+  _windowSeconds: 2
+  _maxRadius: 10
+  _quietSeconds: 3
+--- !u!114 &1850258603045987558
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2832709544761105719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f109660eab5d45e1b5c3f7d407aaa72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Interaction::DIYsect.Interaction.HeadPosePublisher
+  _intervalSeconds: 0.1
+  _repeatSeconds: 1
+  _moveMetres: 0.005
+  _turnDegrees: 0.5
+--- !u!114 &6160963879642040971
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2832709544761105719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cb2b4b7188894580a2d0ff82894fd4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Classroom::DIYsect.Classroom.HandBoard
+  ShowTopMostFoldoutHeaderGroup: 1
+  _maxHands: 64
+  _maxChangesPerWindow: 6
+  _windowSeconds: 10
+--- !u!114 &8734446530695835648
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
