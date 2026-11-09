@@ -37,13 +37,20 @@ namespace DIYsect.MixedReality.Tests
             {
                 var professorObject = new GameObject("professor-only");
                 var classmateObject = new GameObject("classmate-only");
+                var studentObject = new GameObject("student-only");
+                var studentLight = studentObject.AddComponent<Light>();
                 var holder = new GameObject("holder");
                 var professorScript = holder.AddComponent<ProfessorAutoHost>();
                 var classmateScript = holder.AddComponent<ClassmateStatusLabel>();
+                var joiner = holder.AddComponent<ClassmateAutoJoin>();
+                joiner.WaitForJoinPress = true;
                 var switchObject = new GameObject("switch");
                 switchObject.SetActive(false);
                 var role = switchObject.AddComponent<ClassroomRole>();
                 Set(role, "_editorRole", kind);
+                Set(role, "_joiningBehaviours", new Behaviour[] { joiner });
+                Set(role, "_studentObjects", new[] { studentObject });
+                Set(role, "_studentBehaviours", new Behaviour[] { studentLight });
                 Set(role, "_professorObjects", new[] { professorObject });
                 Set(role, "_classmateObjects", new[] { classmateObject });
                 Set(role, "_professorBehaviours", new Behaviour[] { professorScript });
@@ -53,12 +60,15 @@ namespace DIYsect.MixedReality.Tests
 
                 bool professor = kind == ClassroomRoleKind.Professor;
                 Assert.AreEqual(kind, ClassroomRole.Current);
+                Assert.AreEqual(kind == ClassroomRoleKind.Student, studentObject.activeSelf);
+                Assert.AreEqual(kind == ClassroomRoleKind.Student, studentLight.enabled);
+                Assert.AreEqual(kind != ClassroomRoleKind.Student, joiner.WaitForJoinPress);
                 Assert.AreEqual(professor, professorObject.activeSelf, $"{kind}: professor object");
                 Assert.AreEqual(kind == ClassroomRoleKind.Classmate, classmateObject.activeSelf, $"{kind}: classmate object");
                 Assert.AreEqual(professor, professorScript.enabled, $"{kind}: professor script");
                 Assert.AreEqual(kind == ClassroomRoleKind.Classmate, classmateScript.enabled, $"{kind}: classmate script");
 
-                foreach (GameObject created in new[] { professorObject, classmateObject, holder, switchObject })
+                foreach (GameObject created in new[] { professorObject, classmateObject, studentObject, holder, switchObject })
                     Object.DestroyImmediate(created);
             }
         }
