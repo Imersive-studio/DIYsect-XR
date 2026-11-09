@@ -1,0 +1,31 @@
+{
+  "name": "DIYsect.Learning.PlayTests",
+  "rootNamespace": "DIYsect.Learning.Tests",
+  "references": [
+    "UnityEngine.TestRunner",
+    "DIYsect.Networking.Tests",
+    "DIYsect.Networking",
+    "DIYsect.Interaction",
+    "DIYsect.Dissection",
+    "DIYsect.Classroom",
+    "DIYsect.Learning",
+    "Unity.Collections",
+    "Unity.Netcode.Runtime",
+    "Unity.InputSystem",
+    "Unity.InputSystem.TestFramework",
+    "Unity.XR.Interaction.Toolkit"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

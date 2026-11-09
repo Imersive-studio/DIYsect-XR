@@ -1,0 +1,29 @@
+{
+  "name": "DIYsect.Learning.EditTests",
+  "rootNamespace": "DIYsect.Learning.Tests",
+  "references": [
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner",
+    "DIYsect.Learning",
+    "DIYsect.Networking",
+    "DIYsect.Interaction",
+    "DIYsect.Dissection",
+    "DIYsect.Classroom",
+    "Unity.Collections"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
