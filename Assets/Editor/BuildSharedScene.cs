@@ -91,6 +91,10 @@ namespace DIYsect.Editor
             var statusLabel = GetOrAdd<ClassmateStatusLabel>(manager.gameObject);
             var autoHost = manager.GetComponent<ProfessorAutoHost>() ?? throw new InvalidOperationException("Run Tools > DIYsect > Add Role Auto Connect first.");
             AddClassmateAutoJoin.HideWelcomePanel(scene);
+            // The professor and the student speak as soon as they are in the voice channel; the template would leave them muted.
+            var voice = UnityEngine.Object.FindFirstObjectByType<VoiceChatManager>(FindObjectsInactive.Include)
+                ?? throw new InvalidOperationException("The scene has no VoiceChatManager. It comes with the XRI Network Game Manager prefab.");
+            GetOrAdd<DIYsect.ClassmateControls.HeadsetVoice>(voice.gameObject);
 
             GameObject classmateRig = FindByName(scene, ClassmateRigName) ?? throw new InvalidOperationException($"{ClassmateRigName} was not created.");
             AddReconnectBanner.AddTo(classmateRig, autoJoin);

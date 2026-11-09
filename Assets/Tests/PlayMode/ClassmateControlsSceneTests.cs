@@ -207,6 +207,55 @@ namespace DIYsect.Networking.Tests
             yield return null;
         }
 
+        // The phone as a real finger uses it: a tap on the closed body points at the organ under the finger, and with Draw on
+        // a finger dragged across the body sketches on it. Both must work before the dissection has opened anything.
+        [UnityTest]
+        public IEnumerator AFingerOnTheClosedBodyPointsAtTheOrganUnderIt_AndDrawSketchesOnTheBody()
+        {
+            yield return Load(ClassroomRoleKind.Classmate);
+            yield return StartTestRoom();
+            for (int i = 0; i < 90; i++)
+                yield return null; // the orbit camera eases into its opening view
+            var view = InScene<ClassmateOrbitCamera>().GetComponent<Camera>();
+            var body = InScene<DIYsect.Networking.SharedBody>();
+            var pointer = InScene<PointerBoard>();
+
+            // The middle of the liver, on screen.
+            Transform liver = null;
+            foreach (var organ in body.Organs)
+                if (organ != null && organ.name.ToLowerInvariant().Contains("liver"))
+                    liver = organ.transform;
+            Assert.IsNotNull(liver, "The body has no liver.");
+            Bounds bounds = liver.GetComponentInChildren<Renderer>().bounds;
+            Vector2 onLiver = view.WorldToScreenPoint(bounds.center);
+            Physics.Raycast(view.ScreenPointToRay(onLiver), out RaycastHit first, 20f, ~0, QueryTriggerInteraction.Ignore);
+            Debug.Log($"[PhoneTouch] liver at {onLiver}, screen {Screen.width}x{Screen.height}, first hit: {(first.collider != null ? first.collider.name + " under " + first.collider.transform.parent?.name : "nothing")}");
+
+            _input.BeginTouch(1, onLiver);
+            yield return null;
+            yield return null;
+            _input.EndTouch(1, onLiver);
+            for (int i = 0; i < 10; i++)
+                yield return null;
+            Assert.AreNotEqual(PointerBoard.None, pointer.OrganOf(PointerRole.Classmate), "A tap on the closed body must point at the organ under the finger.");
+
+            yield return Click(ButtonNamed("DrawButton"));
+            Assert.IsTrue(InScene<ClassmateSketchInput>().Drawing, "Draw turns drawing on.");
+            var sketch = body.transform.Find("ClassmateSketch").GetComponent<DIYsect.Networking.GuideLine>();
+            _input.BeginTouch(1, onLiver);
+            yield return null;
+            for (int i = 1; i <= 24; i++)
+            {
+                float angle = i * Mathf.PI * 2f / 24f;
+                _input.MoveTouch(1, onLiver + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * 60f);
+                yield return null;
+            }
+            _input.EndTouch(1, onLiver);
+            for (int i = 0; i < 10; i++)
+                yield return null;
+            Assert.Greater(sketch.Count, 4, "A finger dragged across the body with Draw on must leave a sketch on it.");
+        }
+
         // This device hosts a local test room (no cloud services), so the scene's own body spawns and the classmate counts as in the room.
         private IEnumerator StartTestRoom()
         {
@@ -548,9 +597,8 @@ namespace DIYsect.Networking.Tests
             voice.MayUnmute = true;
             for (int i = 0; i < 5; i++)
                 yield return null;
-            Assert.AreEqual(MicButtonModel.UnmuteLabel, mic.Label, "The label changes by itself when permission arrives.");
-            yield return Click(button);
-            Assert.IsTrue(mic.IsLive);
+            Assert.IsTrue(mic.IsLive, "Raise hand, professor says yes, speak: the classmate who asked is live at once.");
+            Assert.AreEqual(MicButtonModel.MuteLabel, mic.Label, "The button now offers to mute.");
 
             voice.MayUnmute = false;
             for (int i = 0; i < 5; i++)
