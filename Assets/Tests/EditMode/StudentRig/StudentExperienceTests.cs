@@ -85,6 +85,17 @@ namespace DIYsect.StudentRig.Tests
         }
 
         [Test]
+        public void OrgansAreHeldWhereTheHandTouchesThem()
+        {
+            GameObject body = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/AnatomyBody.prefab");
+            var grabs = body.GetComponentsInChildren<XRGrabInteractable>(true);
+            Assert.AreEqual(22, grabs.Length, "The body should have 22 grabbable organs.");
+            foreach (XRGrabInteractable grab in grabs)
+                Assert.IsTrue(grab.useDynamicAttach,
+                    $"{grab.name} jumps its pivot to the hand and floats away from it. Run Tools > DIYsect > Hold Organs Where Touched.");
+        }
+
+        [Test]
         public void TheDrapesAreSwitchedOffOnTheBody()
         {
             GameObject body = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/AnatomyBody.prefab");
