@@ -23,6 +23,9 @@ namespace DIYsect.Interaction.Tests
 
             _serverSteering.RequestSteer();
             yield return WaitFor(() => _serverSteering.Steerer == _host.LocalClientId, "the host to steer the scalpel");
+            // The handle can only be grabbed once the professor's own copy knows the scalpel is held (it checks the
+            // replicated steerer), so wait for that too instead of assuming it arrived with the server's value.
+            yield return WaitFor(() => _clientSteering.HasSteerer, "the professor to see the scalpel being held");
 
             // Built inactive so the serialized hand is set before Awake runs.
             GameObject handleObject = Track(GameObject.CreatePrimitive(PrimitiveType.Sphere));
