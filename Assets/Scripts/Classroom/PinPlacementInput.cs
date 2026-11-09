@@ -1,17 +1,14 @@
 // Authority: none. This only asks the server for a pin through QuestionBoard; the server decides.
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using DIYsect.Networking;
 
 namespace DIYsect.Classroom
 {
     /// <summary>
-    /// Lets a desktop or phone classmate tap an organ to pin a question on it. A tap from the Input System's
-    /// Pointer (mouse click or first touch) casts a ray from the camera through the pointer, finds which organ
+    /// Lets a desktop or phone classmate tap an organ to pin a question on it. A tap from the PointerGestureTracker
+    /// (mouse click or one short finger touch, not a drag) casts a ray from the camera through the pointer, finds which organ
     /// was hit and sends the hit point in that organ's local space
-    /// together with the camera pose, so the professor can later see what the asker saw. The pin is placed when the press
-    /// ends, and only if it did not move: a drag orbits the camera (<see cref="ClassmateOrbitCamera"/>) instead.
+    /// together with the camera pose, so the professor can later see what the asker saw.
     /// There is no text entry yet: every pin carries <see cref="DefaultText"/> ("?"). Set <see cref="PendingText"/>
     /// from a UI field later to ask a real question.
     /// </summary>
@@ -25,105 +22,46 @@ namespace DIYsect.Classroom
         private Camera _camera;
         [SerializeField, Min(0.1f)] private float _maxDistance = 20f;
         [SerializeField] private LayerMask _hitLayers = ~0;
-
-        private InputAction _point;
-        private InputAction _press;
-        private Vector2 _pressStart;
-        private Vector2 _lastPressedPosition;
-        private bool _pressCountsAsTap;
+        [SerializeField, Tooltip("Reports taps; a drag (orbiting the camera) is never reported, so it cannot pin.")]
+        private PointerGestureTracker _gestures;
 
         /// <summary>Text sent with the next pin. Empty means <see cref="DefaultText"/>.</summary>
         public string PendingText { get; set; } = string.Empty;
 
         private void Awake()
         {
-            if (_board == null)
-            {
-                Debug.LogError($"{name}: PinPlacementInput has no QuestionBoard assigned.", this);
+            bool valid = true;
+            if (_board == null) { Debug.LogError($"{name}: PinPlacementInput has no QuestionBoard assigned.", this); valid = false; }
+            if (_gestures == null) { Debug.LogError($"{name}: PinPlacementInput has no PointerGestureTracker assigned.", this); valid = false; }
+            if (!valid)
                 enabled = false;
-                return;
-            }
-            // <Pointer> matches the mouse and the touchscreen, so one binding serves desktop and Android.
-            _point = new InputAction("Point", InputActionType.Value, "<Pointer>/position");
-            _press = new InputAction("Press", InputActionType.Button, "<Pointer>/press");
         }
 
         private void OnEnable()
         {
-            _point.Enable();
-            _press.Enable();
-            _press.performed += HandlePress;
-            _press.canceled += HandleRelease;
+            if (_gestures == null)
+                return;
+            _gestures.Tapped += HandleTap;
         }
 
         private void OnDisable()
         {
-            _press.performed -= HandlePress;
-            _press.canceled -= HandleRelease;
-            _press.Disable();
-            _point.Disable();
+            if (_gestures != null)
+                _gestures.Tapped -= HandleTap;
         }
 
-        private void OnDestroy()
+        // Only a tap reaches here; the tracker has already ignored drags and presses over UI.
+        private void HandleTap(Vector2 screenPosition)
         {
-            _press?.Dispose();
-            _point?.Dispose();
-        }
-
-        // A press only pins on release, and only if it stayed put. Dragging orbits the camera instead, and a second finger
-        // (a pinch) cancels the tap.
-        private void HandlePress(InputAction.CallbackContext context)
-        {
-            _pressStart = _point.ReadValue<Vector2>();
-            _lastPressedPosition = _pressStart;
-            _pressCountsAsTap = !IsPointerOverUi(context);
-        }
-
-        private void Update()
-        {
-            // The pointer position can reset once a touch ends, so the last position while pressed is kept for the release.
-            if (_press.IsPressed())
-                _lastPressedPosition = _point.ReadValue<Vector2>();
-            if (_pressCountsAsTap && Touchscreen.current != null)
-            {
-                int fingers = 0;
-                foreach (var touch in Touchscreen.current.touches)
-                    if (touch.press.isPressed)
-                        fingers++;
-                if (fingers > 1)
-                    _pressCountsAsTap = false;
-            }
-        }
-
-        private void HandleRelease(InputAction.CallbackContext context)
-        {
-            if (!_pressCountsAsTap)
-                return;
-            _pressCountsAsTap = false;
-            Vector2 release = _lastPressedPosition;
-            if (!ClassmateOrbitMath.IsTap(_pressStart, release, ClassmateOrbitCamera.TapThresholdPixels))
-                return;
             Camera view = ResolveCamera();
             if (view == null)
                 return;
-            TryRequestPin(view.ScreenPointToRay(release));
+            TryRequestPin(view.ScreenPointToRay(screenPosition));
         }
 
         private Camera ResolveCamera()
         {
             return _camera != null ? _camera : Camera.main;
-        }
-
-        // A press on a screen-space panel must not also pin the organ behind it.
-        // A touch is asked by its touch id; the mouse is asked with the module's own pointer.
-        private static bool IsPointerOverUi(InputAction.CallbackContext context)
-        {
-            EventSystem eventSystem = EventSystem.current;
-            if (eventSystem == null)
-                return false;
-            if (context.control.device is Touchscreen touchscreen)
-                return eventSystem.IsPointerOverGameObject(touchscreen.primaryTouch.touchId.ReadValue());
-            return eventSystem.IsPointerOverGameObject();
         }
 
         /// <summary>Casts the ray and, if it hits an organ, asks the server for a pin there. Returns true if it asked.</summary>

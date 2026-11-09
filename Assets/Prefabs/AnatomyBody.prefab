@@ -648,6 +648,10 @@ GameObject:
   - component: {fileID: 5861137823878542367}
   - component: {fileID: 5624792837213346092}
   - component: {fileID: 3100050738973016454}
+  - component: {fileID: 6635560021572335089}
+  - component: {fileID: 255388689991886962}
+  - component: {fileID: 9192066475461398655}
+  - component: {fileID: 2657206760088828526}
   m_Layer: 0
   m_Name: AnatomyBody
   m_TagString: Untagged
@@ -826,6 +830,7 @@ MonoBehaviour:
     m_Center: {x: 0.00064980984, y: 0.2319777, z: 0.007761508}
     m_Extent: {x: 0.16048169, y: 0.21786773, z: 0.34363422}
   _easeSeconds: 0.15
+  _lostDepth: 1.5
 --- !u!114 &5861137823878542367
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -877,6 +882,64 @@ MonoBehaviour:
   _mass: 0.5
   _linearDamping: 0.5
   _angularDamping: 2
+--- !u!114 &6635560021572335089
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2832709544761105719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7adf1ed2e98ae4aec8b471b30c5c1a1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Classroom::DIYsect.Classroom.PointerBoard
+  ShowTopMostFoldoutHeaderGroup: 1
+  _maxRequestsPerWindow: 10
+  _windowSeconds: 2
+--- !u!114 &255388689991886962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2832709544761105719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe71184f39c9f494a902cc741df7a7be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Classroom::DIYsect.Classroom.PointerPresenter
+  _professorColor: {r: 1, g: 0.6, b: 0.1, a: 1}
+  _studentColor: {r: 0.2, g: 0.8, b: 1, a: 1}
+  _tintStrength: 0.45
+  _pulseSeconds: 1.6
+  _edgeMargin: 0.07
+  _arrowSeparation: 0.12
+--- !u!114 &9192066475461398655
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2832709544761105719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce16ca69dde18462ba13c9dabbe023c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Classroom::DIYsect.Classroom.PointerHud
+--- !u!114 &2657206760088828526
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2832709544761105719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bae7b1f697e8f42049e2cbccaf303d5f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Interaction::DIYsect.Interaction.OrganPointerInput
+  _dwellSeconds: 0.3
 --- !u!1 &3076195585154834734
 GameObject:
   m_ObjectHideFlags: 0

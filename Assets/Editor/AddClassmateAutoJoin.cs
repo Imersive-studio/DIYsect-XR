@@ -33,15 +33,17 @@ namespace DIYsect.Editor
             if (manager.GetComponent<ClassmateStatusLabel>() == null)
                 manager.gameObject.AddComponent<ClassmateStatusLabel>();
 
+            // The orbit camera and its gesture tracker come from ClassmateDesktopRig, which wires them to the body.
+            // A bare component added here would have no target and would disable itself.
             Camera classmateCamera = FindClassmateCamera();
             if (classmateCamera.GetComponent<ClassmateOrbitCamera>() == null)
-                classmateCamera.gameObject.AddComponent<ClassmateOrbitCamera>();
+                throw new InvalidOperationException($"{classmateCamera.name} has no ClassmateOrbitCamera. Run Tools > DIYsect > Add Classmate Desktop Camera first.");
 
             int hidden = HideWelcomePanel(scene);
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
-            Debug.Log($"[AddClassmateAutoJoin] Auto join and status line are on {manager.name}; orbit camera is on {classmateCamera.name}; {hidden} welcome panel(s) switched off.");
+            Debug.Log($"[AddClassmateAutoJoin] Auto join and status line are on {manager.name}; {hidden} welcome panel(s) switched off.");
         }
 
         /// <summary>Switches off every instance of the template's welcome panel in the scene. Returns how many it switched off.</summary>

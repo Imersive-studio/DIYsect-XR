@@ -11,8 +11,9 @@ namespace DIYsect.Interaction
 {
     /// <summary>
     /// Connects the scalpel's XRGrabInteractable to <see cref="ScalpelSteering"/>.
-    /// Selecting asks the server to let this client steer. While granted, the pose is streamed to the server.
-    /// Deselecting sends the last pose and puts the scalpel down. If the server says no, the selection is cancelled.
+    /// The request follows <see cref="GrabRequest"/>: selecting asks the server to let this client steer; while
+    /// granted the pose is streamed; deselecting sends the last pose and puts the scalpel down; a refusal cancels the
+    /// selection; a yes that arrives after the user let go is given straight back.
     /// Selecting is also blocked up front while another client steers.
     /// </summary>
     [RequireComponent(typeof(XRGrabInteractable), typeof(ScalpelSteering))]
@@ -26,10 +27,10 @@ namespace DIYsect.Interaction
         private XRGrabInteractable _interactable;
         private ScalpelSteering _steering;
         private Coroutine _streaming;
+        private readonly GrabRequest _request = new GrabRequest();
 
-        // True from the moment this client asks to steer until it puts the scalpel down. The replicated steerer
-        // can lag behind the server's answer, so release decisions cannot rely on it alone.
-        private bool _maySteer;
+        /// <summary>This client's steering phase (the replicated steerer can lag behind it).</summary>
+        public GrabPhase Phase => _request.Phase;
 
         bool IXRSelectFilter.canProcess => isActiveAndEnabled;
 
@@ -55,12 +56,10 @@ namespace DIYsect.Interaction
         private void OnDisable()
         {
             // Do not leave the server thinking somebody steers a scalpel nobody can move any more.
-            if (_steering != null && _steering.IsSpawned && (_maySteer || _steering.IsSteeredByLocalClient))
-            {
-                _maySteer = false;
-                _steering.SendPose(transform.localPosition, transform.localRotation);
-                _steering.ReleaseSteer();
-            }
+            GrabRequest.Actions onDisable = _request.Handle(GrabRequest.Event.Disable);
+            if ((onDisable & GrabRequest.Actions.SendRelease) == 0 && _steering != null && _steering.IsSpawned && _steering.IsSteeredByLocalClient)
+                onDisable |= GrabRequest.Actions.SendRelease;
+            Apply(onDisable);
             _interactable.selectFilters.Remove(this);
             _interactable.selectEntered.RemoveListener(OnSelectEntered);
             _interactable.selectExited.RemoveListener(OnSelectExited);
@@ -77,33 +76,42 @@ namespace DIYsect.Interaction
 
         private void OnSelectEntered(SelectEnterEventArgs args)
         {
-            if (!_steering.IsSpawned)
-                return;
-            _maySteer = true;
-            _steering.RequestSteer();
+            if (_steering.IsSpawned)
+                Apply(_request.Handle(GrabRequest.Event.Select));
         }
 
         private void OnSelectExited(SelectExitEventArgs args)
         {
-            StopStreaming();
-            _maySteer = false;
-            if (!_steering.IsSpawned)
-                return;
-            // The server ignores both calls unless this client is the steerer, so they are safe after a rejection.
-            _steering.SendPose(transform.localPosition, transform.localRotation);
-            _steering.ReleaseSteer();
+            Apply(_request.Handle(GrabRequest.Event.Exit));
         }
 
         private void OnSteerResolved(bool granted)
         {
-            _maySteer = granted;
-            if (!_interactable.isSelected)
-                return;
+            Apply(_request.HandleAnswer(granted));
+        }
 
-            if (granted)
+        // Carries out what the grab state machine asked for, in this bridge's own terms.
+        private void Apply(GrabRequest.Actions actions)
+        {
+            if ((actions & GrabRequest.Actions.SendRequest) != 0)
+                _steering.RequestSteer();
+            if ((actions & GrabRequest.Actions.StopStreaming) != 0)
+                StopStreaming();
+            if ((actions & GrabRequest.Actions.SendRelease) != 0)
+                SendRelease();
+            if ((actions & GrabRequest.Actions.StartStreaming) != 0)
                 _streaming ??= StartCoroutine(StreamPose());
-            else
+            if ((actions & GrabRequest.Actions.CancelSelection) != 0 && _interactable.isSelected)
                 _interactable.interactionManager.CancelInteractableSelection((IXRSelectInteractable)_interactable);
+        }
+
+        // Sends the last pose and puts the scalpel down. The server ignores both unless this client steers.
+        private void SendRelease()
+        {
+            if (_steering == null || !_steering.IsSpawned)
+                return;
+            _steering.SendPose(transform.localPosition, transform.localRotation);
+            _steering.ReleaseSteer();
         }
 
         // Sends on a timer and only when the pose changed, so it needs no Update.
