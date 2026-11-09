@@ -5,9 +5,12 @@ using UnityEngine;
 namespace XRMultiplayer
 {
     /// <summary>
-    /// Joins the professor's lobby on its own, so a classmate on a phone or laptop never needs the headset menu.
-    /// Once the client has signed in it looks for an existing lobby every few seconds and joins the first one.
-    /// It never creates a lobby, so the professor's headset stays the host.
+    /// Gets a classmate into the professor's room, so a phone or laptop never needs the headset menu. In order:
+    /// 1. A room code from an invite link (a tap on <c>diysect://join?code=KHC8QH</c>) or one typed by the classmate wins.
+    ///    It works for private rooms too.
+    /// 2. Otherwise, when <see cref="AutoJoinAnyRoom"/> is on, it looks for an existing room every few seconds and joins the first one.
+    /// It never creates a room, so the professor's headset stays the host. A room code that finds no room is reported
+    /// through <see cref="CodeRejected"/> so the screen can say so.
     /// </summary>
     public class ClassmateAutoJoin : MonoBehaviour
     {
@@ -17,7 +20,34 @@ namespace XRMultiplayer
         [SerializeField, Tooltip("Also join on its own in the Unity editor. Off by default, so the editor can host a test room instead of joining a leftover one.")]
         private bool _runInEditor;
 
+        [SerializeField, Tooltip("Join the first public room found when no code was given. Turn off to make every classmate use the code or the link, like a meeting invite.")]
+        private bool _autoJoinAnyRoom = true;
+
         private Coroutine _loop;
+        private string _pendingCode = string.Empty;
+
+        /// <summary>Join the first public room found when no code was given.</summary>
+        public bool AutoJoinAnyRoom
+        {
+            get => _autoJoinAnyRoom;
+            set => _autoJoinAnyRoom = value;
+        }
+
+        /// <summary>The room code waiting to be used, or empty.</summary>
+        public string PendingCode => _pendingCode;
+
+        /// <summary>True when the last room code found no room. Cleared by the next code.</summary>
+        public bool CodeRejected { get; private set; }
+
+        /// <summary>Asks to join the room with this code, typed by the classmate or taken from a link. Returns false when it is not a valid code.</summary>
+        public bool JoinWithCode(string typedCode)
+        {
+            if (!RoomInvite.TryNormalizeCode(typedCode, out string code))
+                return false;
+            _pendingCode = code;
+            CodeRejected = false;
+            return true;
+        }
 
         private void OnEnable()
         {
@@ -26,16 +56,29 @@ namespace XRMultiplayer
                 enabled = false;
                 return;
             }
+            // The app was opened by tapping an invite link, or a link arrives while it is open.
+            TakeCodeFromLink(Application.absoluteURL);
+            Application.deepLinkActivated += TakeCodeFromLink;
             XRINetworkGameManager.CurrentConnectionState.Subscribe(OnConnectionState);
         }
 
         private void OnDisable()
         {
+            Application.deepLinkActivated -= TakeCodeFromLink;
             XRINetworkGameManager.CurrentConnectionState.Unsubscribe(OnConnectionState);
             if (_loop != null)
             {
                 StopCoroutine(_loop);
                 _loop = null;
+            }
+        }
+
+        private void TakeCodeFromLink(string link)
+        {
+            if (RoomInvite.TryParseLink(link, out string code))
+            {
+                Debug.Log($"[ClassmateAutoJoin] Invite link opened for room code {code}.");
+                JoinWithCode(code);
             }
         }
 
@@ -51,8 +94,22 @@ namespace XRMultiplayer
             var wait = new WaitForSeconds(_retrySeconds);
             while (!RoomJoiner.Connected)
             {
-                yield return joiner.TryJoinOnce();
-                yield return wait;
+                if (_pendingCode.Length > 0)
+                {
+                    string code = _pendingCode;
+                    yield return joiner.TryJoinByCode(code);
+                    // A code that found no room is dropped, so the screen can say so and the classmate can try another.
+                    if (!RoomJoiner.Connected && _pendingCode == code)
+                    {
+                        _pendingCode = string.Empty;
+                        CodeRejected = joiner.LastCodeRejected;
+                    }
+                }
+                else if (_autoJoinAnyRoom)
+                {
+                    yield return joiner.TryJoinOnce();
+                }
+                yield return _pendingCode.Length > 0 ? null : wait;
             }
             _loop = null;
         }

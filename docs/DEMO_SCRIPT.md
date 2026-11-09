@@ -41,6 +41,7 @@ Room and devices:
 - [ ] Wear the headset when launching. A headset that is not worn shows the lock screen and the app will not start
 - [ ] Do not leave a USB cable in while testing: the Meta Link prompt takes over the headset
 - [ ] Open the **professor app first**. It hosts the room. Then the student app, then the phones
+- [ ] The professor's roster panel shows the **join code** and the `diysect://join` link. A phone joins on its own, or type the code in the box under the corner line and press Join
 - [ ] Phones show "Connected" in the corner line, and the professor roster lists them
 - [ ] Phones stay on screen (a phone in the background loses its connection)
 - [ ] Wi-Fi: all devices on one network with internet (the room is made through Unity Gaming Services, not the local network)
@@ -67,7 +68,8 @@ Code health:
 |---|---|
 | The app opens to a lock screen or does nothing | Put the headset on, wake it, launch again from Library > Unknown Sources |
 | The student cannot find the room | Relaunch the professor app first, wait 10 seconds, then relaunch the student |
-| A phone does not join | Keep the app open and in front. Wait for the corner line to read "Connected" |
+| A phone does not join | Keep the app open and in front. Wait for the corner line to read "Connected", or type the join code from the professor's roster panel |
+| "No room found with that code" | The room closed or the code was misread. Read it again from the roster panel |
 | A tool will not grab | Point at it and squeeze the grip or trigger. It turns yellow when it can be grabbed |
 | The student is stuck in the app | Left menu button (or the right B button), then Quit, then Yes, quit |
 | Wi-Fi is bad | Use a phone hotspot for every device, or play the backup video |
@@ -77,6 +79,7 @@ Code health:
 
 - Two Quests together in one room. The professor and student apps have been built, but not yet run side by side.
 - A pin placed by a real finger on a phone reaching the professor's view.
+- The join code box and the `diysect://join` link on a real phone (the APK manifest contains the link alias; no device test yet).
 - Bare hand pinch grab on the student headset. Controllers are the safe path for the demo.
 - The organ info cards and the dissection checklist exist as code but are not placed in any scene yet, so they are not part of this demo.
 

@@ -1,6 +1,7 @@
 // The professor and the classmates run one scene. These tests check that the role switch turns on the right half of it.
 using System.Collections;
 using System.Reflection;
+using DIYsect.Learning;
 using DIYsect.MixedReality;
 using NUnit.Framework;
 using Unity.Netcode;
@@ -75,7 +76,8 @@ namespace DIYsect.MixedReality.Tests
 
             Assert.AreEqual(ClassroomRoleKind.Classmate, ClassroomRole.Current);
             Assert.IsTrue(FindObject("ClassmateCamera").activeInHierarchy, "The classmate camera must be on.");
-            foreach (string headsetOnly in new[] { "XR Origin (XR Rig)", "DepthHandle", "GuidePen", "StudentViewWindow", "ClassRoster", "TableAlignmentHandle", "TableAlignment" })
+            Assert.IsNotNull(FindObject("ClassmateCamera").GetComponent<QuizAnswerInput>(), "A classmate answers the quiz from the classmate camera.");
+            foreach (string headsetOnly in new[] { "XR Origin (XR Rig)", "DepthHandle", "GuidePen", "StudentViewWindow", "ClassRoster", "TableAlignmentHandle", "TableAlignment", "QuizPanel" })
                 Assert.IsFalse(FindObject(headsetOnly).activeInHierarchy, $"{headsetOnly} must be off for a classmate.");
             Assert.IsFalse(Object.FindFirstObjectByType<ProfessorAutoHost>(FindObjectsInactive.Include).enabled, "A classmate must not host.");
             Assert.IsTrue(Object.FindFirstObjectByType<ClassmateStatusLabel>(FindObjectsInactive.Include).enabled);
@@ -114,7 +116,7 @@ namespace DIYsect.MixedReality.Tests
 
             Assert.AreEqual(ClassroomRoleKind.Professor, ClassroomRole.Current);
             Assert.IsFalse(FindObject("ClassmateCamera").activeInHierarchy, "The classmate camera must be off for the professor.");
-            foreach (string headsetOnly in new[] { "XR Origin (XR Rig)", "DepthHandle", "GuidePen", "StudentViewWindow", "ClassRoster", "TableAlignmentHandle", "TableAlignment" })
+            foreach (string headsetOnly in new[] { "XR Origin (XR Rig)", "DepthHandle", "GuidePen", "StudentViewWindow", "ClassRoster", "TableAlignmentHandle", "TableAlignment", "QuizPanel" })
                 Assert.IsTrue(FindObject(headsetOnly).activeInHierarchy, $"{headsetOnly} must be on for the professor.");
             Assert.IsTrue(Object.FindFirstObjectByType<ProfessorAutoHost>(FindObjectsInactive.Include).enabled, "The professor creates the room.");
             Assert.IsFalse(Object.FindFirstObjectByType<ClassmateStatusLabel>(FindObjectsInactive.Include).enabled);

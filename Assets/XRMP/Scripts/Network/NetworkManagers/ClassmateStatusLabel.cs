@@ -13,11 +13,19 @@ namespace XRMultiplayer
         [SerializeField, Range(0.015f, 0.06f), Tooltip("Text height as a fraction of the screen's short side.")]
         private float _textSize = 0.032f;
 
+        private ClassmateAutoJoin _join;
+        private string _typedCode = string.Empty;
+        private string _codeMessage = string.Empty;
         private GUIStyle _style;
         private Texture2D _background;
         private string _text = "Starting…";
         private bool _connected;
         private float _nextRefresh;
+
+        private void Awake()
+        {
+            _join = GetComponent<ClassmateAutoJoin>();
+        }
 
         private void Update()
         {
@@ -72,7 +80,30 @@ namespace XRMultiplayer
 
             Rect safe = Screen.safeArea;
             Vector2 size = _style.CalcSize(new GUIContent(_text));
-            GUI.Label(new Rect(safe.x + 12f, Screen.height - (safe.y + safe.height) + 12f, size.x, size.y), _text, _style);
+            float left = safe.x + 12f;
+            float top = Screen.height - (safe.y + safe.height) + 12f;
+            GUI.Label(new Rect(left, top, size.x, size.y), _text, _style);
+            if (!_connected)
+                DrawCodeEntry(left, top + size.y + 10f);
+        }
+
+        // A box for the room code, for a classmate who was given the code instead of the link. Shown while not in a room.
+        private void DrawCodeEntry(float left, float top)
+        {
+            if (_join == null)
+                return;
+            float height = _style.CalcSize(new GUIContent("KHC8QH")).y;
+            float fieldWidth = height * 4.2f;
+            var field = new GUIStyle(GUI.skin.textField) { fontSize = _style.fontSize, alignment = TextAnchor.MiddleCenter };
+            _typedCode = GUI.TextField(new Rect(left, top, fieldWidth, height), _typedCode, RoomInvite.CodeLength + 2, field);
+            var button = new GUIStyle(GUI.skin.button) { fontSize = _style.fontSize };
+            if (GUI.Button(new Rect(left + fieldWidth + 8f, top, height * 2.4f, height), "Join", button))
+            {
+                _codeMessage = _join.JoinWithCode(_typedCode) ? string.Empty : $"A room code has {RoomInvite.CodeLength} letters and digits.";
+            }
+            string message = _join.CodeRejected ? "No room found with that code." : _codeMessage;
+            if (message.Length > 0)
+                GUI.Label(new Rect(left, top + height + 6f, Screen.width - left * 2f, height), message, _style);
         }
 
         private void OnDestroy()

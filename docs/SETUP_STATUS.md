@@ -37,6 +37,12 @@ Not yet verified earlier in setup: performance and the Sketchfab room and instru
 
 Use the README's numbered setup and `ARCHITECTURE.md` acceptance checklist to complete these steps. Follow `WORKFLOW.md` for the parent branch, task branches and PR dependencies.
 
+## 8 November 2026 evening update
+
+- Tests: EditMode 386 of 386 and PlayMode 139 of 139 passed, run twice back to back, on the join-link branch.
+- Join code and link are in the code and the phone APK manifest contains the `diysect://join` alias (checked with `aapt2`). Not yet tried on a device.
+- The shared scene (`Professor_MR`), professor walking and recenter, quiz panel and non-development role builds are on `main`. Nothing from these has been seen on a headset since the merges; the Quest still has an older build.
+
 ## 8 November 2026 update
 
 - Quest APK (`Build Quest APK`): 158 MB from the evening of 7 November, after #112. The rebuild on 8 November failed in batch mode with `RenderTexture.Create failed` (a camera is rendered during the build and `-nographics` has no graphics device); rebuild from the editor menu. Classmate phone APK (`Build Classmate Phone APK`): 71 MB after the 8 November rebuild, minimum Android 10 (the Quest build keeps Android 14), not a development build.

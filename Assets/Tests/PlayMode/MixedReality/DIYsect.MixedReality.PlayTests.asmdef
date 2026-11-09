@@ -8,7 +8,10 @@
     "DIYsect.MixedReality",
     "Unity.XR.Interaction.Toolkit",
     "Unity.XR.CoreUtils",
-    "XRMP"
+    "XRMP",
+    "DIYsect.Classroom",
+    "Unity.Collections",
+    "DIYsect.Learning"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

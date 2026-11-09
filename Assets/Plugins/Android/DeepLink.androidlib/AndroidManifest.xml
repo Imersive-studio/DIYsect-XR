@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Lets a tap on an invite link such as diysect://join?code=KHC8QH open the app. The alias forwards the link to the Unity
+  activity, which hands it to the game through Application.deepLinkActivated and Application.absoluteURL.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.diysect.deeplink">
+  <application>
+    <activity-alias
+        android:name="com.diysect.deeplink.JoinLinkAlias"
+        android:targetActivity="com.unity3d.player.UnityPlayerGameActivity"
+        android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="diysect" android:host="join" />
+      </intent-filter>
+    </activity-alias>
+  </application>
+</manifest>
