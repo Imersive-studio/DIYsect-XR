@@ -63,8 +63,19 @@ namespace DIYsect.Learning.Tests
             Set(_panel, "_stepChip", Text("Step chip"));
             Set(_panel, "_toolChip", toolChip);
             Set(_panel, "_toolChipText", Text("Tool text"));
-            Set(_panel, "_badge", Shape("Badge"));
-            Set(_panel, "_badgeNumber", Text("Badge number"));
+            Set(_panel, "_tileRim", Shape("Tile rim"));
+            Set(_panel, "_iconRoot", new GameObject("Icon").transform);
+            var strokes = new LineRenderer[ChecklistIconShapes.MaxStrokes];
+            for (int i = 0; i < strokes.Length; i++)
+            {
+                var stroke = new GameObject("Stroke");
+                stroke.transform.SetParent(_view.transform, false);
+                strokes[i] = stroke.AddComponent<LineRenderer>();
+            }
+            Set(_panel, "_iconStrokes", strokes);
+            var check = new GameObject("Check mark");
+            check.transform.SetParent(_view.transform, false);
+            Set(_panel, "_checkMark", check.AddComponent<LineRenderer>());
             Set(_panel, "_halo", Shape("Halo"));
             Set(_panel, "_segments", segments);
             Set(_panel, "_count", Text("Count"));
@@ -89,15 +100,20 @@ namespace DIYsect.Learning.Tests
         public IEnumerator SameFrameStepsCoalesceAndReenableSnaps()
         {
             int transitions = 0;
+            var phases = new System.Collections.Generic.List<InstructionTransitionPhase>();
             _panel.TransitionChanged += transition => transitions++;
+            _panel.InstructionPhaseChanged += phases.Add;
             _progress.ApplyStage(DissectionStage.Incised);
             _progress.ApplyStage(DissectionStage.SkinOpen);
             yield return null;
             yield return null;
             Assert.That(transitions, Is.EqualTo(1));
+            Assert.That(phases[0], Is.EqualTo(InstructionTransitionPhase.Completing));
             Assert.That(_panel.Text, Is.EqualTo(ChecklistLabels.Headline(ChecklistState.OpenRectus)));
             yield return new WaitForSecondsRealtime(0.75f);
             Assert.That(_card.alpha, Is.EqualTo(1f).Within(0.001f));
+            Assert.That(phases, Is.EqualTo(new[] { InstructionTransitionPhase.Completing, InstructionTransitionPhase.Rolling, InstructionTransitionPhase.Idle }));
+            Assert.That(_panel.InstructionPhase, Is.EqualTo(InstructionTransitionPhase.Idle));
             Assert.That(_ticks[0].enabled && _ticks[1].enabled, Is.True);
             Assert.That(_ticks[2].enabled, Is.False);
             _view.SetActive(false);

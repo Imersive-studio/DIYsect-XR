@@ -81,7 +81,12 @@ namespace DIYsect.Editor
                 UnityEngine.Object.DestroyImmediate(checklistObject);
                 throw;
             }
+            // Remove the previous presentation, and any panel an older version left elsewhere under the root, so two
+            // panels (and two copies of the same title) can never draw on top of each other.
             if (old != null) UnityEngine.Object.DestroyImmediate(old.gameObject);
+            foreach (ChecklistPanel legacy in root.GetComponentsInChildren<ChecklistPanel>(true))
+                if (legacy != null && !legacy.transform.IsChildOf(checklistObject.transform))
+                    UnityEngine.Object.DestroyImmediate(legacy.gameObject);
             checklistObject.name = ObjectName;
         }
 

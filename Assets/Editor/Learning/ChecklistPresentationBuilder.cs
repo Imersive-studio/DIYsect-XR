@@ -25,6 +25,10 @@ namespace DIYsect.Editor
             TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
             if (font == null) throw new InvalidOperationException($"Missing checklist font: {FontPath}");
             DissectionProgress dissection = root.GetComponentInChildren<DissectionProgress>(true);
+            SharedBody body = dissection.GetComponent<SharedBody>();
+            OrganGrabAuthority grabs = dissection.GetComponent<OrganGrabAuthority>();
+            if (body == null || grabs == null)
+                throw new InvalidOperationException("The checklist needs the body's SharedBody and OrganGrabAuthority. Run Add Body Networking.");
             var panel = Child(parent, "Panel");
             Vector3 head = new Vector3(root.position.x, 1.4f, root.position.z);
             foreach (GameObject sceneRoot in root.gameObject.scene.GetRootGameObjects())
@@ -40,7 +44,7 @@ namespace DIYsect.Editor
             panel.localScale = Vector3.one * Mathf.Max(1f, Vector3.Distance(position, head) / 1.3f);
             ChecklistState first = ChecklistState.TraceIncision;
 
-            // Card: "Next step". Sorting inside the panel: halo 0, outline 1, fill 2, accents 3, chips and badge 4, text 10.
+            // Card: "Next step". Sorting inside the panel: halo 0, outline 1, fill 2, accents 3, chips and icon tile 4, text 10.
             Transform card = Child(panel, "Next step");
             card.localPosition = new Vector3(0f, 0.25f, 0f);
             GuideShape halo = Shape(card, "Halo", GuideShapeKind.RoundedRect, new Vector2(0.75f, 0.28f), 0.045f, 0f,
@@ -70,23 +74,32 @@ namespace DIYsect.Editor
             toolChipText.text = ChecklistLabels.ToolName(first);
             toolChip.gameObject.SetActive(ChecklistLabels.ToolName(first).Length > 0);
 
-            GuideShape badge = Shape(card, "Badge", GuideShapeKind.Disc, new Vector2(0.085f, 0.085f), 0f, 0f,
-                GuidePalette.Coral, 4, new Vector3(-0.265f, -0.02f, -0.002f), material);
-            TMP_Text badgeNumber = Label(card, "Badge number", font, new Vector3(-0.265f, -0.02f, -0.004f),
-                new Vector2(0.08f, 0.08f), 0.04f, FontStyles.Bold, TextAlignmentOptions.Midline,
-                TextWrappingModes.NoWrap, TextOverflowModes.Overflow, 0f, GuidePalette.Ink, 0f);
-            badgeNumber.text = ChecklistLabels.Badge(first);
+            // Icon tile: a slightly lighter rounded square (with a pulsing rim) holding a line drawing of the tool.
+            GuideShape tileRim = Shape(card, "Icon tile rim", GuideShapeKind.RoundedRect, new Vector2(0.128f, 0.128f), 0.03f, 0f,
+                GuidePalette.CoralSoft, 3, new Vector3(-0.255f, -0.012f, -0.001f), material);
+            Shape(card, "Icon tile", GuideShapeKind.RoundedRect, new Vector2(0.12f, 0.12f), 0.026f, 0f,
+                Color.Lerp(GuidePalette.Ink, GuidePalette.Slate, 0.35f), 4, new Vector3(-0.255f, -0.012f, -0.002f), material);
+            Transform iconRoot = Child(card, "Icon");
+            iconRoot.localPosition = new Vector3(-0.255f, -0.012f, -0.004f);
+            var iconStrokes = new LineRenderer[ChecklistIconShapes.MaxStrokes];
+            for (int i = 0; i < iconStrokes.Length; i++)
+            {
+                iconStrokes[i] = Line(iconRoot, $"Stroke {i + 1}", material, 2, false);
+                iconStrokes[i].sortingOrder = 5;
+            }
+            LineRenderer checkMark = Line(card, "Check mark", material, 3, false);
+            checkMark.sortingOrder = 5;
 
-            TMP_Text headline = Label(card, "Headline", font, new Vector3(0.055f, 0.012f, -0.004f),
-                new Vector2(0.52f, 0.06f), 0.038f, FontStyles.Bold, TextAlignmentOptions.MidlineLeft,
-                TextWrappingModes.NoWrap, TextOverflowModes.Ellipsis, 0.026f, GuidePalette.TextPrimary, 0f);
+            TMP_Text headline = Label(card, "Headline", font, new Vector3(0.095f, 0.018f, -0.004f),
+                new Vector2(0.5f, 0.06f), 0.042f, FontStyles.Bold, TextAlignmentOptions.MidlineLeft,
+                TextWrappingModes.NoWrap, TextOverflowModes.Ellipsis, 0.028f, GuidePalette.TextPrimary, 0f);
             headline.text = ChecklistLabels.Headline(first);
-            TMP_Text outgoing = Label(card, "Outgoing headline", font, new Vector3(0.055f, 0.012f, -0.004f),
-                new Vector2(0.52f, 0.06f), 0.038f, FontStyles.Bold, TextAlignmentOptions.MidlineLeft,
+            TMP_Text outgoing = Label(card, "Outgoing headline", font, new Vector3(0.095f, 0.018f, -0.004f),
+                new Vector2(0.5f, 0.06f), 0.042f, FontStyles.Bold, TextAlignmentOptions.MidlineLeft,
                 TextWrappingModes.NoWrap, TextOverflowModes.Ellipsis, 0.026f, GuidePalette.TextPrimary, 0f);
             outgoing.alpha = 0f;
-            TMP_Text hint = Label(card, "Hint", font, new Vector3(0.055f, -0.048f, -0.004f),
-                new Vector2(0.52f, 0.055f), 0.02f, FontStyles.Normal, TextAlignmentOptions.TopLeft,
+            TMP_Text hint = Label(card, "Hint", font, new Vector3(0.095f, -0.04f, -0.004f),
+                new Vector2(0.5f, 0.05f), 0.019f, FontStyles.Normal, TextAlignmentOptions.TopLeft,
                 TextWrappingModes.Normal, TextOverflowModes.Overflow, 0.015f, GuidePalette.TextMuted, 0f);
             hint.text = ChecklistLabels.Hint(first);
 
@@ -164,8 +177,11 @@ namespace DIYsect.Editor
             Reference(serialized, "_stepChip", stepChip);
             Reference(serialized, "_toolChip", toolChip.gameObject);
             Reference(serialized, "_toolChipText", toolChipText);
-            Reference(serialized, "_badge", badge);
-            Reference(serialized, "_badgeNumber", badgeNumber);
+            Reference(serialized, "_tileRim", tileRim);
+            Reference(serialized, "_iconRoot", iconRoot);
+            References(serialized, "_iconStrokes", iconStrokes);
+            Reference(serialized, "_checkMark", checkMark);
+            Reference(serialized, "_grabs", grabs);
             Reference(serialized, "_halo", halo);
             References(serialized, "_segments", segments);
             Reference(serialized, "_count", count);
@@ -174,6 +190,36 @@ namespace DIYsect.Editor
             References(serialized, "_nodes", nodes);
             References(serialized, "_ticks", ticks);
             References(serialized, "_connectors", connectors);
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            BuildHint(parent, body, grabs, material, font);
+        }
+
+        // The "Turn to examine" pill. Hidden until the first time this device holds an organ.
+        private static void BuildHint(Transform parent, SharedBody body, OrganGrabAuthority grabs, Material material, TMP_FontAsset font)
+        {
+            Transform container = Child(parent, "Contextual hint");
+            Transform root = Child(container, "Pill");
+            GuideShape pill = Shape(root, "Fill", GuideShapeKind.RoundedRect, new Vector2(0.2f, 0.042f), 0.021f, 0f,
+                GuidePalette.Ink, 2, Vector3.zero, material);
+            LineRenderer glyph = Line(root, "Turn glyph", material, ContextualHintGlyph.PointCount(12), false);
+            glyph.transform.localPosition = new Vector3(-0.076f, 0f, -0.002f);
+            glyph.SetPositions(ContextualHintGlyph.Points(0.0085f, 12));
+            glyph.widthMultiplier = 0.002f;
+            glyph.sortingOrder = 5;
+            glyph.enabled = true;
+            TMP_Text text = Label(root, "Hint text", font, new Vector3(0.021f, 0f, -0.003f),
+                new Vector2(0.14f, 0.034f), 0.011f, FontStyles.Bold, TextAlignmentOptions.MidlineLeft,
+                TextWrappingModes.NoWrap, TextOverflowModes.Overflow, 0.008f, GuidePalette.TextPrimary, 0f);
+            text.text = "Turn to examine";
+            root.gameObject.SetActive(false);
+            var hint = container.gameObject.AddComponent<ContextualHint>();
+            var serialized = new SerializedObject(hint);
+            Reference(serialized, "_grabs", grabs);
+            Reference(serialized, "_body", body);
+            Reference(serialized, "_root", root.gameObject);
+            Reference(serialized, "_pill", pill);
+            Reference(serialized, "_text", text);
+            Reference(serialized, "_glyph", glyph);
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
