@@ -150,18 +150,11 @@ namespace XRMultiplayer
                 foreach (Behaviour joining in _joiningBehaviours)
                     if (joining is ClassmateAutoJoin autoJoin)
                         autoJoin.WaitForJoinPress = false;
-            // A student with nobody to join should still give the class a room: the host logic joins a room if one exists and
-            // creates it if not, so the board shows a code a phone can use. It does its own joining, so the join-only loop is
-            // switched off and the two never try to connect at the same time.
-            if (student)
-            {
-                if (TryGetComponent(out ProfessorAutoHost studentHost))
-                    studentHost.enabled = true;
-                if (_joiningBehaviours != null)
-                    foreach (Behaviour joining in _joiningBehaviours)
-                        if (joining is ClassmateAutoJoin autoJoin)
-                            autoJoin.enabled = false;
-            }
+            // The student only ever joins the professor's room. The professor's headset is the host (quiz and answer controls are
+            // server-only), so the student must never open a room of its own: that put two headsets in two different rooms. With
+            // nobody to join, the offline practice session takes over after its wait.
+            if (student && TryGetComponent(out ProfessorAutoHost studentHost))
+                studentHost.enabled = false;
             if (_passthrough != null)
                 _passthrough.enabled = false;
             if (_headsetCamera != null)
