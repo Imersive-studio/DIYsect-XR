@@ -175,12 +175,11 @@ namespace DIYsect.MixedReality.Tests
             foreach (string professorOnly in new[] { "DepthHandle", "GuidePen", "StudentViewWindow", "ClassRoster", "TableAlignmentHandle", "TableAlignment", "QuizPanel" })
                 Assert.IsFalse(FindObject(professorOnly).activeInHierarchy, professorOnly);
             var host = Object.FindFirstObjectByType<ProfessorAutoHost>(FindObjectsInactive.Include);
-            Assert.IsTrue(host.enabled, "A student with nobody to join opens the class's room so phones can join with its code.");
-            Assert.IsFalse(host.GetComponent<ClassmateAutoJoin>().enabled, "The host logic does its own joining, so the join-only loop stays off.");
+            Assert.IsFalse(host.enabled, "The professor is the host: a student must never open a room of its own, or the two headsets end up in different rooms.");
             Assert.IsFalse(Object.FindFirstObjectByType<ClassmateStatusLabel>(FindObjectsInactive.Include).enabled);
             var role = host.GetComponent<ClassroomRole>();
             var joins = (Behaviour[])typeof(ClassroomRole).GetField("_joiningBehaviours", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(role);
-            CollectionAssert.Contains(joins, host.GetComponent<ClassmateAutoJoin>());
+            CollectionAssert.Contains(joins, host.GetComponent<ClassmateAutoJoin>(), "The student joins the professor's room with the join-only loop.");
             // AutoJoin disables itself in the editor; on a device it stays enabled for both joining roles.
             var origin = FindObject("XR Origin (XR Rig)").GetComponent<Unity.XR.CoreUtils.XROrigin>();
             Assert.AreEqual(Unity.XR.CoreUtils.XROrigin.TrackingOriginMode.Device, origin.RequestedTrackingOriginMode);
