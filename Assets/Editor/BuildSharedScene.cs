@@ -157,6 +157,8 @@ namespace DIYsect.Editor
             SerializedProperty disableOnStart = practiceSerialized.FindProperty("_disableOnStart");
             disableOnStart.arraySize = 1;
             disableOnStart.GetArrayElementAtIndex(0).objectReferenceValue = autoJoin;
+            // The student first tries to open a real room (see ClassroomRole); practice is only the offline fallback.
+            practiceSerialized.FindProperty("_waitSeconds").floatValue = AddPracticeSession.SharedSceneWaitSeconds;
             practiceSerialized.ApplyModifiedPropertiesWithoutUndo();
             practice.enabled = false;
             EditorUtility.SetDirty(practice);
