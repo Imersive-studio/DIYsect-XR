@@ -72,9 +72,11 @@ namespace DIYsect.Editor
 
             // The professor's rays need the same clear pointer the student rig has: the template's line is short, thin and
             // disappears when it hits nothing, so on a headset it looked as if there were no rays at all.
-            var headsetOrigin = UnityEngine.Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>(FindObjectsInactive.Include);
-            if (headsetOrigin != null)
-                ConfigureStudentRig.MakeRaysVisible(headsetOrigin);
+            var headsetOrigin = UnityEngine.Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>(FindObjectsInactive.Include)
+                ?? throw new InvalidOperationException($"{ScenePath} has no XR Origin.");
+            if (headsetOrigin.Camera == null)
+                throw new InvalidOperationException($"{ScenePath} XR Origin has no camera.");
+            ConfigureStudentRig.MakeRaysVisible(headsetOrigin);
 
             var headset = UnityEngine.Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>(FindObjectsInactive.Include);
             if (headset != null && headset.transform.Find("QuitMenu") == null)

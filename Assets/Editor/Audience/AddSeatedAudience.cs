@@ -141,17 +141,17 @@ namespace DIYsect.Editor
 
         public static long CountTriangles(GameObject root)
         {
-            long total = 0;
-            foreach (MeshFilter filter in root.GetComponentsInChildren<MeshFilter>())
-            {
-                Mesh mesh = filter.sharedMesh;
-                if (mesh == null)
-                    continue;
-                for (int i = 0; i < mesh.subMeshCount; i++)
-                    if (mesh.GetTopology(i) == MeshTopology.Triangles)
-                        total += mesh.GetIndexCount(i) / 3;
-            }
+            return root.GetComponentsInChildren<MeshFilter>(true).Sum(filter => CountMeshTriangles(filter.sharedMesh))
+                + root.GetComponentsInChildren<SkinnedMeshRenderer>(true).Sum(renderer => CountMeshTriangles(renderer.sharedMesh));
+        }
 
+        private static long CountMeshTriangles(Mesh mesh)
+        {
+            if (mesh == null) return 0;
+            long total = 0;
+            for (int i = 0; i < mesh.subMeshCount; i++)
+                if (mesh.GetTopology(i) == MeshTopology.Triangles)
+                    total += mesh.GetIndexCount(i) / 3;
             return total;
         }
 

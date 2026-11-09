@@ -12,7 +12,7 @@ This source preparation reconciles the shared-role candidate with current phone 
 4. Confirm one shared body, retained network object identities, checklist target references and organ cards. Review the saved scene diff, then commit the Unity-saved scene separately.
 5. Run `SharedStudentCompositionTests` and `SharedSceneRoleTests`, then all EditMode and graphics-enabled PlayMode tests. Build all three APKs from that reviewed commit and rehearse on devices.
 
-The composition command rejects more than 750,000 scene mesh triangles. This is a mesh-instance count, not device frame timing. Measure Quest performance separately.
+The composition command rejects more than 750,000 scene mesh triangles. This includes inactive role geometry and static/skinned mesh instances; it is not device frame timing. Measure Quest performance separately.
 
 ## Evidence and limits
 
