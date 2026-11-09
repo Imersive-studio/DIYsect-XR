@@ -38,6 +38,7 @@ namespace DIYsect.Classroom
         private Source _source;
         private bool _multiTouch;
         private bool _touchBlocked;
+        private bool _pressClaimed;
         private float _lastSpread;
 
         /// <summary>Raised on release when the press was a quick tap. The value is the screen position in pixels.</summary>
@@ -52,6 +53,13 @@ namespace DIYsect.Classroom
         /// <summary>Zoom this frame. Positive zooms in. One unit is about one wheel notch or <c>_pinchPixelsPerUnit</c> of pinch.</summary>
         public float FrameZoom { get; private set; }
 
+        /// <summary>
+        /// While true, a press that starts with one finger (or the mouse) belongs to another feature, for example sketching on the body.
+        /// That press then reports no drag, no tap and no hold, so the camera does not orbit and nothing is named, pointed at or pinned.
+        /// A two-finger pinch still zooms. The flag is read when the press starts.
+        /// </summary>
+        public bool OneFingerClaimed { get; set; }
+
         /// <summary>True while a press is being held that has already become a drag or pinch.</summary>
         public bool IsGesturing => _classifier != null && _classifier.Active && _classifier.IsDrag;
 
@@ -64,6 +72,7 @@ namespace DIYsect.Classroom
         {
             _source = Source.None;
             _multiTouch = false;
+            _pressClaimed = false;
             FrameDrag = Vector2.zero;
             FrameZoom = 0f;
             _classifier?.Cancel();
@@ -105,6 +114,7 @@ namespace DIYsect.Classroom
                 }
                 _source = Source.Touch;
                 _multiTouch = touchCount > 1;
+                _pressClaimed = OneFingerClaimed;
                 _lastSpread = -1f;
                 _classifier.Begin(touch.position.ReadValue(), now);
                 if (_multiTouch)
@@ -115,6 +125,7 @@ namespace DIYsect.Classroom
             if (mouse != null && mouse.leftButton.wasPressedThisFrame && !IsOverUi(-1))
             {
                 _source = Source.Mouse;
+                _pressClaimed = OneFingerClaimed;
                 _classifier.Begin(mouse.position.ReadValue(), now);
             }
         }
@@ -129,7 +140,8 @@ namespace DIYsect.Classroom
                 return;
             }
             Vector2 current = mouse.position.ReadValue();
-            FrameDrag = _classifier.Move(current, now);
+            Vector2 drag = _classifier.Move(current, now);
+            FrameDrag = _pressClaimed ? Vector2.zero : drag;
             ReportHold(current);
             ReadWheel();
         }
@@ -153,13 +165,14 @@ namespace DIYsect.Classroom
             if (_multiTouch || touch == null)
                 return; // after a pinch the remaining finger does nothing until everyone lets go
             Vector2 current = touch.position.ReadValue();
-            FrameDrag = _classifier.Move(current, now);
+            Vector2 drag = _classifier.Move(current, now);
+            FrameDrag = _pressClaimed ? Vector2.zero : drag;
             ReportHold(current);
         }
 
         private void ReportHold(Vector2 position)
         {
-            if (_classifier.TakeHold())
+            if (_classifier.TakeHold() && !_pressClaimed)
                 Held?.Invoke(position);
         }
 
@@ -204,7 +217,7 @@ namespace DIYsect.Classroom
             _source = Source.None;
             _multiTouch = false;
             _lastSpread = -1f;
-            if (wasTap)
+            if (wasTap && !_pressClaimed)
                 Tapped?.Invoke(position);
         }
 
@@ -233,8 +246,8 @@ namespace DIYsect.Classroom
         }
 
         // A press on a screen-space panel must not also move the camera or pin the organ behind it.
-        // A touch is asked by its touch id (-1 means the mouse).
-        private static bool IsOverUi(int touchId)
+        // A touch is asked by its touch id (-1 means the mouse). Public so other pointer features ask the same way.
+        public static bool IsOverUi(int touchId)
         {
             EventSystem eventSystem = EventSystem.current;
             if (eventSystem == null)
