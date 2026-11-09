@@ -83,6 +83,7 @@ namespace DIYsect.MixedReality.Tests
             Assert.IsFalse(Object.FindFirstObjectByType<ProfessorAutoHost>(FindObjectsInactive.Include).enabled, "A classmate must not host.");
             Assert.IsTrue(Object.FindFirstObjectByType<ClassmateStatusLabel>(FindObjectsInactive.Include).enabled);
             Assert.IsTrue(FindObject("ResetViewButton").activeInHierarchy, "A classmate needs the Reset view button.");
+            Assert.IsFalse(FindObject("LectureHall").activeInHierarchy, "A classmate sees the body, not the lecture hall around it.");
 
             int mainCameras = 0;
             foreach (Camera camera in Object.FindObjectsByType<Camera>(FindObjectsSortMode.None))
@@ -123,6 +124,8 @@ namespace DIYsect.MixedReality.Tests
             Assert.IsTrue(Object.FindFirstObjectByType<ProfessorAutoHost>(FindObjectsInactive.Include).enabled, "The professor creates the room.");
             Assert.IsFalse(Object.FindFirstObjectByType<ClassmateStatusLabel>(FindObjectsInactive.Include).enabled);
             Assert.IsFalse(FindObject("ResetViewButton").activeInHierarchy, "The Reset view button must be off for the professor.");
+            Assert.IsFalse(FindObject("LectureHall").activeInHierarchy, "The professor sees the real room, not the lecture hall.");
+            Assert.IsFalse(FindObject("XR Origin (XR Rig)").GetComponent<DIYsect.MixedReality.EyeHeightCalibration>().enabled, "Eye height calibration is for the student only.");
             foreach (UnityEngine.EventSystems.EventSystem events in Object.FindObjectsByType<UnityEngine.EventSystems.EventSystem>(FindObjectsSortMode.None))
                 Assert.IsFalse(events.transform.IsChildOf(FindObject("ClassmateCamera").transform), "The classmate's EventSystem must be off for the professor.");
 
@@ -169,6 +172,8 @@ namespace DIYsect.MixedReality.Tests
             Assert.AreEqual(1.6f, origin.CameraYOffset, 0.001f);
             Assert.AreEqual(CameraClearFlags.Skybox, origin.Camera.clearFlags);
             Assert.IsNotNull(origin.transform.Find("QuitMenu"), "The shared student must keep the quit menu.");
+            Assert.IsTrue(FindObject("LectureHall").activeInHierarchy, "The student must stand in the lecture hall.");
+            Assert.IsTrue(origin.GetComponent<DIYsect.MixedReality.EyeHeightCalibration>().enabled, "The student's eye height must be calibrated.");
             foreach (Behaviour provider in origin.transform.Find("Locomotion/Move").GetComponents<Behaviour>())
                 Assert.IsTrue(provider.enabled);
 

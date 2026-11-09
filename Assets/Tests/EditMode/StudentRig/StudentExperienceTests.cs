@@ -101,7 +101,10 @@ namespace DIYsect.StudentRig.Tests
         {
             EditorSceneManager.OpenScene(ProfessorScene, OpenSceneMode.Single);
             var origin = Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>();
-            Assert.IsNull(origin.GetComponent<EyeHeightCalibration>(), "The professor stands at a real table in passthrough and keeps the real floor.");
+            // The shared scene carries the calibration for the student role. It is saved switched off, and ClassroomRole turns it
+            // on for the student only, so the professor still keeps the real floor.
+            var calibration = origin.GetComponent<EyeHeightCalibration>();
+            Assert.IsTrue(calibration == null || !calibration.enabled, "The professor stands at a real table in passthrough and keeps the real floor.");
         }
 
         [TestCase(1.6f, 1.0f, 0.6f)]

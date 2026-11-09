@@ -125,6 +125,18 @@ namespace DIYsect.Editor
             SetArray(serialized.FindProperty("_joiningBehaviours"), new Behaviour[] { autoJoin });
             SetArray(serialized.FindProperty("_professorBehaviours"), new Behaviour[] { autoHost });
             SetArray(serialized.FindProperty("_classmateBehaviours"), new Behaviour[] { statusLabel, classmateUi });
+
+            // The student in VR stands in the lecture hall and has the head-measured eye height. Both are off for the
+            // professor, who sees the real room through the headset, and for the phone.
+            GameObject hall = AddLectureHall.EnsureInScene(scene, removePlaceholder: false);
+            hall.SetActive(false);
+            EditorUtility.SetDirty(hall);
+            var calibration = GetOrAdd<DIYsect.MixedReality.EyeHeightCalibration>(headsetOrigin.gameObject);
+            calibration.enabled = false;
+            EditorUtility.SetDirty(calibration);
+            SetArray(serialized.FindProperty("_studentObjects"), new[] { hall });
+            SetArray(serialized.FindProperty("_studentBehaviours"), new Behaviour[] { calibration });
+
             var origin = UnityEngine.Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>(FindObjectsInactive.Include);
             serialized.FindProperty("_headsetCamera").objectReferenceValue = origin.Camera;
             serialized.FindProperty("_passthrough").objectReferenceValue = origin.Camera.GetComponent<UnityEngine.XR.ARFoundation.ARCameraBackground>();

@@ -56,6 +56,17 @@ namespace DIYsect.StudentRig.Tests
         }
 
         [Test]
+        public void EveryHeadsetRayCanActuallyBeDrawn_FarCastingIsOn()
+        {
+            XROrigin origin = Open(ProfessorScene);
+            var interactors = origin.GetComponentsInChildren<UnityEngine.XR.Interaction.Toolkit.Interactors.NearFarInteractor>(true);
+            Assert.GreaterOrEqual(interactors.Length, 4, "Both controllers and both hands should have a near-far interactor.");
+            foreach (var interactor in interactors)
+                Assert.IsTrue(interactor.enableFarCasting,
+                    $"{interactor.transform.parent.name} has far casting off, so its ray line is never enabled whatever its length (the template switches it off).");
+        }
+
+        [Test]
         public void ProfessorRaysAreAlwaysVisibleAndClear()
         {
             XROrigin origin = Open(ProfessorScene);
@@ -65,7 +76,9 @@ namespace DIYsect.StudentRig.Tests
             {
                 Assert.IsTrue(visual.extendLineToEmptyHit, $"{visual.transform.parent.parent.name} ray vanishes when it hits nothing.");
                 Assert.GreaterOrEqual(visual.restingVisualLineLength, 0.4f, $"{visual.transform.parent.parent.name} ray is too short to see.");
-                Assert.GreaterOrEqual(visual.GetComponent<LineRenderer>().widthMultiplier, 2f, $"{visual.transform.parent.parent.name} ray is too thin.");
+                Assert.GreaterOrEqual(visual.GetComponent<LineRenderer>().widthMultiplier, 4f, $"{visual.transform.parent.parent.name} ray is too thin.");
+                var ball = visual.GetComponent<DIYsect.Interaction.RayEndBall>();
+                Assert.IsNotNull(ball, $"{visual.transform.parent.parent.name} ray has no ball at its end.");
             }
         }
 

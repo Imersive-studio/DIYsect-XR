@@ -6,6 +6,7 @@
     "UnityEditor.TestRunner",
     "Unity.XR.CoreUtils",
     "Unity.XR.Interaction.Toolkit",
+    "Unity.InputSystem",
     "DIYsect.Menu",
     "DIYsect.MixedReality",
     "DIYsect.Interaction",

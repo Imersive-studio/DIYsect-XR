@@ -33,12 +33,25 @@ namespace DIYsect.Editor
         [MenuItem("Tools/DIYsect/Add Lecture Hall")]
         public static void Apply()
         {
+            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            EnsureInScene(scene, removePlaceholder: true);
+            EditorSceneManager.MarkSceneDirty(scene);
+            if (!EditorSceneManager.SaveScene(scene))
+                throw new IOException($"Could not save {ScenePath}.");
+        }
+
+        /// <summary>
+        /// Puts the hall under the DIYsect root of a scene that is already open and returns it, placed the same way as in
+        /// LectureHall_VR. Does not save. The shared scene uses this for the student role.
+        /// </summary>
+        public static GameObject EnsureInScene(Scene scene, bool removePlaceholder)
+        {
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(HallModel);
             if (model == null)
                 throw new FileNotFoundException($"{HallModel} is missing. Run Tools/blender/simplify_room.py on the downloaded hall.");
-            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             Transform root = FindRoot(scene);
-            RemovePlaceholder(root);
+            if (removePlaceholder)
+                RemovePlaceholder(root);
 
             Transform hall = root.Find(HallName);
             if (hall == null)
@@ -46,7 +59,7 @@ namespace DIYsect.Editor
                 hall = ((GameObject)PrefabUtility.InstantiatePrefab(model, root)).transform;
                 hall.name = HallName;
             }
-            Bounds tableTop = FindTableTop(root);
+            Bounds tableTop = FindTableTop(root, scene.path);
 
             // Face the screen toward the student: try the imported heading, turn it around if the seats end up in front.
             hall.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
@@ -63,10 +76,8 @@ namespace DIYsect.Editor
                 renderers++;
             }
 
-            EditorSceneManager.MarkSceneDirty(scene);
-            if (!EditorSceneManager.SaveScene(scene))
-                throw new IOException($"Could not save {ScenePath}.");
-            Debug.Log($"{ScenePath}: lecture hall at {hall.position}, heading {hall.eulerAngles.y:F0} degrees, {renderers} renderers without shadows.");
+            Debug.Log($"{scene.path}: lecture hall at {hall.position}, heading {hall.eulerAngles.y:F0} degrees, {renderers} renderers without shadows.");
+            return hall.gameObject;
         }
 
         private static void RemovePlaceholder(Transform root)
@@ -112,12 +123,12 @@ namespace DIYsect.Editor
             throw new InvalidOperationException($"{scene.path} has no {RootName} root. Run Tools > DIYsect > Create Scenes.");
         }
 
-        private static Bounds FindTableTop(Transform root)
+        private static Bounds FindTableTop(Transform root, string scenePath)
         {
             foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
                 if (renderer.name == "Top" && renderer.transform.parent != null && renderer.transform.parent.name.StartsWith("DissectionTable"))
                     return renderer.bounds;
-            throw new InvalidOperationException($"{ScenePath} has no DissectionTable/Top under {RootName}.");
+            throw new InvalidOperationException($"{scenePath} has no DissectionTable/Top under {RootName}.");
         }
     }
 }
