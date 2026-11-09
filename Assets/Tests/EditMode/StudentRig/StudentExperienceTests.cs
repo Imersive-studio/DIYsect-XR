@@ -104,6 +104,71 @@ namespace DIYsect.StudentRig.Tests
         }
 
         [Test]
+        public void TheProfessorsPanelsDoNotOverlap()
+        {
+            var scene = EditorSceneManager.OpenScene(ProfessorScene, OpenSceneMode.Single);
+            Vector3 eye = ArrangeProfessorPanels.ProfessorEye(scene);
+            var spans = new System.Collections.Generic.List<(string name, float left, float right, float bottom, float top)>();
+            foreach (var slot in ArrangeProfessorPanels.Slots)
+            {
+                Transform panel = ArrangeProfessorPanels.Find(scene, slot.Name);
+                if (panel == null)
+                    continue;
+                Bounds b = PanelBounds(panel);
+                float distance = Vector2.Distance(new Vector2(eye.x, eye.z), new Vector2(b.center.x, b.center.z));
+                float half = Mathf.Atan2(Mathf.Max(b.size.x, b.size.z) * 0.5f, distance) * Mathf.Rad2Deg;
+                float bearing = ArrangeProfessorPanels.Bearing(eye, b.center);
+                spans.Add((slot.Name, bearing - half, bearing + half, b.min.y, b.max.y));
+            }
+            Assert.GreaterOrEqual(spans.Count, 4, "The professor panels were not found.");
+            for (int i = 0; i < spans.Count; i++)
+                for (int j = i + 1; j < spans.Count; j++)
+                {
+                    var a = spans[i];
+                    var c = spans[j];
+                    bool sideBySide = a.left < c.right && c.left < a.right;
+                    bool sameHeight = a.bottom < c.top && c.bottom < a.top;
+                    Assert.IsFalse(sideBySide && sameHeight, $"{a.name} and {c.name} overlap in the professor's view. Run Tools > DIYsect > Arrange Professor Panels.");
+                }
+        }
+
+        [Test]
+        public void OnlyTheStudentSeesTheChecklistCard()
+        {
+            EditorSceneManager.OpenScene(ProfessorScene, OpenSceneMode.Single);
+            var role = Object.FindFirstObjectByType<XRMultiplayer.ClassroomRole>(FindObjectsInactive.Include);
+            var students = new SerializedObject(role).FindProperty("_studentObjects");
+            bool found = false;
+            for (int i = 0; i < students.arraySize; i++)
+            {
+                var item = students.GetArrayElementAtIndex(i).objectReferenceValue as GameObject;
+                if (item != null && item.name == "Panel" && item.transform.parent != null && item.transform.parent.name == "DissectionChecklist")
+                    found = true;
+            }
+            Assert.IsTrue(found, "The checklist card should show only to the student. Run Tools > DIYsect > Build Shared Scene.");
+        }
+
+        // A world space canvas has no renderer bounds, so it is measured from its rectangle.
+        private static Bounds PanelBounds(Transform panel)
+        {
+            if (panel.TryGetComponent(out RectTransform rect) && panel.GetComponent<Canvas>() != null)
+            {
+                var corners = new Vector3[4];
+                rect.GetWorldCorners(corners);
+                var canvasBounds = new Bounds(corners[0], Vector3.zero);
+                foreach (Vector3 corner in corners)
+                    canvasBounds.Encapsulate(corner);
+                return canvasBounds;
+            }
+            var renderers = panel.GetComponentsInChildren<Renderer>(true);
+            var bounds = new Bounds(panel.position, Vector3.zero);
+            foreach (Renderer r in renderers)
+                if (r.enabled)
+                    bounds.Encapsulate(r.bounds);
+            return bounds;
+        }
+
+        [Test]
         public void SharedSceneHasARoomCodeBoardEveryoneCanSee()
         {
             EditorSceneManager.OpenScene(ProfessorScene, OpenSceneMode.Single);

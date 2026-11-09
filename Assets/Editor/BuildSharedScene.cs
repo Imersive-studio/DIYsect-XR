@@ -38,6 +38,8 @@ namespace DIYsect.Editor
 
             Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             ConfigureRoles(scene);
+            // Last, so every panel the steps above built ends up on one even arc around the professor.
+            ArrangeProfessorPanels.ArrangeIn(scene);
 
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))
@@ -52,6 +54,7 @@ namespace DIYsect.Editor
             {
                 Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
                 ConfigureRoles(scene);
+                ArrangeProfessorPanels.ArrangeIn(scene);
                 EditorSceneManager.MarkSceneDirty(scene);
                 if (!EditorSceneManager.SaveScene(scene))
                     throw new System.IO.IOException("Could not save shared scene.");
@@ -167,7 +170,11 @@ namespace DIYsect.Editor
             practice.enabled = false;
             EditorUtility.SetDirty(practice);
             SetArray(serialized.FindProperty("_classroomObjects"), classroomObjects);
-            SetArray(serialized.FindProperty("_studentObjects"), Array.Empty<GameObject>());
+            // The checklist card and progress list guide the student at the table. The professor already sees the class's
+            // progress in the roster and the student window, so the card is the student's only.
+            Transform checklistRoot = FindByName(scene, "DissectionChecklist")?.transform;
+            Transform checklistPanel = checklistRoot != null ? checklistRoot.Find("Panel") : null;
+            SetArray(serialized.FindProperty("_studentObjects"), checklistPanel != null ? new[] { checklistPanel.gameObject } : Array.Empty<GameObject>());
             SetArray(serialized.FindProperty("_studentBehaviours"), AddAssistRequest.WithStudentInput(new Behaviour[] { calibration, practice }, headsetOrigin.gameObject));
 
             // The professor's quiz panel needs its question set saved in the scene (Add Quiz does this too, but a scene taken
