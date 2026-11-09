@@ -8,7 +8,7 @@ namespace DIYsect.Classroom
         /// <param name="hidingLayer">A phrase such as "the omentum", or null when the organ is in view.</param>
         public static string Build(PointerRole role, string organName, string hidingLayer)
         {
-            string who = role == PointerRole.Professor ? "Professor" : "Student";
+            string who = role == PointerRole.Professor ? "Professor" : role == PointerRole.Classmate ? "Classmate" : "Student";
             string text = $"{who}: {organName}";
             return string.IsNullOrEmpty(hidingLayer) ? text : $"{text} (under {hidingLayer})";
         }

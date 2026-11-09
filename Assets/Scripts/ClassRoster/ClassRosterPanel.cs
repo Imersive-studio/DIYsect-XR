@@ -19,6 +19,8 @@ namespace DIYsect.ClassRoster
         [SerializeField] private QuestionBoard _board;
         [SerializeField, Tooltip("The raised hands. The roster shows a hand next to each name, first to raise first.")]
         private HandBoard _hands;
+        [SerializeField, Tooltip("The student's help request. While it is open the roster says so and what to do.")]
+        private AssistBoard _assist;
         [SerializeField] private TextMesh _text;
         [SerializeField, Min(0.25f)] private float _refreshSeconds = 1f;
 
@@ -40,6 +42,8 @@ namespace DIYsect.ClassRoster
                 _board.PinsChanged += Refresh;
             if (_hands != null)
                 _hands.Changed += Refresh;
+            if (_assist != null)
+                _assist.PhaseChanged += OnAssistChanged;
             Refresh();
         }
 
@@ -49,6 +53,13 @@ namespace DIYsect.ClassRoster
                 _board.PinsChanged -= Refresh;
             if (_hands != null)
                 _hands.Changed -= Refresh;
+            if (_assist != null)
+                _assist.PhaseChanged -= OnAssistChanged;
+        }
+
+        private void OnAssistChanged(AssistPhase phase)
+        {
+            Refresh();
         }
 
         /// <summary>Takes down the hand that went up first (the next student to answer). Does nothing when no hand is up.</summary>
@@ -86,11 +97,25 @@ namespace DIYsect.ClassRoster
 
             // The invite is shown once a room exists, so the professor always has the code to read out.
             string code = XRINetworkGameManager.Connected.Value ? XRINetworkGameManager.ConnectedRoomCode : null;
-            string text = ClassRosterText.Format(entries, code, RoomInvite.BuildLink(code));
+            string text = AssistLine() + ClassRosterText.Format(entries, code, RoomInvite.BuildLink(code));
             if (text == _shown)
                 return;
             _shown = text;
             _text.text = text;
+        }
+
+        // The first line of the panel while a student has asked for help, in the beacon's colours.
+        private string AssistLine()
+        {
+            switch (_assist != null ? _assist.Phase : AssistPhase.None)
+            {
+                case AssistPhase.Requested:
+                    return "<color=#FF7A59>Needs help: grab the depth handle to guide</color>\n";
+                case AssistPhase.Helping:
+                    return "<color=#5EF2C2>You are guiding the depth</color>\n";
+                default:
+                    return string.Empty;
+            }
         }
 
         private int CountQuestions(ulong clientId)

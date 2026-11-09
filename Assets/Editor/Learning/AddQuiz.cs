@@ -180,6 +180,7 @@ namespace DIYsect.Editor
 
             // The same tap shows an organ name when there is no round; during one it is an answer and shows none.
             AddOrganNameTap.SetClaimers(rig);
+            AddClassmatePointInput.SetClaimers(rig);
 
             Text label = GetOrCreateQuizLine(rig);
             var prompt = rig.GetComponent<QuizPrompt>();

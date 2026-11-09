@@ -8,6 +8,10 @@
     "Unity.Netcode.Runtime",
     "Unity.Collections",
     "Unity.InputSystem",
-    "UnityEngine.UI"
+    "UnityEngine.UI",
+    "DIYsect.Presentation",
+    "Unity.TextMeshPro",
+    "Unity.XR.Interaction.Toolkit",
+    "XRMP"
   ]
 }

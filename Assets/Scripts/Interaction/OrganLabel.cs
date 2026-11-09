@@ -68,6 +68,13 @@ namespace DIYsect.Interaction
             return label;
         }
 
+        /// <summary>Colours the name text, for a label that belongs to someone (for example a classmate's chip).</summary>
+        public void SetTint(Color color)
+        {
+            if (_name != null)
+                _name.color = color;
+        }
+
         public void Show()
         {
             _timeline.Show();
