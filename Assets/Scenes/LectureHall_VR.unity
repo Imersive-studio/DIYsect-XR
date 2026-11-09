@@ -3895,6 +3895,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa16c3ecdaf22434eaa0979764e32dc6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1790368011 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5632266133985503990, guid: 7d554cf076fc46143bcaf9a54fc2204d,
+    type: 3}
+  m_PrefabInstance: {fileID: 1996598795}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1897562950
 GameObject:
   m_ObjectHideFlags: 0
@@ -4499,7 +4505,11 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1497870220}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5632266133985503990, guid: 7d554cf076fc46143bcaf9a54fc2204d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1996598801}
   m_SourcePrefab: {fileID: 100100000, guid: 7d554cf076fc46143bcaf9a54fc2204d, type: 3}
 --- !u!20 &1996598796 stripped
 Camera:
@@ -4531,6 +4541,21 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1996598795}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1996598801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1790368011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4be1f731adcdb4f85bd50c39ebea920a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.MixedReality::DIYsect.MixedReality.EyeHeightCalibration
+  _eyeHeight: 1.6
+  _settleSeconds: 2
+  _giveUpSeconds: 8
 --- !u!1 &2023478220 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1491813474252762412, guid: 3c7e97c2ac5aede4c834e98354f624e2,

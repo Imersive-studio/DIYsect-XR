@@ -1,6 +1,7 @@
 using DIYsect.Editor;
 using DIYsect.Interaction;
 using DIYsect.Menu;
+using DIYsect.MixedReality;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -69,6 +70,41 @@ namespace DIYsect.StudentRig.Tests
             var input = Object.FindFirstObjectByType<DepthControlInput>(FindObjectsInactive.Include);
             Assert.IsNotNull(input, "The professor scene has no depth handle.");
             Assert.IsNotNull(input.transform.Find(WidenInstrumentGrab.GrabZoneName), "The depth handle has no grab zone.");
+        }
+
+        [Test]
+        public void StudentRigCalibratesItsEyeHeightOnTheHeadset()
+        {
+            EditorSceneManager.OpenScene(StudentScene, OpenSceneMode.Single);
+            var origin = Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>();
+            var calibration = origin.GetComponent<EyeHeightCalibration>();
+            Assert.IsNotNull(calibration, "Without it the eyes sit wherever the headset started. Run Tools > DIYsect > Configure Student Rig.");
+            Assert.AreEqual(1.6f, calibration.EyeHeight, 0.001f);
+        }
+
+        [Test]
+        public void ProfessorRigIsNotRecalibrated()
+        {
+            EditorSceneManager.OpenScene(ProfessorScene, OpenSceneMode.Single);
+            var origin = Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>();
+            Assert.IsNull(origin.GetComponent<EyeHeightCalibration>(), "The professor stands at a real table in passthrough and keeps the real floor.");
+        }
+
+        [TestCase(1.6f, 1.0f, 0.6f)]
+        [TestCase(1.6f, 1.6f, 0f)]
+        [TestCase(1.6f, 0f, 1.6f)]
+        [TestCase(1.6f, 2.0f, -0.4f)]
+        public void OffsetPutsTheEyesAtTheFixedHeight(float eyeHeight, float trackedHead, float expectedOffset)
+        {
+            Assert.AreEqual(expectedOffset, EyeHeightMath.OffsetFor(eyeHeight, trackedHead), 0.0001f);
+        }
+
+        [Test]
+        public void OnlyRealHeightsAreUsable()
+        {
+            Assert.IsTrue(EyeHeightMath.IsUsable(1.2f));
+            Assert.IsFalse(EyeHeightMath.IsUsable(float.NaN));
+            Assert.IsFalse(EyeHeightMath.IsUsable(float.PositiveInfinity));
         }
 
         [TestCase(StudentScene)]
