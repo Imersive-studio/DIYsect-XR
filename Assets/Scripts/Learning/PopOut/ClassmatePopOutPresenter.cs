@@ -118,7 +118,8 @@ namespace DIYsect.Learning
             foreach (PoppedOrgan organ in _organs.Values)
                 if (organ.Index != wanted && organ.Index != quiz)
                     organ.Lower();
-            Raise(wanted, true);
+            // No extra chip: the info card names the organ, and a second label over it only crowds the view.
+            Raise(wanted, false);
             if (quiz != wanted)
                 Raise(quiz, false);
         }

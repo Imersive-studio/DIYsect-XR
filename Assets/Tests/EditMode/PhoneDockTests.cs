@@ -19,12 +19,29 @@ namespace DIYsect.Classroom.Tests
             var draw = Object.FindFirstObjectByType<ClassmateDrawButton>(FindObjectsInactive.Include);
             Assert.IsNotNull(draw, "The phone has no Draw button. Run Tools > DIYsect > Rebuild Phone UI.");
             var serialized = new SerializedObject(draw);
-            foreach (string field in new[] { "_sketch", "_button", "_label", "_background", "_clear" })
+            foreach (string field in new[] { "_sketch", "_button", "_label", "_background", "_clear", "_hint" })
                 Assert.IsNotNull(serialized.FindProperty(field).objectReferenceValue, $"The Draw button has no {field}.");
             var button = (Button)serialized.FindProperty("_button").objectReferenceValue;
             var clear = (Button)serialized.FindProperty("_clear").objectReferenceValue;
             Assert.AreEqual("Dock", button.transform.parent.name, "Draw belongs in the dock.");
             Assert.AreEqual(button.transform.parent, clear.transform.parent, "Clear sits next to Draw.");
+        }
+
+        [Test]
+        public void TheSketchHasItsLookAndThePhoneItsInkAndCursor()
+        {
+            EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            var input = Object.FindFirstObjectByType<ClassmateSketchInput>(FindObjectsInactive.Include);
+            var serialized = new SerializedObject(input);
+            var presenter = (DIYsect.Interaction.SketchPresenter)serialized.FindProperty("_presenter").objectReferenceValue;
+            Assert.IsNotNull(presenter, "The phone has no instant ink. Run Tools > DIYsect > Add Classmate Sketch.");
+            var cursor = (Transform)serialized.FindProperty("_cursor").objectReferenceValue;
+            Assert.IsNotNull(cursor, "The phone has no fingertip cursor.");
+            Assert.IsFalse(cursor.gameObject.activeSelf, "The cursor shows only while a finger draws.");
+            var look = new SerializedObject(presenter);
+            Assert.IsNotNull(look.FindProperty("_glow").objectReferenceValue, "The sketch has no glow line.");
+            Assert.IsNotNull(look.FindProperty("_font").objectReferenceValue, "The sketch chip has no Inter font.");
+            Assert.IsNull(presenter.GetComponent<DIYsect.Interaction.GuideLinePresenter>(), "The old plain presenter must be gone, or the line draws twice.");
         }
 
         [Test]

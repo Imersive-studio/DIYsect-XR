@@ -238,7 +238,6 @@ namespace DIYsect.Networking.Tests
             for (int i = 0; i < 10; i++)
                 yield return null;
             Assert.AreNotEqual(PointerBoard.None, pointer.OrganOf(PointerRole.Classmate), "A tap on the closed body must point at the organ under the finger.");
-
             yield return Click(ButtonNamed("DrawButton"));
             Assert.IsTrue(InScene<ClassmateSketchInput>().Drawing, "Draw turns drawing on.");
             var sketch = body.transform.Find("ClassmateSketch").GetComponent<DIYsect.Networking.GuideLine>();

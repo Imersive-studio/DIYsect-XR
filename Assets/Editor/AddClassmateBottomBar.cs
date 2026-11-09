@@ -134,6 +134,11 @@ namespace DIYsect.Editor
             }
             var serialized = new SerializedObject(draw);
             serialized.FindProperty("_sketch").objectReferenceValue = sketch;
+            // A short note just above the dock when drawing turns on: near the thumb and clear of the body being drawn on.
+            // Pin messages cannot appear then (drawing takes the finger), so the spot is free.
+            if (serialized.FindProperty("_hint").objectReferenceValue == null)
+                serialized.FindProperty("_hint").objectReferenceValue = ClassmateUiBuilder.AddChip(dock.parent, "DrawHint", new Vector2(0.5f, 0f),
+                    new Vector2(0f, AboveDock), ClassmateUiBuilder.SmallSize, DIYsect.Presentation.GuidePalette.TextPrimary, hidden: true);
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 

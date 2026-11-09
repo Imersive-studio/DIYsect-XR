@@ -34,6 +34,13 @@ namespace DIYsect.Classroom
         private float _liftMeters = 0.003f;
         [SerializeField, Min(0.001f), Tooltip("A point is sent only after the finger moved this far over the body (metres).")]
         private float _minSpacing = 0.006f;
+        [SerializeField, Tooltip("Draws this phone's ink at once, before the room echoes it.")]
+        private DIYsect.Interaction.SketchPresenter _presenter;
+        [SerializeField, Tooltip("A soft violet disc that sits on the body under the finger while drawing. Only this phone sees it.")]
+        private Transform _cursor;
+
+        private const float CursorLift = 0.004f;
+        private readonly System.Collections.Generic.List<Vector3> _ink = new System.Collections.Generic.List<Vector3>();
 
         private readonly GrabRequest _request = new GrabRequest();
         private bool _drawing;
@@ -61,12 +68,14 @@ namespace DIYsect.Classroom
 
         private void OnEnable()
         {
+            DIYsect.Interaction.SketchPresenter.ChipHiddenOnThisDevice = true;
             _line.StrokeResolved += HandleStrokeResolved;
             _line.StrokeRevoked += HandleStrokeRevoked;
         }
 
         private void OnDisable()
         {
+            DIYsect.Interaction.SketchPresenter.ChipHiddenOnThisDevice = false;
             EndPress();
             if (_drawing)
                 SetDrawing(false);
@@ -133,6 +142,12 @@ namespace DIYsect.Classroom
                 || !hit.collider.transform.IsChildOf(_body.transform))
                 return;
             Vector3 point = SketchRules.Lift(hit.point, hit.normal, _liftMeters);
+            if (_cursor != null)
+            {
+                _cursor.gameObject.SetActive(true);
+                _cursor.SetPositionAndRotation(hit.point + hit.normal * CursorLift, Quaternion.LookRotation(-hit.normal));
+            }
+            ShowInk(point);
             if (!SketchRules.IsFarEnough(_lastSent, point, _minSpacing))
                 return;
             if (!_requestedThisPress)
@@ -152,10 +167,27 @@ namespace DIYsect.Classroom
             }
         }
 
+        // This phone's own ink, in the line's space, so the finger sees the stroke before the room answers.
+        private void ShowInk(Vector3 worldPoint)
+        {
+            if (_presenter == null)
+                return;
+            Vector3 local = _line.transform.InverseTransformPoint(worldPoint);
+            if (_ink.Count > 0 && (_ink[_ink.Count - 1] - local).sqrMagnitude < _minSpacing * _minSpacing)
+                return;
+            _ink.Add(local);
+            _presenter.ShowPreview(_ink);
+        }
+
         private void EndPress()
         {
+            if (_cursor != null)
+                _cursor.gameObject.SetActive(false);
             if (!_pressActive)
                 return;
+            if (_presenter != null)
+                _presenter.EndPreview();
+            _ink.Clear();
             _pressActive = false;
             _requestedThisPress = false;
             _pending = null;

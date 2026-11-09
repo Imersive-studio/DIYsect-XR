@@ -15,10 +15,10 @@ using XRMultiplayer;
 namespace DIYsect.Editor
 {
     /// <summary>
-    /// Lets a phone classmate sketch on the body. In the body prefab: a ClassmateSketch child (its own GuideLine, a violet
-    /// LineRenderer a little thicker than the professor's, and a GuideLinePresenter). The professor's GuideLine stays on the body root,
+    /// Lets a phone classmate sketch on the body. In the body prefab: a ClassmateSketch child (its own GuideLine, a violet core
+    /// line with a soft glow line behind it, and a SketchPresenter that smooths, fades and labels it). The professor's GuideLine stays on the body root,
     /// so anything that asks the body for its GuideLine still gets the professor's. In Professor_MR: a ClassmateSketchInput on the
-    /// classmate camera, listed as a classmate-only script in the ClassroomRole and saved switched off. It has no buttons of its own:
+    /// classmate camera (with the phone's fingertip cursor), listed as a classmate-only script in the ClassroomRole and saved switched off. It has no buttons of its own:
     /// a Draw button calls SetDrawing and a Clear button calls Clear. Safe to run more than once.
     /// </summary>
     public static class AddClassmateSketch
@@ -28,7 +28,13 @@ namespace DIYsect.Editor
         private const string ScenePath = "Assets/Scenes/Professor_MR.unity";
         private const string LineMaterialPath = "Assets/Prefabs/ClassmateSketch.mat";
         // Thicker than the professor's 4 mm line, so it reads on a phone screen.
-        private const float LineWidth = 0.007f;
+        private const float LineWidth = 0.008f;
+        private const float GlowWidth = 0.026f;
+        private const string GlowMaterialPath = "Assets/Prefabs/ClassmateSketchGlow.mat";
+        private const string CursorMaterialPath = "Assets/Prefabs/ClassmateSketchCursor.mat";
+        private const string SoftDiscPath = "Assets/Materials/ProfessorPanels/Textures/SoftDisc.png";
+        private const string CursorName = "SketchCursor";
+        private const float CursorSize = 0.03f;
 
         [MenuItem("Tools/DIYsect/Add Classmate Sketch")]
         public static void Apply()
@@ -58,19 +64,28 @@ namespace DIYsect.Editor
                 child.localScale = Vector3.one;
                 // A NetworkBehaviour on a child rides the body's NetworkObject; there is no second NetworkObject.
                 var line = AnatomyBodyDissection.GetOrAdd<GuideLine>(child.gameObject);
+                // The bright core and, behind it, a wider soft glow; both take their colour (and the fade) from the line's vertex colour.
                 var renderer = AnatomyBodyDissection.GetOrAdd<LineRenderer>(child.gameObject);
-                renderer.useWorldSpace = false;
-                renderer.widthMultiplier = LineWidth;
-                renderer.numCapVertices = 4;
-                renderer.numCornerVertices = 3;
-                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                renderer.receiveShadows = false;
-                renderer.sharedMaterial = AddGuideLine.LoadOrCreate(LineMaterialPath, "Universal Render Pipeline/Unlit", GuidePalette.Violet);
-                renderer.positionCount = 0;
-                renderer.enabled = false;
-                var presenter = AnatomyBodyDissection.GetOrAdd<GuideLinePresenter>(child.gameObject);
+                StyleLine(renderer, LineWidth, InkMaterial(LineMaterialPath), new Color(GuidePalette.Violet.r, GuidePalette.Violet.g, GuidePalette.Violet.b, 1f), 1);
+                Transform glowObject = child.Find("Glow");
+                if (glowObject == null)
+                {
+                    glowObject = new GameObject("Glow").transform;
+                    glowObject.SetParent(child, false);
+                }
+                glowObject.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+                var glow = AnatomyBodyDissection.GetOrAdd<LineRenderer>(glowObject.gameObject);
+                StyleLine(glow, GlowWidth, InkMaterial(GlowMaterialPath), new Color(GuidePalette.Violet.r, GuidePalette.Violet.g, GuidePalette.Violet.b, 0.28f), 0);
+
+                var old = child.GetComponent<GuideLinePresenter>();
+                if (old != null)
+                    UnityEngine.Object.DestroyImmediate(old, true);
+                var presenter = AnatomyBodyDissection.GetOrAdd<SketchPresenter>(child.gameObject);
                 var serialized = new SerializedObject(presenter);
                 serialized.FindProperty("_line").objectReferenceValue = line;
+                serialized.FindProperty("_glow").objectReferenceValue = glow;
+                serialized.FindProperty("_font").objectReferenceValue = AssetDatabase.LoadAssetAtPath<TMPro.TMP_FontAsset>(ApplyLabelDesign.FontPath);
+                serialized.FindProperty("_chipText").stringValue = "CLASSMATE";
                 serialized.ApplyModifiedPropertiesWithoutUndo();
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
                 Debug.Log($"Added the classmate sketch line to {PrefabPath}.");
@@ -97,11 +112,82 @@ namespace DIYsect.Editor
             serialized.FindProperty("_line").objectReferenceValue = line;
             serialized.FindProperty("_gestures").objectReferenceValue = tracker;
             serialized.FindProperty("_camera").objectReferenceValue = rig.GetComponent<Camera>();
+            serialized.FindProperty("_presenter").objectReferenceValue = child.GetComponent<SketchPresenter>();
+            serialized.FindProperty("_cursor").objectReferenceValue = EnsureCursor(rig);
             serialized.ApplyModifiedPropertiesWithoutUndo();
             // Only a classmate sketches. The role switch turns it on; drawing itself stays off until a button asks.
             input.enabled = false;
             EditorUtility.SetDirty(input);
             return input;
+        }
+
+        private static void StyleLine(LineRenderer renderer, float width, Material material, Color colour, int order)
+        {
+            renderer.useWorldSpace = false;
+            renderer.widthMultiplier = width;
+            renderer.numCapVertices = 6;
+            renderer.numCornerVertices = 4;
+            renderer.alignment = LineAlignment.View;
+            renderer.textureMode = LineTextureMode.Stretch;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            renderer.sharedMaterial = material;
+            renderer.startColor = renderer.endColor = colour;
+            renderer.sortingOrder = order;
+            renderer.positionCount = 0;
+            renderer.enabled = false;
+        }
+
+        // A transparent unlit material that uses the line's vertex colour, so the presenter can fade it without new materials.
+        private static Material InkMaterial(string path, Texture2D texture = null)
+        {
+            Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit")
+                ?? throw new InvalidOperationException("The URP Particles/Unlit shader is missing.");
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            bool created = material == null || material.shader != shader;
+            if (created)
+            {
+                if (material != null)
+                    AssetDatabase.DeleteAsset(path);
+                material = new Material(shader) { name = Path.GetFileNameWithoutExtension(path) };
+            }
+            material.SetFloat("_Surface", 1f);
+            material.SetFloat("_Blend", 0f);
+            material.SetFloat("_ZWrite", 0f);
+            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            material.SetColor("_BaseColor", Color.white);
+            if (texture != null)
+                material.SetTexture("_BaseMap", texture);
+            material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            if (created)
+                AssetDatabase.CreateAsset(material, path);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        // The phone's fingertip disc: a small soft violet quad the sketch input places on the body under the finger.
+        private static Transform EnsureCursor(GameObject rig)
+        {
+            Transform cursor = rig.transform.Find(CursorName);
+            if (cursor == null)
+            {
+                GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                quad.name = CursorName;
+                UnityEngine.Object.DestroyImmediate(quad.GetComponent<Collider>());
+                quad.transform.SetParent(rig.transform, false);
+                cursor = quad.transform;
+            }
+            cursor.localScale = Vector3.one * CursorSize;
+            var renderer = cursor.GetComponent<MeshRenderer>();
+            renderer.sharedMaterial = InkMaterial(CursorMaterialPath, AssetDatabase.LoadAssetAtPath<Texture2D>(SoftDiscPath));
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            // Quads take vertex colour from the mesh (white); the material carries the violet.
+            renderer.sharedMaterial.SetColor("_BaseColor", new Color(GuidePalette.Violet.r, GuidePalette.Violet.g, GuidePalette.Violet.b, 0.85f));
+            cursor.gameObject.SetActive(false);
+            return cursor;
         }
 
         /// <summary>

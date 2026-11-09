@@ -136,7 +136,8 @@ namespace DIYsect.Learning.Tests
 
             Assert.IsTrue(_names.IsShowing);
             StringAssert.Contains(entry.DisplayName, _names.CurrentText);
-            StringAssert.Contains(entry.Function, _names.CurrentText);
+            StringAssert.Contains(entry.System, _names.CurrentText, "A short line with the organ's system, not a paragraph.");
+            StringAssert.DoesNotContain(entry.Function, _names.CurrentText, "The long function sentence is left to the headset cards.");
             for (int i = 0; i < 30; i++)
                 yield return null;
             Assert.AreEqual(0, _boardServer.Count, "A quick tap names the organ; it must not place a pin.");

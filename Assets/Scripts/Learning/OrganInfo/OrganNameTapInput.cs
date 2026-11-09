@@ -68,12 +68,15 @@ namespace DIYsect.Learning
 
         private void OnEnable()
         {
+            // This phone shows its own flat name card, so the floating info cards stay hidden here.
+            OrganInfoCardPresenter.HiddenOnThisDevice = true;
             if (_gestures != null)
                 _gestures.Tapped += HandleTap;
         }
 
         private void OnDisable()
         {
+            OrganInfoCardPresenter.HiddenOnThisDevice = false;
             if (_gestures != null)
                 _gestures.Tapped -= HandleTap;
         }
@@ -114,7 +117,8 @@ namespace DIYsect.Learning
             if (!IsShowing)
                 return;
             float alpha = _fade.Alpha(Time.unscaledTime);
-            if (alpha <= 0f)
+            // Drawing took the finger: the name card steps aside so the screen shows one text at a time.
+            if (alpha <= 0f || (_gestures != null && _gestures.OneFingerClaimed))
             {
                 _card.gameObject.SetActive(false);
                 return;
