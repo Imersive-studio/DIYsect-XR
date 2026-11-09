@@ -22,6 +22,7 @@ Prove a state bug with a failing test before fixing it. Old public properties st
 | 3 | `OrganPhase` (Home, Held, Easing, Loose), server written, replicated | phase spread over 5 places; clients cannot see loose or easing | Saurav |
 | 4 | `ExclusiveClaim`: one type for NoHolder, NoSteerer, NoController, NoDrawer | four hand copies of "one at a time" | Saurav |
 | 5 | Student view window mode; table alignment ignores plane detection while carrying; pen ends its stroke when disabled | stops following new questions; table vanishes mid-carry; pen blocks others | Saurav |
+| 6 | `QuitMenuState` (Closed, Open, Confirming) with a pure rule table in `QuitMenuRules`, one writer in `QuitMenu` | quit by accident; a menu that cannot be closed | Saurav |
 
 Later, lower risk: an explicit "cutting" dissection stage, scalpel zone reporting, one organ presentation phase for hover, label, ghost and haptics.
 
