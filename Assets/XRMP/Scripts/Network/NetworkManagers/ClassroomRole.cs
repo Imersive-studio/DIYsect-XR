@@ -45,6 +45,10 @@ namespace XRMultiplayer
         private Behaviour[] _headsetBehaviours;
         [SerializeField, Tooltip("Join-only behaviours for the student and the phone classmate.")]
         private Behaviour[] _joiningBehaviours;
+        [SerializeField, Tooltip("Local lecture hall, audience and lighting used only by the student.")]
+        private GameObject[] _studentObjects;
+        [SerializeField, Tooltip("Student-only eye-height calibration.")]
+        private Behaviour[] _studentBehaviours;
         [SerializeField] private Camera _headsetCamera;
         [SerializeField, Tooltip("The rig camera's AR background. Only the professor uses passthrough.")]
         private Behaviour _passthrough;
@@ -78,9 +82,16 @@ namespace XRMultiplayer
             bool classmate = Current == ClassroomRoleKind.Classmate;
             SetActive(_classmateObjects, classmate);
             SetActive(_headsetObjects, !classmate);
+            SetActive(_studentObjects, Current == ClassroomRoleKind.Student);
+            SetEnabled(_studentBehaviours, Current == ClassroomRoleKind.Student);
             SetEnabled(_professorBehaviours, professor);
             SetEnabled(_classmateBehaviours, classmate);
             SetEnabled(_headsetBehaviours, !classmate);
+            // The phone's Join button is not present in a headset.
+            if (Current == ClassroomRoleKind.Student && _joiningBehaviours != null)
+                foreach (Behaviour joining in _joiningBehaviours)
+                    if (joining is ClassmateAutoJoin autoJoin)
+                        autoJoin.WaitForJoinPress = false;
             SetEnabled(_joiningBehaviours, !professor);
             if (_passthrough != null)
                 _passthrough.enabled = professor;

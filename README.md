@@ -40,6 +40,8 @@ Built for the **Immersion Studio Hackathon, November 6–9, 2026**. Deadline: **
 
 **Classmate phone APK (no XR):** run **Tools > DIYsect > Build Classmate Phone APK**, or in batch mode `Unity -batchmode -projectPath . -buildTarget Android -executeMethod DIYsect.Editor.BuildAndroidClassmate.BuildBatch -logFile build.log`. It builds the shared `Professor_MR` scene with the classmate role to `Builds/Android-Classmate/DIYsect-Classmate.apk` with XR off and the application id suffixed `.classmate`, so it installs next to the Quest app. The XR, id and name changes last only for the build and are restored afterwards (the shared Android options IL2CPP, ARM64 and APK are the same as the Quest build and stay set); the Quest build (`Build Quest APK`) is unchanged. The phone opens on a start screen with a Join the room button; a tap shows an organ's name, pressing and holding places a question pin, and the bottom row has Unmute and Raise hand; dragging turns the camera around the body and the scroll wheel or a two-finger pinch zooms (`ClassmateOrbitCamera`).
 
+Shared student scene preparation and remaining validation: [shared student presentation](docs/SHARED_STUDENT_PRESENTATION.md).
+
 **Quest on Mac:** [Meta Horizon Link](https://developers.meta.com/vr/documentation/unity/unity-link/) is Windows only. Build a standalone APK from Mac; use the simulator for iteration or a Windows PC with Link for a PC-streamed demo.
 
 ## Assets and licenses

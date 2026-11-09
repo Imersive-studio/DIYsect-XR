@@ -45,7 +45,7 @@ namespace DIYsect.Editor
             Debug.Log($"[BuildSharedScene] {ScenePath} is the shared scene: professor, student and classmate roles.");
         }
 
-        // Updates only role references on the existing scene. Keeps its hierarchy, local ids and authored content intact.
+        // Updates role references and local student scenery without replacing the shared body.
         public static void UpgradeRolesBatch()
         {
             try
@@ -121,12 +121,17 @@ namespace DIYsect.Editor
             classmateUi.enabled = false;
             EditorUtility.SetDirty(classmateUi);
 
+            var studentObjects = SharedStudentPresentation.ApplyToScene(scene);
+            var calibration = headsetOrigin.GetComponent<DIYsect.MixedReality.EyeHeightCalibration>()
+                ?? headsetOrigin.gameObject.AddComponent<DIYsect.MixedReality.EyeHeightCalibration>();
             var role = GetOrAdd<ClassroomRole>(manager.gameObject);
             var serialized = new SerializedObject(role);
             SetArray(serialized.FindProperty("_professorObjects"), professorObjects.ToArray());
             SetArray(serialized.FindProperty("_classmateObjects"), new[] { classmateRig });
             SetArray(serialized.FindProperty("_headsetObjects"), new[] { FindByName(scene, "XR Origin (XR Rig)") });
             SetArray(serialized.FindProperty("_headsetBehaviours"), new Behaviour[] { headsetUi });
+            SetArray(serialized.FindProperty("_studentObjects"), studentObjects);
+            SetArray(serialized.FindProperty("_studentBehaviours"), new Behaviour[] { calibration });
             SetArray(serialized.FindProperty("_joiningBehaviours"), new Behaviour[] { autoJoin });
             SetArray(serialized.FindProperty("_professorBehaviours"), new Behaviour[] { autoHost });
             SetArray(serialized.FindProperty("_classmateBehaviours"), new Behaviour[] { statusLabel, classmateUi });

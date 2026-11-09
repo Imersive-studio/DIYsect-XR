@@ -31,23 +31,29 @@ namespace DIYsect.Editor
         [MenuItem("Tools/DIYsect/Add Operating Light")]
         public static void Apply()
         {
-            var model = AssetDatabase.LoadAssetAtPath<GameObject>(LampModel);
-            if (model == null)
-                throw new FileNotFoundException($"{LampModel} is missing or did not import. Run Tools/blender/make_surgical_lamp.py.");
             foreach (string path in Scenes)
             {
                 Scene scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
-                GameObject root = FindRoot(scene);
-                Bounds top = FindTableTop(root);
-                Transform lamp = root.transform.Find(LampName) ?? Place(model, root.transform);
-                lamp.SetPositionAndRotation(new Vector3(top.center.x, top.max.y + HeightAboveTable, top.center.z), Quaternion.identity);
-                ConfigureLight(lamp);
-                HideFromCloseUpCamera(lamp);
+                ApplyToScene(scene);
                 EditorSceneManager.MarkSceneDirty(scene);
                 if (!EditorSceneManager.SaveScene(scene))
                     throw new IOException($"Could not save {path}.");
-                Debug.Log($"{path}: operating light {HeightAboveTable} m above the table top.");
             }
+        }
+
+        // Uses the existing table and camera in this scene; no body or network objects are copied.
+        public static GameObject ApplyToScene(Scene scene)
+        {
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(LampModel);
+            if (model == null)
+                throw new FileNotFoundException($"{LampModel} is missing or did not import. Run Tools/blender/make_surgical_lamp.py.");
+            GameObject root = FindRoot(scene);
+            Bounds top = FindTableTop(root);
+            Transform lamp = root.transform.Find(LampName) ?? Place(model, root.transform);
+            lamp.SetPositionAndRotation(new Vector3(top.center.x, top.max.y + HeightAboveTable, top.center.z), Quaternion.identity);
+            ConfigureLight(lamp);
+            HideFromCloseUpCamera(lamp);
+            return lamp.gameObject;
         }
 
         // The lens face hangs at the same height as the close-up camera (one metre above the table), so the lamp
@@ -60,8 +66,12 @@ namespace DIYsect.Editor
                 throw new InvalidOperationException($"The layer '{LampLayerName}' is missing from ProjectSettings/TagManager.asset.");
             foreach (Transform node in lamp.GetComponentsInChildren<Transform>(true))
                 node.gameObject.layer = layer;
-            GameObject cameraObject = GameObject.Find(CloseUpCameraName);
-            if (cameraObject == null || !cameraObject.TryGetComponent(out Camera closeUp))
+            Camera closeUp = null;
+            foreach (GameObject root in lamp.gameObject.scene.GetRootGameObjects())
+                foreach (Camera camera in root.GetComponentsInChildren<Camera>(true))
+                    if (camera.name == CloseUpCameraName)
+                        closeUp = camera;
+            if (closeUp == null)
                 throw new InvalidOperationException($"{lamp.gameObject.scene.path} has no {CloseUpCameraName}. Run Tools > DIYsect > Create Scenes first.");
             closeUp.cullingMask &= ~(1 << layer);
         }

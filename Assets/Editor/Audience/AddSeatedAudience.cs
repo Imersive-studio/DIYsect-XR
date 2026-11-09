@@ -61,8 +61,8 @@ namespace DIYsect.Editor
 
         public static bool Populate(Scene scene, Material[] materials)
         {
-            if (scene.path != ScenePath)
-                throw new ArgumentException($"Open {ScenePath} before placing the audience.", nameof(scene));
+            if (!scene.IsValid() || !scene.isLoaded)
+                throw new ArgumentException("Open a loaded classroom scene before placing the audience.", nameof(scene));
             if (materials == null || materials.Length == 0)
                 throw new ArgumentException($"No cutouts found in {CutoutFolder}.", nameof(materials));
 

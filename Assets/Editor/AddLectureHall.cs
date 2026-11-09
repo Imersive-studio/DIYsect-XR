@@ -33,10 +33,19 @@ namespace DIYsect.Editor
         [MenuItem("Tools/DIYsect/Add Lecture Hall")]
         public static void Apply()
         {
+            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            ApplyToScene(scene);
+            EditorSceneManager.MarkSceneDirty(scene);
+            if (!EditorSceneManager.SaveScene(scene))
+                throw new IOException($"Could not save {ScenePath}.");
+        }
+
+        // Composes the room around the existing table without opening or saving another scene.
+        public static GameObject ApplyToScene(Scene scene)
+        {
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(HallModel);
             if (model == null)
                 throw new FileNotFoundException($"{HallModel} is missing. Run Tools/blender/simplify_room.py on the downloaded hall.");
-            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             Transform root = FindRoot(scene);
             RemovePlaceholder(root);
 
@@ -56,17 +65,12 @@ namespace DIYsect.Editor
             Vector3 target = new Vector3(tableTop.center.x, 0f, tableTop.center.z + ScreenDistance);
             hall.position = new Vector3(target.x - screen.x, root.position.y, target.z - screen.z);
 
-            int renderers = 0;
             foreach (Renderer renderer in hall.GetComponentsInChildren<Renderer>(true))
             {
                 renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                renderers++;
             }
 
-            EditorSceneManager.MarkSceneDirty(scene);
-            if (!EditorSceneManager.SaveScene(scene))
-                throw new IOException($"Could not save {ScenePath}.");
-            Debug.Log($"{ScenePath}: lecture hall at {hall.position}, heading {hall.eulerAngles.y:F0} degrees, {renderers} renderers without shadows.");
+            return hall.gameObject;
         }
 
         private static void RemovePlaceholder(Transform root)
