@@ -77,8 +77,10 @@ Operations must check their cancellation token after service awaits and before
 changing transport state, and roll back only resources they acquired. An SDK call
 that never returns remains pending; this queue does not claim to interrupt it.
 
-Validation: five asynchronous tests passed against the production queue source in
+Validation: six asynchronous tests passed against the production queue source in
 a standalone C# harness: delayed cancellation, superseded requests, failed cleanup,
-cancellation from a phase callback, and retry after preparation failure. The same
+cancellation from a phase callback, retry after preparation failure, and a newer
+intent arriving during cleanup. The last case failed before the drain revision
+check was added and passed afterwards. The same
 test cases are supplied for Unity EditMode; Unity execution and headset validation
 remain pending.

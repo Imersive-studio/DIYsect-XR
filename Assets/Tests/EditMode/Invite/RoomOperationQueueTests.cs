@@ -15,6 +15,7 @@ namespace DIYsect.Invite.Tests
             public int Commits;
             public int Cleanups;
             public bool CleanupFails;
+            public TaskCompletionSource<bool> CleanupResponse;
             public async Task ExecuteAsync(CancellationToken token)
             {
                 Starts++;
@@ -22,10 +23,11 @@ namespace DIYsect.Invite.Tests
                 token.ThrowIfCancellationRequested();
                 Commits++;
             }
-            public Task RollbackAsync()
+            public async Task RollbackAsync()
             {
                 Cleanups++;
-                return CleanupFails ? Task.FromException(new Exception("Cleanup unavailable")) : Task.CompletedTask;
+                if (CleanupResponse != null) await CleanupResponse.Task;
+                if (CleanupFails) throw new Exception("Cleanup unavailable");
             }
         }
 
@@ -96,6 +98,24 @@ namespace DIYsect.Invite.Tests
             Assert.That(operation.Starts, Is.Zero);
         }
 
+        [Test]
+        public async Task DrainSupersededDuringCleanupCannotAuthorizePractice()
+        {
+            var queue = new RoomOperationQueue();
+            var failed = new FakeOperation { CleanupFails = true };
+            Task<RoomOperationResult> first = queue.RunAsync(failed);
+            failed.Response.SetException(new Exception("Prepare failed"));
+            Assert.That(await first, Is.EqualTo(RoomOperationResult.CleanupFailed));
+            failed.CleanupFails = false;
+            failed.CleanupResponse = new TaskCompletionSource<bool>();
+            Task<bool> drain = queue.CancelAndDrainAsync();
+            var newer = new FakeOperation();
+            Task<RoomOperationResult> next = queue.RunAsync(newer);
+            failed.CleanupResponse.SetResult(true);
+            Assert.That(await drain, Is.False);
+            newer.Response.SetResult(true);
+            Assert.That(await next, Is.EqualTo(RoomOperationResult.Completed));
+        }
         [Test]
         public async Task PreparationFailureRollsBackAndAllowsRetry()
         {

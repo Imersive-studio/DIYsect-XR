@@ -32,8 +32,9 @@ namespace XRMultiplayer
             {
                 if (revision != _revision) return false;
                 if (!await RetryCleanupAsync()) return false;
+                if (revision != _revision) return false;
                 Change(RoomOperationEvent.Drain);
-                return true;
+                return revision == _revision;
             }
             finally { _gate.Release(); }
         }
