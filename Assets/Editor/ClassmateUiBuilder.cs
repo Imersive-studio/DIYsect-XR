@@ -69,7 +69,7 @@ namespace DIYsect.Editor
             label.fontSizeMax = size;
             label.fontSizeMin = Mathf.Max(12f, size * 0.6f);
             label.textWrappingMode = TextWrappingModes.Normal;
-            label.overflowMode = TextOverflowModes.Ellipsis;
+            label.overflowMode = TextOverflowModes.Truncate; // Inter has no ellipsis character
             label.raycastTarget = false;
             Stretch(label.rectTransform, anchorMin, anchorMax);
             return label;
@@ -183,6 +183,10 @@ namespace DIYsect.Editor
             layout.childForceExpandWidth = layout.childForceExpandHeight = false;
             var fitter = chip.gameObject.AddComponent<ContentSizeFitter>();
             fitter.horizontalFit = fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            // Lets a screen script fade the chip and its text together.
+            var group = chip.gameObject.AddComponent<CanvasGroup>();
+            group.blocksRaycasts = false;
+            group.interactable = false;
 
             TextMeshProUGUI label = AddText(chip.transform, name, string.Empty, fontSize, textColour, TextAlignmentOptions.Center, Vector2.zero, Vector2.one);
             label.enableAutoSizing = false;
