@@ -19,7 +19,7 @@ namespace DIYsect.Editor
     public static class ApplyLabelDesign
     {
         private const string PrefabPath = "Assets/Prefabs/AnatomyBody.prefab";
-        private const string FontPath = "Assets/MRTabletopAssets/Fonts/Inter-Regular SDF.asset";
+        internal const string FontPath = "Assets/MRTabletopAssets/Fonts/Inter-Regular SDF.asset";
         private const string MaterialPath = "Assets/Models/Environment/ChecklistGuidance.mat";
         private const string LibraryPath = "Assets/Scripts/Learning/OrganInfo/OrganInfoLibrary.asset";
 

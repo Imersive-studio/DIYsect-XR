@@ -21,6 +21,10 @@ namespace DIYsect.Classroom
 
         [SerializeField] private Color _professorColor = new Color(1f, 0.6f, 0.1f);
         [SerializeField] private Color _studentColor = new Color(0.2f, 0.8f, 1f);
+        [SerializeField, Tooltip("A classmate's 'look here'. Violet, so it is never mistaken for the orange professor or the cyan student.")]
+        private Color _classmateColor = new Color(0.78f, 0.42f, 1f);
+        [SerializeField, Range(0f, 1f), Tooltip("The classmate pointer glows harder than the others so it reads from across the room.")]
+        private float _classmateTintStrength = 0.7f;
         [SerializeField, Range(0f, 1f), Tooltip("How far the organ's colour moves toward the pointer colour at the peak of the pulse.")]
         private float _tintStrength = 0.45f;
         [SerializeField, Min(0.2f), Tooltip("Seconds per pulse.")]
@@ -40,14 +44,22 @@ namespace DIYsect.Classroom
         private MaterialPropertyBlock _block;
         private bool _warnedNoCamera;
 
-        /// <summary>The pointers shown right now: the professor's first, then the student's.</summary>
+        /// <summary>The pointers shown right now: the professor's first, then the student's, then the classmate's.</summary>
         public IReadOnlyList<PointerEntry> Entries => _entries;
 
         public float Pulse { get; private set; }
 
         public float EdgeMargin => _edgeMargin;
 
-        public Color ColorOf(PointerRole role) => role == PointerRole.Professor ? _professorColor : _studentColor;
+        public Color ColorOf(PointerRole role)
+        {
+            switch (role)
+            {
+                case PointerRole.Professor: return _professorColor;
+                case PointerRole.Student: return _studentColor;
+                default: return _classmateColor;
+            }
+        }
 
         /// <summary>Sets the camera the placements are computed for. Without one, the scene's main camera is used.</summary>
         public void SetViewCamera(Camera camera)
@@ -84,7 +96,7 @@ namespace DIYsect.Classroom
             ClearEntries();
             if (!_board.IsSpawned)
                 return;
-            foreach (PointerRole role in new[] { PointerRole.Professor, PointerRole.Student })
+            foreach (PointerRole role in new[] { PointerRole.Professor, PointerRole.Student, PointerRole.Classmate })
             {
                 int index = _board.OrganOf(role);
                 if (index < 0 || index >= _body.Organs.Count)
@@ -163,12 +175,13 @@ namespace DIYsect.Classroom
             for (int e = 0; e < _entries.Count; e++)
             {
                 Color target = ColorOf(_entries[e].Role);
+                float strength = _entries[e].Role == PointerRole.Classmate ? _classmateTintStrength : _tintStrength;
                 for (int i = 0; i < _renderers[e].Length; i++)
                 {
                     Renderer renderer = _renderers[e][i];
                     if (renderer == null)
                         continue;
-                    Color tinted = Color.Lerp(_baseColors[e][i], target, _tintStrength * Pulse);
+                    Color tinted = Color.Lerp(_baseColors[e][i], target, strength * Pulse);
                     renderer.GetPropertyBlock(_block);
                     _block.SetColor(_baseColorId, tinted);
                     _block.SetColor(_colorId, tinted);

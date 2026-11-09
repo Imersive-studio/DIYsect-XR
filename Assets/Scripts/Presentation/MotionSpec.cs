@@ -37,6 +37,13 @@ namespace DIYsect.Presentation
         /// <summary>Part of <see cref="CheckIn"/> spent drawing the stroke; the rest is the spring.</summary>
         public const float CheckStrokeShare = 0.64f;
 
+        /// <summary>A classmate's "look here": the organ rises out of the body with a soft spring.</summary>
+        public const float PopOutIn = 0.35f;
+        /// <summary>A classmate's "look here" ends: the organ settles back.</summary>
+        public const float PopOutOut = 0.28f;
+        /// <summary>How far the pointed organ rises, in metres (5 cm reads from across the table without leaving the body).</summary>
+        public const float PopOutLift = 0.05f;
+
         /// <summary>A contextual hint stays this long, then dissolves, so it never lingers over the anatomy.</summary>
         public const float HintHold = 2.5f;
     }

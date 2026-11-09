@@ -175,6 +175,61 @@ namespace DIYsect.Networking.Tests
         }
 
         [UnityTest]
+        public IEnumerator ClassmateTapShowsOnEveryPeerAndASecondTapClears()
+        {
+            yield return StartTwoClients();
+            _boardA.PointAsClassmate(4);
+            yield return WaitForOrgan(PointerRole.Classmate, 4);
+            Assert.AreEqual(PointerBoard.None, _server.OrganOf(PointerRole.Professor), "The classmate slot is separate from the professor's.");
+
+            _boardA.PointAsClassmate(4);
+            yield return WaitForOrgan(PointerRole.Classmate, PointerBoard.None);
+
+            _boardA.PointAsClassmate(8);
+            yield return WaitForOrgan(PointerRole.Classmate, 8);
+            _boardA.StopClassmate();
+            yield return WaitForOrgan(PointerRole.Classmate, PointerBoard.None);
+        }
+
+        [UnityTest]
+        public IEnumerator DisconnectingClearsTheClassmatePointer()
+        {
+            yield return StartTwoClients();
+            _boardA.PointAsClassmate(6);
+            yield return WaitForOrgan(PointerRole.Classmate, 6);
+            _managerA.Shutdown();
+            yield return WaitFor(() => _server.OrganOf(PointerRole.Classmate) == PointerBoard.None, "the classmate pointer to clear after the disconnect");
+            yield return WaitFor(() => _boardB.OrganOf(PointerRole.Classmate) == PointerBoard.None, "client B to see it clear");
+        }
+
+        [UnityTest]
+        public IEnumerator TheSteererCannotUseTheClassmatePointer()
+        {
+            yield return StartTwoClients();
+            yield return MakeSteerer(_managerB);
+            PointerRejection? reason = null;
+            _server.RequestRejected += (sender, why) => reason = why;
+            _boardB.PointAsClassmate(3);
+            yield return WaitFor(() => reason == PointerRejection.NotAClassmate, "the server to refuse the steerer");
+            Assert.AreEqual(PointerBoard.None, _server.OrganOf(PointerRole.Classmate));
+        }
+
+        [UnityTest]
+        public IEnumerator ClassmateAndProfessorPointAtTheSameTimeWithoutReplacingEachOther()
+        {
+            yield return StartTwoClients();
+            _boardA.Point(2);
+            _boardB.PointAsClassmate(9);
+            yield return WaitForOrgan(PointerRole.Professor, 2);
+            yield return WaitForOrgan(PointerRole.Classmate, 9);
+            var presenter = _server.GetComponent<PointerPresenter>();
+            yield return WaitFor(() => presenter.Entries.Count == 2, "both pointers");
+            StringAssert.StartsWith("Classmate:", presenter.Entries[1].Text);
+            Assert.AreNotEqual(presenter.ColorOf(PointerRole.Classmate), presenter.ColorOf(PointerRole.Professor));
+            Assert.AreNotEqual(presenter.ColorOf(PointerRole.Classmate), presenter.ColorOf(PointerRole.Student));
+        }
+
+        [UnityTest]
         public IEnumerator LabelSaysUnderTheLayerOnlyWhileThatLayerIsClosed()
         {
             yield return StartTwoClients();
