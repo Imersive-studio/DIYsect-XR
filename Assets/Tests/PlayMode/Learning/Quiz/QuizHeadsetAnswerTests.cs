@@ -8,6 +8,8 @@ using NUnit.Framework;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using UnityEngine.TestTools;
 
 namespace DIYsect.Learning.Tests
@@ -108,6 +110,55 @@ namespace DIYsect.Learning.Tests
             for (int i = 0; i < 20; i++)
                 yield return null;
             Assert.AreEqual(1, _server.RightCount + _server.WrongCount);
+        }
+
+        [UnityTest]
+        public IEnumerator EachControllerTriggerAnswersUsingItsOwnAim()
+        {
+            var input = new InputTestFixture();
+            input.Setup();
+            try
+            {
+                InputSystem.RegisterLayout<XRSimulatedController>();
+                var left = InputSystem.AddDevice<XRSimulatedController>();
+                var right = InputSystem.AddDevice<XRSimulatedController>();
+                InputSystem.SetDeviceUsage(left, CommonUsages.LeftHand);
+                InputSystem.SetDeviceUsage(right, CommonUsages.RightHand);
+                yield return StartStudentRig();
+                var leftAim = new GameObject("Left Controller").transform;
+                leftAim.SetParent(_rig.transform, false);
+                leftAim.SetPositionAndRotation(_aim.position, _aim.rotation);
+                typeof(QuizHeadsetAnswer).GetField("_leftAim", Private).SetValue(_answer, leftAim);
+                Quaternion towardOrgan = _aim.rotation;
+                _aim.rotation = Quaternion.LookRotation(Vector3.up);
+
+                _server.RequestStart(_aimedOrgan);
+                yield return WaitFor(() => _answer.IsAsking, "the first round");
+                input.Press(left.triggerButton);
+                yield return WaitFor(() => _server.RightCount == 1, "the left trigger to answer with the left aim");
+                input.Release(left.triggerButton);
+                input.Press(left.triggerButton);
+                input.Release(left.triggerButton);
+                yield return null;
+                Assert.AreEqual(1, _server.RightCount + _server.WrongCount);
+
+                _server.RequestEnd();
+                _server.RequestClose();
+                yield return WaitFor(() => !_answer.IsAsking, "the first round to end");
+                _aim.rotation = towardOrgan;
+                leftAim.rotation = Quaternion.LookRotation(Vector3.up);
+                _server.RequestStart(_aimedOrgan);
+                yield return WaitFor(() => _answer.IsAsking && !_answer.HasAnsweredThisRound, "the next round");
+                input.Press(right.triggerButton);
+                yield return WaitFor(() => _server.RightCount == 1, "the right trigger to answer with the right aim");
+                input.Release(right.triggerButton);
+            }
+            finally
+            {
+                if (_answer != null)
+                    _answer.enabled = false;
+                input.TearDown();
+            }
         }
 
         [UnityTest]
