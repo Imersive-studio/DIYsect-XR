@@ -2,6 +2,8 @@
 using System;
 using System.IO;
 using DIYsect.Classroom;
+using DIYsect.Presentation;
+using TMPro;
 using UnityEditor;
 using UnityEditor.Events;
 using UnityEditor.SceneManagement;
@@ -14,7 +16,7 @@ namespace DIYsect.Editor
 {
     /// <summary>
     /// Builds the professor's student-view window in Professor_MR, beside the table on the professor's left and
-    /// turned toward the professor: a screen showing its own render texture, a caption with the question, and
+    /// turned toward the professor: a card (ProfessorPanelKit) with a screen showing its own render texture, a caption with the question, and
     /// previous and next buttons, an Answered button (the professor marks the shown question answered) and a Live button (the view follows the student's head) (ray-selectable, wired to the window with persistent events). The window's camera
     /// leaves out the CloseUpScreen layer, which the window also uses, so it never films itself.
     /// It is a child of the DIYsect root, so table alignment carries it along. Safe to run more than once.
@@ -27,8 +29,11 @@ namespace DIYsect.Editor
         private const string ScreenLayerName = "CloseUpScreen";
         private const string TexturePath = "Assets/Models/Environment/StudentView.renderTexture";
         private const string ScreenMaterialPath = "Assets/Models/Environment/StudentView.mat";
-        private const string FrameMaterialPath = "Assets/Models/Environment/StudentViewFrame.mat";
         private static readonly Vector2 ScreenSize = new Vector2(0.64f, 0.36f);
+        private static readonly Vector2 CardSize = new Vector2(0.86f, 0.70f);
+        // The screen picture inside the card's content area, from its top left corner.
+        private const float ScreenLeft = 0.11f;
+        private const float ScreenTop = 0.03f;
         // From the table centre: to the professor's left, a little nearer, at eye height.
         private static readonly Vector3 OffsetFromTable = new Vector3(-0.95f, 0f, -0.25f);
         private const float Height = 1.45f;
@@ -64,21 +69,28 @@ namespace DIYsect.Editor
             windowObject.transform.SetPositionAndRotation(position, Quaternion.LookRotation(position - professorHead, Vector3.up));
 
             var texture = LoadOrCreateTexture();
-            var panel = new GameObject("Panel");
-            panel.transform.SetParent(windowObject.transform, false);
-            AddPart(panel.transform, PrimitiveType.Quad, "Screen", Vector3.zero, new Vector3(ScreenSize.x, ScreenSize.y, 1f),
+            // The whole card is the Panel the window hides when there is nothing to show. The stand is its child, so it
+            // hides with it: a pole and foot with no screen on them would look broken.
+            Transform panel = ProfessorPanelKit.BuildCard(windowObject.transform, "Panel", CardSize, "Student view", "VIEW");
+            Transform content = panel.Find("Content");
+            Vector3 screenCentre = new Vector3(ScreenLeft + ScreenSize.x / 2f, -ScreenTop - ScreenSize.y / 2f, 0f);
+            // A 4 mm mint rim sits just behind the screen picture.
+            AddPart(content, PrimitiveType.Quad, "ScreenRim", screenCentre + new Vector3(0f, 0f, 0.001f), new Vector3(ScreenSize.x + 0.008f, ScreenSize.y + 0.008f, 1f),
+                ProfessorPanelKit.Material("Panel_Mint", GuidePalette.Mint, false, false), keepCollider: false);
+            AddPart(content, PrimitiveType.Quad, "Screen", screenCentre, new Vector3(ScreenSize.x, ScreenSize.y, 1f),
                 LoadOrCreateMaterial(ScreenMaterialPath, "Universal Render Pipeline/Unlit", Color.white, texture), keepCollider: false);
-            AddPart(panel.transform, PrimitiveType.Cube, "Frame", new Vector3(0f, 0f, 0.008f), new Vector3(ScreenSize.x + 0.04f, ScreenSize.y + 0.04f, 0.01f),
-                LoadOrCreateMaterial(FrameMaterialPath, "Universal Render Pipeline/Lit", new Color(0.12f, 0.12f, 0.14f), null), keepCollider: false);
-            TextMesh caption = AddText(panel.transform, "Caption", new Vector3(0f, -ScreenSize.y / 2f - 0.035f, -0.002f), "", 0.006f);
+            TextMeshPro caption = ProfessorPanelKit.AddText(content, "Caption", "", 0.017f, GuidePalette.TextMuted, TextAlignmentOptions.Top,
+                new Vector2(ScreenLeft, -ScreenTop - ScreenSize.y - 0.025f), new Vector2(ScreenSize.x, 0.08f));
 
             var window = windowObject.AddComponent<StudentViewWindow>();
-            AddButton(panel.transform, "Previous", "<", new Vector3(-ScreenSize.x / 2f - 0.06f, 0f, 0f), window, window.Previous);
-            AddButton(panel.transform, "Next", ">", new Vector3(ScreenSize.x / 2f + 0.06f, 0f, 0f), window, window.Next);
-            AddButton(panel.transform, "Answered", "Answered", new Vector3(0f, -ScreenSize.y / 2f - 0.12f, 0f), window, window.MarkSelectedAnswered, width: 0.2f);
-            // Left of Answered. Switches between the questions and the live view through the student's eyes.
-            AddButton(panel.transform, "Live", "Live", new Vector3(-0.2f, -ScreenSize.y / 2f - 0.12f, 0f), window, window.ToggleLive, width: 0.12f);
-            AddText(panel.transform, "Title", new Vector3(0f, ScreenSize.y / 2f + 0.035f, -0.002f), "Student view", 0.007f);
+            float rowY = -ScreenTop - ScreenSize.y - 0.14f;
+            AddButton(content, "Previous", "<", new Vector3(ScreenLeft - 0.055f, -ScreenTop - ScreenSize.y / 2f, 0f), window, window.Previous);
+            AddButton(content, "Next", ">", new Vector3(ScreenLeft + ScreenSize.x + 0.055f, -ScreenTop - ScreenSize.y / 2f, 0f), window, window.Next);
+            // Live is left of Answered. It switches between the questions and the live view through the student's eyes.
+            AddButton(content, "Answered", "Answered", new Vector3(0.52f, rowY, 0f), window, window.MarkSelectedAnswered, width: 0.2f);
+            AddButton(content, "Live", "Live", new Vector3(0.34f, rowY, 0f), window, window.ToggleLive, width: 0.14f);
+            // Anchor the card to the floor. The card is placed above, so its bottom is known.
+            ProfessorPanelKit.AddStand(panel, position.y - CardSize.y / 2f, root.position.y);
 
             var cameraObject = new GameObject("ViewCamera");
             cameraObject.transform.SetParent(windowObject.transform, false);
@@ -96,11 +108,11 @@ namespace DIYsect.Editor
             var serialized = new SerializedObject(window);
             serialized.FindProperty("_board").objectReferenceValue = board;
             serialized.FindProperty("_viewCamera").objectReferenceValue = viewCamera;
-            serialized.FindProperty("_panel").objectReferenceValue = panel;
+            serialized.FindProperty("_panel").objectReferenceValue = panel.gameObject;
             serialized.FindProperty("_headBoard").objectReferenceValue = headBoard;
             serialized.FindProperty("_caption").objectReferenceValue = caption;
             serialized.ApplyModifiedPropertiesWithoutUndo();
-            panel.SetActive(false);
+            panel.gameObject.SetActive(false);
 
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))
@@ -113,29 +125,11 @@ namespace DIYsect.Editor
             GameObject button = GameObject.CreatePrimitive(PrimitiveType.Cube);
             button.name = name;
             button.transform.SetParent(parent, false);
-            button.transform.localPosition = position;
-            button.transform.localScale = new Vector3(width, 0.06f, 0.02f);
-            button.GetComponent<Renderer>().sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(FrameMaterialPath);
+            button.transform.localPosition = position + new Vector3(0f, 0f, -0.002f);
+            button.transform.localScale = new Vector3(width, 0.06f, 0.012f);
             var interactable = button.AddComponent<XRSimpleInteractable>();
             UnityEventTools.AddVoidPersistentListener(interactable.selectEntered, action);
-            TextMesh text = AddText(button.transform, "Label", new Vector3(0f, 0f, -0.6f), label, 0.08f);
-            // The button is stretched along X; undo that for the text.
-            text.transform.localScale = new Vector3(0.06f / width, 1f, 1f);
-        }
-
-        private static TextMesh AddText(Transform parent, string name, Vector3 position, string text, float size)
-        {
-            var textObject = new GameObject(name);
-            textObject.transform.SetParent(parent, false);
-            textObject.transform.localPosition = position;
-            var mesh = textObject.AddComponent<TextMesh>();
-            mesh.text = text;
-            mesh.anchor = TextAnchor.MiddleCenter;
-            mesh.alignment = TextAlignment.Center;
-            mesh.characterSize = size;
-            mesh.fontSize = 64;
-            mesh.color = Color.white;
-            return mesh;
+            ProfessorPanelKit.StyleButton(button, label);
         }
 
         private static void AddPart(Transform parent, PrimitiveType type, string name, Vector3 position, Vector3 scale, Material material, bool keepCollider)
