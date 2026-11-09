@@ -50,8 +50,13 @@ namespace DIYsect.Editor
 
             Transform content = board.Find("Content");
             Vector2 area = ProfessorPanelKit.ContentSize(CardSize);
-            TMP_Text code = ProfessorPanelKit.AddText(content, "Code", RoomCodeBoardText.NoCode, 0.15f, GuidePalette.Mint, TextAlignmentOptions.Center,
-                new Vector2(0.04f, -0.03f), new Vector2(area.x - 0.08f, 0.24f), FontStyles.Bold, 30f);
+            TMP_Text code = ProfessorPanelKit.AddText(content, "Code", RoomCodeBoardText.NoCode, 0.12f, GuidePalette.Mint, TextAlignmentOptions.Center,
+                new Vector2(0.04f, -0.03f), new Vector2(area.x - 0.08f, 0.24f), FontStyles.Bold, 16f);
+            // Any code length stays inside the card: shrink to fit the width, never wrap.
+            code.textWrappingMode = TextWrappingModes.NoWrap;
+            code.fontSizeMax = code.fontSize;
+            code.fontSizeMin = code.fontSize * 0.5f;
+            code.enableAutoSizing = true;
             code.textWrappingMode = TextWrappingModes.NoWrap;
             TMP_Text hint = ProfessorPanelKit.AddText(content, "Hint", RoomCodeBoardText.WaitingHint, 0.026f, GuidePalette.TextMuted, TextAlignmentOptions.Top,
                 new Vector2(0.06f, -0.29f), new Vector2(area.x - 0.12f, area.y - 0.31f));

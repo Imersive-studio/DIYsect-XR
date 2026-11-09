@@ -122,8 +122,8 @@ namespace DIYsect.Editor
             var panel = panelObject.AddComponent<QuizPanel>();
             // Control row, left to right: previous and next question (small), then the main action (Start or Reveal,
             // wide, in the same place) and Clear. The panel script shows only the buttons that fit the phase.
-            GameObject previous = AddButton(content, "PreviousQuestion", "<", new Vector2(0.035f, RowY), SmallButton, panel.PreviousQuestion);
-            GameObject next = AddButton(content, "NextQuestion", ">", new Vector2(0.125f, RowY), SmallButton, panel.NextQuestion);
+            GameObject previous = AddButton(content, "PreviousQuestion", "<", new Vector2(0.075f, RowY), SmallButton, panel.PreviousQuestion);
+            GameObject next = AddButton(content, "NextQuestion", ">", new Vector2(0.16f, RowY), SmallButton, panel.NextQuestion);
             GameObject start = AddButton(content, "Start", "Start", new Vector2(0.39f, RowY), WideButton, panel.StartRound);
             GameObject end = AddButton(content, "End", "Reveal", new Vector2(0.39f, RowY), WideButton, panel.EndRound);
             GameObject clear = AddButton(content, "Clear", "Clear", new Vector2(0.58f, RowY), ClearButton, panel.ClearRound);
