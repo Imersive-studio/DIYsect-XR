@@ -6,6 +6,7 @@
     "DIYsect.Networking.Tests",
     "DIYsect.Networking",
     "DIYsect.Interaction",
+    "DIYsect.Classroom",
     "Unity.Netcode.Runtime",
     "Unity.XR.Interaction.Toolkit"
   ],

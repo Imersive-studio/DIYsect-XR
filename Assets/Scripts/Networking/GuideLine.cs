@@ -35,6 +35,9 @@ namespace DIYsect.Networking
         /// <summary>Raised on the requesting client when the server answers a start request.</summary>
         public event Action<bool> StrokeResolved;
 
+        /// <summary>Raised on the drawing client when the host cleared its stroke.</summary>
+        public event Action StrokeRevoked;
+
         public int Count => IsSpawned ? _points.Count : 0;
         public Vector3 this[int index] => _points[index];
         public ulong Drawer => IsSpawned ? _drawer.Value : NoDrawer;
@@ -142,8 +145,18 @@ namespace DIYsect.Networking
             bool mayClear = sender == NetworkManager.ServerClientId || sender == _drawer.Value || _drawer.Value == NoDrawer;
             if (!mayClear)
                 return;
+            ulong drawer = _drawer.Value;
             _points.Clear();
             _drawer.Value = NoDrawer;
+            // The host cleared someone else's stroke: tell that pen so it stops drawing.
+            if (drawer != NoDrawer && drawer != sender)
+                StrokeRevokedRpc(RpcTarget.Single(drawer, RpcTargetUse.Temp));
+        }
+
+        [Rpc(SendTo.SpecifiedInParams)]
+        private void StrokeRevokedRpc(RpcParams rpcParams = default)
+        {
+            StrokeRevoked?.Invoke();
         }
 
         private void HandleClientDisconnected(ulong clientId)

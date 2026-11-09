@@ -10,8 +10,10 @@ namespace DIYsect.Interaction
     /// <summary>
     /// The professor's marker pen. Grab it, hold the trigger and move the tip over the body to draw the guide line;
     /// release the trigger to finish. Every new stroke replaces the previous line, so a quick tap clears it.
-    /// While the trigger is held the tip is sampled on a short timer and sent only when it has moved, so there is
-    /// no per-frame code and no flood of points. Putting the pen down also ends the stroke.
+    /// The stroke follows <see cref="GrabRequest"/>: pressing the trigger asks the server for the stroke, and the tip
+    /// is sampled only once the server says yes (if someone else is drawing, nothing happens). Sampling runs on a
+    /// short timer and sends only when the tip moved, so there is no per-frame code. Releasing the trigger, putting the
+    /// pen down or disabling it ends the stroke; the host clearing the line stops it.
     /// </summary>
     [RequireComponent(typeof(XRGrabInteractable))]
     public class GuideLinePen : MonoBehaviour
@@ -23,6 +25,12 @@ namespace DIYsect.Interaction
 
         private XRGrabInteractable _grab;
         private Coroutine _drawing;
+        private readonly GrabRequest _request = new GrabRequest();
+
+        /// <summary>This pen's stroke phase: Granted while it is drawing.</summary>
+        public GrabPhase Phase => _request.Phase;
+
+        public bool IsDrawing => _request.Phase == GrabPhase.Granted;
 
         private void Awake()
         {
@@ -40,39 +48,55 @@ namespace DIYsect.Interaction
             _grab.activated.AddListener(HandleActivated);
             _grab.deactivated.AddListener(HandleDeactivated);
             _grab.selectExited.AddListener(HandleReleased);
+            _line.StrokeResolved += HandleStrokeResolved;
+            _line.StrokeRevoked += HandleStrokeRevoked;
         }
 
         private void OnDisable()
         {
+            Apply(_request.Handle(GrabRequest.Event.Disable));
             _grab.activated.RemoveListener(HandleActivated);
             _grab.deactivated.RemoveListener(HandleDeactivated);
             _grab.selectExited.RemoveListener(HandleReleased);
+            if (_line != null)
+            {
+                _line.StrokeResolved -= HandleStrokeResolved;
+                _line.StrokeRevoked -= HandleStrokeRevoked;
+            }
             StopDrawing();
         }
 
-        /// <summary>Starts a stroke at the current tip, as the trigger does. Public so tests can drive it.</summary>
-        public void BeginStroke()
-        {
-            StopDrawing();
-            _line.StartStroke();
-            _drawing = StartCoroutine(Sample());
-        }
+        /// <summary>Asks for a stroke at the current tip, as the trigger does. Public so tests can drive it.</summary>
+        public void BeginStroke() => Apply(_request.Handle(GrabRequest.Event.Select));
 
         /// <summary>Ends the stroke, as releasing the trigger does.</summary>
-        public void FinishStroke()
-        {
-            if (_drawing == null)
-                return;
-            StopDrawing();
-            _line.AddPoint(_tip.position);
-            _line.EndStroke();
-        }
+        public void FinishStroke() => Apply(_request.Handle(GrabRequest.Event.Exit));
 
         private void HandleActivated(ActivateEventArgs args) => BeginStroke();
 
         private void HandleDeactivated(DeactivateEventArgs args) => FinishStroke();
 
         private void HandleReleased(SelectExitEventArgs args) => FinishStroke();
+
+        private void HandleStrokeResolved(bool granted) => Apply(_request.HandleAnswer(granted));
+
+        private void HandleStrokeRevoked() => Apply(_request.Handle(GrabRequest.Event.Revoked));
+
+        // Carries out what the stroke state machine asked for. A pen has no selection to cancel: it stays in hand.
+        private void Apply(GrabRequest.Actions actions)
+        {
+            if ((actions & GrabRequest.Actions.SendRequest) != 0)
+                _line.StartStroke();
+            if ((actions & GrabRequest.Actions.StopStreaming) != 0)
+                StopDrawing();
+            if ((actions & GrabRequest.Actions.SendRelease) != 0)
+            {
+                _line.AddPoint(_tip.position);
+                _line.EndStroke();
+            }
+            if ((actions & GrabRequest.Actions.StartStreaming) != 0)
+                _drawing ??= StartCoroutine(Sample());
+        }
 
         private IEnumerator Sample()
         {

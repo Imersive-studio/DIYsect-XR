@@ -160,6 +160,7 @@ namespace DIYsect.Networking.Tests
             BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
             typeof(PinPlacementInput).GetField("_board", flags).SetValue(input, _server);
             typeof(PinPlacementInput).GetField("_camera", flags).SetValue(input, camera);
+            typeof(PinPlacementInput).GetField("_gestures", flags).SetValue(input, holder.AddComponent<PointerGestureTracker>());
             holder.SetActive(true);
             try
             {

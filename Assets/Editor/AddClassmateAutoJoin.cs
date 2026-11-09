@@ -11,14 +11,14 @@ namespace DIYsect.Editor
 {
     /// <summary>
     /// Makes Classmate_Desktop usable by touch: the classmate joins the professor's lobby on its own, shows a status line
-    /// saying whether they are in the room, can orbit and zoom the camera with a finger or the mouse, and the headset
-    /// template's welcome panel, which a finger cannot press, is switched off. Safe to run more than once.
+    /// saying whether they are in the room, and the headset template's welcome panel, which a finger cannot press, is
+    /// switched off. Orbit and zoom come from the classmate camera set up by Add Classmate Desktop Camera.
+    /// Safe to run more than once.
     /// </summary>
     public static class AddClassmateAutoJoin
     {
         public const string ScenePath = "Assets/Scenes/Classmate_Desktop.unity";
         public const string WelcomePanelPrefab = "CoachingUI.prefab";
-        public const string ClassmateCameraName = "ClassmateCamera";
 
         [MenuItem("Tools/DIYsect/Add Classmate Auto Join")]
         public static void Apply()
@@ -33,15 +33,11 @@ namespace DIYsect.Editor
             if (manager.GetComponent<ClassmateStatusLabel>() == null)
                 manager.gameObject.AddComponent<ClassmateStatusLabel>();
 
-            Camera classmateCamera = FindClassmateCamera();
-            if (classmateCamera.GetComponent<ClassmateOrbitCamera>() == null)
-                classmateCamera.gameObject.AddComponent<ClassmateOrbitCamera>();
-
             int hidden = HideWelcomePanel(scene);
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
-            Debug.Log($"[AddClassmateAutoJoin] Auto join and status line are on {manager.name}; orbit camera is on {classmateCamera.name}; {hidden} welcome panel(s) switched off.");
+            Debug.Log($"[AddClassmateAutoJoin] Auto join and status line are on {manager.name}; {hidden} welcome panel(s) switched off.");
         }
 
         /// <summary>Switches off every instance of the template's welcome panel in the scene. Returns how many it switched off.</summary>
@@ -65,15 +61,6 @@ namespace DIYsect.Editor
                 }
             }
             return hidden;
-        }
-
-        private static Camera FindClassmateCamera()
-        {
-            GameObject cameraObject = GameObject.Find(ClassmateCameraName);
-            Camera camera = cameraObject != null ? cameraObject.GetComponentInChildren<Camera>(true) : null;
-            if (camera == null)
-                throw new InvalidOperationException($"{ScenePath} has no {ClassmateCameraName} with a Camera.");
-            return camera;
         }
 
         // Batch entry point: -executeMethod DIYsect.Editor.AddClassmateAutoJoin.ApplyBatch

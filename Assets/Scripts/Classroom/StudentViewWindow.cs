@@ -21,11 +21,17 @@ namespace DIYsect.Classroom
         [SerializeField, Min(0.05f)] private float _refreshSeconds = 0.2f;
 
         private int _selectedId = -1;
-        private bool _followNewest = true;
+        private StudentViewMode _mode = StudentViewMode.Hidden;
         private Coroutine _refreshing;
 
         /// <summary>The pin id shown now, or -1 when no question has a view.</summary>
         public int SelectedId => _selectedId;
+
+        /// <summary>What the window is doing now. The panel and the refresh loop are derived from it.</summary>
+        public StudentViewMode Mode => _mode;
+
+        /// <summary>Raised after the mode changes, with the new mode.</summary>
+        public event System.Action<StudentViewMode> ModeChanged;
 
         private void Awake()
         {
@@ -45,14 +51,16 @@ namespace DIYsect.Classroom
         private void OnEnable()
         {
             _board.PinsChanged += HandlePinsChanged;
-            Show(_followNewest ? NewestWithView() : _selectedId);
+            HandlePinsChanged();
         }
 
         private void OnDisable()
         {
             if (_board != null)
                 _board.PinsChanged -= HandlePinsChanged;
-            StopRefreshing();
+            // The mode is kept, so enabling the window again returns to the same question. Only the panel and loop stop.
+            if (_panel != null)
+                ApplyMode();
         }
 
         /// <summary>Shows the next question with a view (newer), wrapping around. Wired to the window's button.</summary>
@@ -61,17 +69,24 @@ namespace DIYsect.Classroom
         /// <summary>Shows the previous question with a view (older), wrapping around. Wired to the window's button.</summary>
         public void Previous() => Step(-1);
 
-        /// <summary>Goes back to following the newest question.</summary>
+        /// <summary>Goes back to following the newest question, or hides the window when none has a view.</summary>
         public void ShowNewest()
         {
-            _followNewest = true;
-            Show(NewestWithView());
+            int newest = NewestWithView();
+            if (newest < 0)
+                SetMode(StudentViewMode.Hidden, -1);
+            else
+                SetMode(StudentViewMode.FollowingNewest, newest);
         }
 
+        // A pinned question stays while it still has a view. Anything else goes back to the newest.
         private void HandlePinsChanged()
         {
-            int id = _followNewest || IndexOf(_selectedId) < 0 ? NewestWithView() : _selectedId;
-            Show(id);
+            int index = IndexOf(_selectedId);
+            if (_mode == StudentViewMode.Pinned && index >= 0 && _board[index].HasView)
+                SetMode(StudentViewMode.Pinned, _selectedId);
+            else
+                ShowNewest();
         }
 
         private void Step(int direction)
@@ -82,30 +97,40 @@ namespace DIYsect.Classroom
                     withView.Add(i);
             if (withView.Count == 0)
             {
-                Show(-1);
+                ShowNewest();
                 return;
             }
             int current = withView.IndexOf(IndexOf(_selectedId));
             int next = current < 0 ? withView.Count - 1 : (current + direction + withView.Count) % withView.Count;
-            _followNewest = next == withView.Count - 1;
-            Show(_board[withView[next]].Id);
+            StudentViewMode mode = next == withView.Count - 1 ? StudentViewMode.FollowingNewest : StudentViewMode.Pinned;
+            SetMode(mode, _board[withView[next]].Id);
         }
 
-        private void Show(int pinId)
+        // The only place the mode changes.
+        private void SetMode(StudentViewMode mode, int pinId)
         {
-            int index = IndexOf(pinId);
-            bool visible = index >= 0 && _board[index].HasView;
-            _selectedId = visible ? pinId : -1;
+            bool changed = mode != _mode;
+            _mode = mode;
+            _selectedId = mode == StudentViewMode.Hidden ? -1 : pinId;
+            ApplyMode();
+            if (changed)
+                ModeChanged?.Invoke(_mode);
+        }
+
+        // The only place the panel, caption and refresh loop are set, all derived from the mode.
+        private void ApplyMode()
+        {
+            bool visible = _mode != StudentViewMode.Hidden && isActiveAndEnabled;
             _panel.SetActive(visible);
             if (!visible)
             {
                 StopRefreshing();
                 return;
             }
-            QuestionPin pin = _board[index];
+            QuestionPin pin = _board[IndexOf(_selectedId)];
             if (_caption != null)
                 _caption.text = $"Classmate {pin.AuthorClientId}: {pin.Text}";
-            if (_refreshing == null && isActiveAndEnabled)
+            if (_refreshing == null)
                 _refreshing = StartCoroutine(Refresh());
             RenderView(pin);
         }

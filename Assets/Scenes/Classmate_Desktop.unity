@@ -1880,6 +1880,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: XRMP::XRMultiplayer.ClassmateAutoJoin
   _retrySeconds: 5
+  _runInEditor: 0
 --- !u!114 &1421188175
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2089,6 +2090,7 @@ GameObject:
   - component: {fileID: 1559466038}
   - component: {fileID: 1559466037}
   - component: {fileID: 1559466041}
+  - component: {fileID: 1559466043}
   - component: {fileID: 1559466042}
   m_Layer: 0
   m_Name: ClassmateCamera
@@ -2115,6 +2117,7 @@ MonoBehaviour:
   _hitLayers:
     serializedVersion: 2
     m_Bits: 4294967295
+  _gestures: {fileID: 1559466043}
 --- !u!81 &1559466038
 AudioListener:
   m_ObjectHideFlags: 0
@@ -2214,15 +2217,33 @@ MonoBehaviour:
   m_GameObject: {fileID: 1559466036}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6cb0fa1b56fad4543b23ba35c00bc61e, type: 3}
+  m_Script: {fileID: 11500000, guid: 29becbc720de34b0d9979835ed9e928c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: DIYsect.Classroom::DIYsect.Classroom.ClassmateOrbitCamera
-  _target: {fileID: 0}
-  _degreesPerPixel: 0.25
-  _minPitch: 8
-  _maxPitch: 85
+  _gestures: {fileID: 1559466043}
+  _target: {fileID: 1275072175}
+  _minPitch: 10
+  _maxPitch: 80
   _minDistance: 0.4
-  _maxDistance: 4
+  _maxDistance: 3
+  _degreesPerPixel: 0.25
+  _zoomPerUnit: 0.15
+  _damping: 14
+--- !u!114 &1559466043
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1559466036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb3bbb13dd61248d9bb1a66756b93179, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Classroom::DIYsect.Classroom.PointerGestureTracker
+  _dragPixels: 10
+  _holdSeconds: 0.25
+  _pinchPixelsPerUnit: 300
 --- !u!1001 &1661157096
 PrefabInstance:
   m_ObjectHideFlags: 0

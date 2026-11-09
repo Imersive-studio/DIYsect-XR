@@ -12,7 +12,7 @@ using UnityEngine.UI;
 namespace DIYsect.Editor
 {
     /// <summary>
-    /// Gives Classmate_Desktop a plain camera that looks at the body and lets a click or tap pin a question, and shows a short message when the server refuses a pin.
+    /// Gives Classmate_Desktop a plain camera that looks at the body and lets a click or tap pin a question, lets a drag or pinch orbit and zoom around the body, and shows a short message when the server refuses a pin.
     /// The XR Interaction Simulator and the template's XR rig are switched off in that scene, because a
     /// classmate has no headset. Safe to run more than once.
     /// </summary>
@@ -52,6 +52,7 @@ namespace DIYsect.Editor
                 Debug.Log($"{ScenePath} already has the {RigName}, keeping its camera.");
             }
             AddRejectionToast(existingRig, board);
+            AddOrbitControls(existingRig, board);
 
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))
@@ -77,6 +78,45 @@ namespace DIYsect.Editor
             serialized.FindProperty("_camera").objectReferenceValue = camera;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             return rig;
+        }
+
+        // The tracker reads mouse and touch, the orbit camera moves the rig around the body, and the pin placer listens for taps only.
+        // Safe on a rig that already has them: missing parts are added and the references are set again.
+        private static void AddOrbitControls(GameObject rig, QuestionBoard board)
+        {
+            var tracker = rig.GetComponent<PointerGestureTracker>();
+            if (tracker == null)
+                tracker = rig.AddComponent<PointerGestureTracker>();
+            var orbit = rig.GetComponent<ClassmateOrbitCamera>();
+            if (orbit == null)
+                orbit = rig.AddComponent<ClassmateOrbitCamera>();
+
+            var orbitSerialized = new SerializedObject(orbit);
+            orbitSerialized.FindProperty("_gestures").objectReferenceValue = tracker;
+            orbitSerialized.FindProperty("_target").objectReferenceValue = board.transform;
+            orbitSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            var pins = rig.GetComponent<PinPlacementInput>();
+            if (pins == null)
+                throw new InvalidOperationException($"{RigName} has no PinPlacementInput.");
+            var pinSerialized = new SerializedObject(pins);
+            pinSerialized.FindProperty("_gestures").objectReferenceValue = tracker;
+            pinSerialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // Batch entry point: -executeMethod DIYsect.Editor.ClassmateDesktopRig.ApplyBatch
+        public static void ApplyBatch()
+        {
+            try
+            {
+                Apply();
+                EditorApplication.Exit(0);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+                EditorApplication.Exit(1);
+            }
         }
 
         // A screen overlay with one line of text near the bottom. Hidden until the server refuses a pin.
