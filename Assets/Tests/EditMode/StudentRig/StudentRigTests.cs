@@ -33,6 +33,14 @@ namespace DIYsect.StudentRig.Tests
         }
 
         [Test]
+        public void StudentRigStandsOnTheFloor()
+        {
+            XROrigin origin = Open(StudentScene);
+            Assert.AreEqual(0f, origin.transform.position.y, 0.001f,
+                "The origin must be at floor level, or the eyes sit above the fixed 1.6 m.");
+        }
+
+        [Test]
         public void StudentSceneCanWalkAndSnapTurn()
         {
             XROrigin origin = Open(StudentScene);

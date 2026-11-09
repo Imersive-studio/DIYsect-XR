@@ -35,6 +35,11 @@ namespace DIYsect.Editor
             serialized.FindProperty("m_CameraYOffset").floatValue = EyeHeight;
             serialized.ApplyModifiedProperties();
 
+            // The template's rig prefab lifts the XR Origin 0.45 m for a table top room. The student stands on the
+            // lecture hall floor, so the origin goes back to floor level and the eyes land at exactly EyeHeight.
+            Vector3 position = origin.transform.position;
+            origin.transform.position = new Vector3(position.x, 0f, position.z);
+
             Transform locomotion = origin.transform.Find("Locomotion");
             if (locomotion == null)
                 throw new InvalidOperationException("The rig has no Locomotion object.");
