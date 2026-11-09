@@ -32188,15 +32188,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1996598800}
   m_Enabled: 0
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4be1f731adcdb4f85bd50c39ebea920a, type: 3}
+  m_Script: {fileID: 11500000, guid: 97e5f8a07dcae4df68202315d8cb3f95, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: DIYsect.MixedReality::DIYsect.MixedReality.EyeHeightCalibration
-  _eyeHeight: 1.6
-  _settleSeconds: 2
-  _giveUpSeconds: 8
-  _adjustSpeed: 0.5
-  _minEyeHeight: 0.8
-  _maxEyeHeight: 2.2
+  m_EditorClassIdentifier: DIYsect.MixedReality::DIYsect.MixedReality.StudentEyeHeightBootstrap
 --- !u!1 &2023478220 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1491813474252762412, guid: 3c7e97c2ac5aede4c834e98354f624e2,

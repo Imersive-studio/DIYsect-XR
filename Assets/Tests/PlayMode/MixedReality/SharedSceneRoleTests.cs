@@ -127,7 +127,7 @@ namespace DIYsect.MixedReality.Tests
             Assert.IsFalse(FindObject("ResetViewButton").activeInHierarchy, "The Reset view button must be off for the professor.");
             Assert.IsFalse(FindObject("LectureHall").activeInHierarchy, "The professor sees the real room, not the lecture hall.");
             Assert.IsFalse(Object.FindFirstObjectByType<DIYsect.Networking.PracticeSession>(FindObjectsInactive.Include).enabled, "The professor creates the room and never starts a practice session.");
-            Assert.IsFalse(FindObject("XR Origin (XR Rig)").GetComponent<DIYsect.MixedReality.EyeHeightCalibration>().enabled, "Eye height calibration is for the student only.");
+            Assert.IsNull(FindObject("XR Origin (XR Rig)").GetComponent<DIYsect.MixedReality.EyeHeightCalibration>(), "Eye height calibration is for the student only.");
             foreach (UnityEngine.EventSystems.EventSystem events in Object.FindObjectsByType<UnityEngine.EventSystems.EventSystem>(FindObjectsSortMode.None))
                 Assert.IsFalse(events.transform.IsChildOf(FindObject("ClassmateCamera").transform), "The classmate's EventSystem must be off for the professor.");
 
