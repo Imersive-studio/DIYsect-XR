@@ -7,8 +7,7 @@
     "Unity.Netcode.Runtime",
     "DIYsect.MixedReality",
     "Unity.XR.Interaction.Toolkit",
-    "Unity.XR.CoreUtils",
-    "XRMP"
+    "Unity.XR.CoreUtils"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
