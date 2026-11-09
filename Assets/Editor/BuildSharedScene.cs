@@ -41,6 +41,12 @@ namespace DIYsect.Editor
             if (manager == null)
                 throw new InvalidOperationException($"{ScenePath} has no XRINetworkGameManager.");
 
+            // The professor's rays need the same clear pointer the student rig has: the template's line is short, thin and
+            // disappears when it hits nothing, so on a headset it looked as if there were no rays at all.
+            var headsetOrigin = UnityEngine.Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>(FindObjectsInactive.Include);
+            if (headsetOrigin != null)
+                ConfigureStudentRig.MakeRaysVisible(headsetOrigin);
+
             var autoJoin = GetOrAdd<ClassmateAutoJoin>(manager.gameObject);
             var statusLabel = GetOrAdd<ClassmateStatusLabel>(manager.gameObject);
             var autoHost = manager.GetComponent<ProfessorAutoHost>() ?? throw new InvalidOperationException("Run Tools > DIYsect > Add Role Auto Connect first.");
