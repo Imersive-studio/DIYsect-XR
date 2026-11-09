@@ -178,9 +178,9 @@ For a multi-device test, use the checklist in `docs/ARCHITECTURE.md` ("Two clien
 
 You only need this if you change the anatomy, skin, drapes, lamp, room or instruments. The finished files are already in the repository.
 
-- README step 5: install the Python environment and run the Blender scripts for organs, skin, drapes, lamp and previews.
-- README step 6: download the lecture hall and instrument set from Sketchfab by hand (login needed), then run `simplify_room.py` and `extract_instruments.py`.
-- README step 8: run **Tools > DIYsect > Create Classroom Props**, then **Tools > DIYsect > Apply Realistic Look**. Rerun Apply Realistic Look after re-exporting the skin, drapes or lamp.
+- [Asset rebuilding guide](ASSET_PIPELINE.md): install the Python environment and run the Blender scripts for organs, skin, drapes, lamp and previews.
+- The same guide covers manual lecture-hall and instrument downloads from Sketchfab, then `simplify_room.py` and `extract_instruments.py`.
+- For props and scene appearance, run **Tools > DIYsect > Create Classroom Props**, then **Tools > DIYsect > Apply Realistic Look**. Rerun Apply Realistic Look after re-exporting the skin, drapes or lamp.
 - To refresh the preview pictures, use **Tools > DIYsect > Capture Scene Previews** (needs graphics, so do not use `-nographics`).
 
 Source licenses are in `docs/CREDITS.md`.
