@@ -87,7 +87,15 @@ namespace DIYsect.Editor
             if (headset != null && headset.transform.Find("QuitMenu") == null)
                 AddQuitMenu.ApplyToScene(scene);
 
+            // The class shares one voice channel where everyone hears everyone. Positional voice only connects people who report a 3D
+            // position, and a phone has none, so it is switched off for the shared scene.
+            var voiceSettings = new SerializedObject(manager);
+            voiceSettings.FindProperty("positionalVoiceChat").boolValue = false;
+            voiceSettings.ApplyModifiedPropertiesWithoutUndo();
+
             var autoJoin = GetOrAdd<ClassmateAutoJoin>(manager.gameObject);
+            // Sets each device's microphone when it joins the voice channel: open for the professor, muted for a phone classmate.
+            GetOrAdd<VoiceRoleDefaults>(manager.gameObject);
             var statusLabel = GetOrAdd<ClassmateStatusLabel>(manager.gameObject);
             var autoHost = manager.GetComponent<ProfessorAutoHost>() ?? throw new InvalidOperationException("Run Tools > DIYsect > Add Role Auto Connect first.");
             AddClassmateAutoJoin.HideWelcomePanel(scene);
