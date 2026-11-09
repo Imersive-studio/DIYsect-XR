@@ -194,7 +194,8 @@ namespace DIYsect.Editor
             Transform checklistRoot = FindByName(scene, "DissectionChecklist")?.transform;
             Transform checklistPanel = checklistRoot != null ? checklistRoot.Find("Panel") : null;
             SetArray(serialized.FindProperty("_studentObjects"), checklistPanel != null ? new[] { checklistPanel.gameObject } : Array.Empty<GameObject>());
-            SetArray(serialized.FindProperty("_studentBehaviours"), AddAssistRequest.WithStudentInput(new Behaviour[] { calibration, practice }, headsetOrigin.gameObject));
+            SetArray(serialized.FindProperty("_studentBehaviours"), AddQuiz.WithStudentInput(
+                AddAssistRequest.WithStudentInput(new Behaviour[] { calibration, practice }, headsetOrigin.gameObject), headsetOrigin.gameObject));
 
             // The professor's quiz panel needs its question set saved in the scene (Add Quiz does this too, but a scene taken
             // from another branch can lose it, and the panel then switches itself off on the headset).

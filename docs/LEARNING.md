@@ -23,7 +23,7 @@ A new organ model also needs its own entry; the card stays hidden for an organ t
 1. Open `Assets/Scripts/Learning/Quiz/DefaultQuizQuestions.asset` (or create another set with
    **Create > DIYsect > Quiz Question Set** and assign it to the professor's `QuizPanel`).
 2. Add a question:
-   - **Prompt**: what classmates read, for example `Tap the organ that stores bile`. At most 120 bytes; longer
+   - **Prompt**: what the student and classmates read, for example `Tap the organ that stores bile`. At most 120 bytes; longer
      text is cut. Leave it empty to show "Quiz: tap the <organ>".
    - **Target Organ**: the organ object name of the right answer, for example `gallbladder`.
 3. Run the EditMode tests. `QuizQuestionSetTests` fails if a target organ is not in the body.
@@ -34,8 +34,19 @@ covered, so the tap hits the layer above it.
 ## Where things are wired
 
 - `Tools > DIYsect > Add Organ Info Cards` puts the card presenter on the body prefab and links the library.
-- `Tools > DIYsect > Add Quiz` puts the quiz on the body, the professor panel in `Professor_MR` and the answer
-  input in `Classmate_Desktop`, and links the question set.
+- `Tools > DIYsect > Add Quiz` puts the quiz on the body, the professor panel in `Professor_MR`, the classmates' tap
+  answer on the classmate camera and the student's headset answer on the XR origin, and links the question set. Run
+  **Build Shared Scene** afterwards so the student's answer stays in the role's student scripts.
+
+## How each role takes part in a round
+
+- **Professor (headset):** points at the quiz panel and presses Start, Reveal and Clear with the controller ray or a
+  hand. The panel is on the CloseUpScreen layer so no camera films it; each button's collider is a `PressArea` child
+  on the Default layer, because the rays only hit Default and UI.
+- **Student (headset):** while a round is asking, a small card beyond the table shows the question. Point either
+  controller at an organ and pull its trigger to answer, once per round. The card then says whether it was right, and
+  shows the answer when the professor reveals it. Grip still grabs, so answering never lifts an organ.
+- **Classmates (phone or laptop):** tap the organ. The quiz line at the bottom shows the question and the result.
 - `Tools > DIYsect > Add Dissection Checklist` and `Tools > DIYsect > Add Sound Cues` add the checklist and the sound
   cues to the scenes.
 

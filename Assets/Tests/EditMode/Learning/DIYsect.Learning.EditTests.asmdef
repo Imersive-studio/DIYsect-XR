@@ -11,7 +11,9 @@
     "DIYsect.Classroom",
     "Unity.Collections",
     "Unity.Netcode.Runtime",
-    "Unity.TextMeshPro"
+    "Unity.TextMeshPro",
+    "Unity.XR.Interaction.Toolkit",
+    "XRMP"
   ],
   "includePlatforms": [
     "Editor"
