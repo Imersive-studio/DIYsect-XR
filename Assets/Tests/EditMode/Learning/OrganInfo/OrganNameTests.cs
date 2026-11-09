@@ -11,9 +11,11 @@ namespace DIYsect.Learning.Tests
         private static OrganInfoEntry Kidney() => new OrganInfoEntry("kidney_l", "Left kidney", "Filters blood and makes urine.", "Each holds about a million filters.");
 
         [Test]
-        public void AKnownOrgan_ShowsItsNameInBoldAndWhatItDoes()
+        public void AKnownOrgan_ShowsItsNameInBoldAndAShortMutedLine_NotAParagraph()
         {
-            Assert.AreEqual("<b>Left kidney</b>\nFilters blood and makes urine.", OrganNameText.Build(Kidney(), "kidney_l"));
+            var kidney = new OrganInfoEntry("kidney_l", "Left kidney", "Filters blood and makes urine.", "Each holds about a million filters.", "Urinary system", "Filters blood");
+            Assert.AreEqual("<b>Left kidney</b>\n<size=78%><color=#9FB8C4>Urinary system · Filters blood</color></size>", OrganNameText.Build(kidney, "kidney_l"));
+            Assert.AreEqual("<b>Left kidney</b>", OrganNameText.Build(Kidney(), "kidney_l"), "Without a system or role, the name alone; the long function line is not shown on a tap.");
         }
 
         [Test]

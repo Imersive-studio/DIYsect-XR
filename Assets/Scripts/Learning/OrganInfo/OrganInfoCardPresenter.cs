@@ -122,10 +122,16 @@ namespace DIYsect.Learning
                 _pointed.Add(organIndex);
         }
 
+        /// <summary>
+        /// True on a device that names organs its own way (the classmate phone's flat card), so one tap never shows two texts.
+        /// The cards' state still follows the room; only this device does not draw them.
+        /// </summary>
+        public static bool HiddenOnThisDevice { get; set; }
+
         private void OnCardStateChanged(int organIndex, OrganInfoCardState previous, OrganInfoCardState current)
         {
             bool wasShown = OrganInfoCardRules.IsShown(previous);
-            bool isShown = OrganInfoCardRules.IsShown(current);
+            bool isShown = OrganInfoCardRules.IsShown(current) && !HiddenOnThisDevice;
             if (isShown && !wasShown)
                 GetOrCreateCard(organIndex)?.Show();
             else if (!isShown && wasShown)

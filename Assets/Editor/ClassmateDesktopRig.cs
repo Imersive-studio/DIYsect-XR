@@ -160,7 +160,7 @@ namespace DIYsect.Editor
 
             Canvas canvas = ClassmateUiBuilder.NewCanvas(rig.transform, "PinRejectionCanvas", clickable: false);
             TMPro.TextMeshProUGUI label = ClassmateUiBuilder.AddChip(canvas.transform, "Message", new Vector2(0.5f, 0f), new Vector2(0f, AddClassmateBottomBar.AboveDock),
-                ClassmateUiBuilder.SmallSize, DIYsect.Presentation.GuidePalette.TextPrimary);
+                ClassmateUiBuilder.SmallSize, DIYsect.Presentation.GuidePalette.TextPrimary, hidden: true);
 
             var serialized = new SerializedObject(toast);
             serialized.FindProperty("_board").objectReferenceValue = board;
