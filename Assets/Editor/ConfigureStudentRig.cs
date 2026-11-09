@@ -1,6 +1,7 @@
 // Run Tools > DIYsect > Configure Student Rig.
 using System;
 using System.IO;
+using DIYsect.MixedReality;
 using Unity.XR.CoreUtils;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -50,6 +51,12 @@ namespace DIYsect.Editor
             Switch(locomotion.Find("Move"), name => true);
             Switch(locomotion.Find("Turn"), name => name == "SnapTurnProvider");
             int rays = MakeRaysVisible(origin);
+
+            // Fixes the eye height at EyeHeight whatever the tracking origin is (see EyeHeightCalibration).
+            if (!origin.TryGetComponent(out EyeHeightCalibration calibration))
+                calibration = origin.gameObject.AddComponent<EyeHeightCalibration>();
+            EditorUtility.SetDirty(calibration);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(calibration);
 
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))

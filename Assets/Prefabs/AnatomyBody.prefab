@@ -810,6 +810,7 @@ MonoBehaviour:
   _glowSize: 0.02
   _calmColor: {r: 0.2, g: 0.6, b: 1, a: 1}
   _glowColor: {r: 1, g: 0.85, b: 0.1, a: 1}
+  _answeredColor: {r: 0.45, g: 0.45, b: 0.45, a: 1}
   _markerMaterial: {fileID: 2100000, guid: de2a2bdac347a43c393f4032500fca39, type: 2}
 --- !u!114 &2163784326227153577
 MonoBehaviour:
@@ -1512,7 +1513,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8053868717027294432
 Transform:
   m_ObjectHideFlags: 0

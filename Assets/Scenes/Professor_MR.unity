@@ -7728,6 +7728,11 @@ PrefabInstance:
       propertyPath: m_PhysicsTriggerInteraction
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 6484816944661230508, guid: 7d554cf076fc46143bcaf9a54fc2204d,
+        type: 3}
+      propertyPath: m_CullingMask.m_Bits
+      value: 8119
+      objectReference: {fileID: 0}
     - target: {fileID: 7043497332038288999, guid: 7d554cf076fc46143bcaf9a54fc2204d,
         type: 3}
       propertyPath: m_PhysicsTriggerInteraction
