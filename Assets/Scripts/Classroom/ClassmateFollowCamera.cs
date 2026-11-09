@@ -21,6 +21,9 @@ namespace DIYsect.Classroom
         private float _easeSeconds = 0.8f;
 
         private FollowTransition _transition;
+
+        // Made on first use: a button may ask before this component's own Awake has run.
+        private FollowTransition Transition => _transition ??= new FollowTransition(_easeSeconds);
         private Vector3 _fromPosition;
         private Quaternion _fromRotation;
 
@@ -30,8 +33,8 @@ namespace DIYsect.Classroom
         /// <summary>Raised with a short message when the followed person left and the camera is heading back to my view.</summary>
         public event Action<string> Message;
 
-        public FollowTarget Target => _transition.Target;
-        public bool IsFollowing => _transition.IsFollowing;
+        public FollowTarget Target => Transition.Target;
+        public bool IsFollowing => Transition.IsFollowing;
         public float EaseSeconds => _easeSeconds;
 
         private void Awake()
@@ -39,7 +42,6 @@ namespace DIYsect.Classroom
             bool valid = true;
             if (_orbit == null) { Debug.LogError($"{name}: ClassmateFollowCamera has no ClassmateOrbitCamera. Run Tools > DIYsect > Add Classmate Desktop Camera.", this); valid = false; }
             if (_board == null) { Debug.LogError($"{name}: ClassmateFollowCamera has no HeadPoseBoard. Run Tools > DIYsect > Add Head Pose.", this); valid = false; }
-            _transition = new FollowTransition(_easeSeconds);
             if (!valid)
                 enabled = false;
         }
@@ -77,9 +79,9 @@ namespace DIYsect.Classroom
                 BackToMyView();
                 return true;
             }
-            if (target == _transition.Target)
+            if (target == Transition.Target)
                 return true;
-            if (!_transition.Request(target, IsAvailable(target)))
+            if (!Transition.Request(target, IsAvailable(target)))
                 return false;
             StartMove();
             return true;
@@ -88,9 +90,9 @@ namespace DIYsect.Classroom
         /// <summary>Eases the camera back to my own orbit view. Does nothing when I am not following.</summary>
         public void BackToMyView()
         {
-            if (!_transition.IsFollowing)
+            if (!Transition.IsFollowing)
                 return;
-            _transition.Request(FollowTarget.Mine, true);
+            Transition.Request(FollowTarget.Mine, true);
             StartMove();
         }
 
@@ -109,14 +111,14 @@ namespace DIYsect.Classroom
 
         private void LateUpdate()
         {
-            FollowTarget before = _transition.Target;
-            bool lost = _transition.Tick(Time.unscaledDeltaTime, IsAvailable(_transition.Target));
+            FollowTarget before = Transition.Target;
+            bool lost = Transition.Tick(Time.unscaledDeltaTime, IsAvailable(Transition.Target));
             if (lost)
             {
                 StartMove();
                 Message?.Invoke(before == FollowTarget.Professor ? "Professor left" : "Student left");
             }
-            if (!_transition.Driving)
+            if (!Transition.Driving)
             {
                 _orbit.Driven = false;
                 return;
@@ -125,21 +127,21 @@ namespace DIYsect.Classroom
 
             Vector3 toPosition;
             Quaternion toRotation;
-            if (_transition.Target == FollowTarget.Mine)
+            if (Transition.Target == FollowTarget.Mine)
             {
                 toPosition = _orbit.MyPosition;
                 toRotation = _orbit.MyRotation;
             }
             else
             {
-                PointerRole role = _transition.Target == FollowTarget.Professor ? PointerRole.Professor : PointerRole.Student;
+                PointerRole role = Transition.Target == FollowTarget.Professor ? PointerRole.Professor : PointerRole.Student;
                 if (!_board.TryGetLocalPose(role, out Vector3 localPosition, out Quaternion localRotation))
                     return; // the next Tick sees the person is gone
                 Transform body = _board.transform;
                 toPosition = body.TransformPoint(localPosition);
                 toRotation = FollowTransition.Level(body.rotation * localRotation);
             }
-            FollowTransition.Blend(_fromPosition, _fromRotation, toPosition, toRotation, _transition.Eased, out Vector3 position, out Quaternion rotation);
+            FollowTransition.Blend(_fromPosition, _fromRotation, toPosition, toRotation, Transition.Eased, out Vector3 position, out Quaternion rotation);
             transform.SetPositionAndRotation(position, rotation);
         }
     }

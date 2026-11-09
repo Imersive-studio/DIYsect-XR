@@ -260,10 +260,10 @@ namespace DIYsect.Editor
                 return;
             }
             Transform canvas = rig.transform.Find("ViewResetCanvas") ?? throw new InvalidOperationException($"{RigName} has no ViewResetCanvas.");
-            var size = new Vector2(300f, 96f);
-            Button professor = MakeButton(canvas, "FollowProfessorButton", "Follow professor", size, -136f, 34, out Text professorLabel);
-            Button student = MakeButton(canvas, "FollowStudentButton", "Follow student", size, -248f, 34, out Text studentLabel);
-            Button back = MakeButton(canvas, "BackToMyViewButton", "Back to my view", size, -360f, 34, out _);
+            var size = new Vector2(240f, 96f);
+            Button professor = MakeButton(canvas, "FollowProfessorButton", "Follow professor", size, -136f, 32, out Text professorLabel);
+            Button student = MakeButton(canvas, "FollowStudentButton", "Follow student", size, -248f, 32, out Text studentLabel);
+            Button back = MakeButton(canvas, "BackToMyViewButton", "Back to my view", size, -360f, 32, out _);
 
             var buttons = rig.AddComponent<ClassmateFollowButtons>();
             var serialized = new SerializedObject(buttons);
