@@ -32,7 +32,8 @@ namespace DIYsect.Networking.Tests
 
             yield return Grab(_authorityB, expectGranted: false);
             Assert.AreEqual(_managerA.LocalClientId, _server.GetHolder(OrganIndex), "The rejected grab must not change the holder.");
-            Assert.IsTrue(_authorityA.IsHeldByLocalClient(OrganIndex));
+            // The server's answer can reach client A before the replicated holder list does, so wait for it.
+            yield return WaitFor(() => _authorityA.IsHeldByLocalClient(OrganIndex), "client A to see that it holds the organ");
             Assert.IsFalse(_authorityB.IsHeldByLocalClient(OrganIndex));
         }
 
@@ -111,6 +112,8 @@ namespace DIYsect.Networking.Tests
         {
             yield return StartTwoClients();
             yield return Grab(_authorityA, expectGranted: true);
+            // The holder's own copy keeps its local pose only once it knows it is the holder, so wait for that.
+            yield return WaitFor(() => _authorityA.IsHeldByLocalClient(OrganIndex), "client A to see that it holds the organ");
 
             // Stands in for XRI moving the organ on the holder's machine. The server has not heard of this pose yet.
             Transform organ = _bodyA.Organs[OrganIndex].transform;
