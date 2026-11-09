@@ -26,6 +26,7 @@ namespace DIYsect.Interaction.Tests
         private QuestionBoard _serverBoard;
         private XRDirectInteractor _leftHand;
         private XRDirectInteractor _rightHand;
+        private Transform _tableRoot;
 
         [UnityTearDown]
         public IEnumerator DestroyWindowParts()
@@ -117,6 +118,57 @@ namespace DIYsect.Interaction.Tests
         }
 
         [UnityTest]
+        public IEnumerator WalkingWhileHoldingTheHandleKeepsTheDepth()
+        {
+            yield return StartTools();
+            yield return HoldHandle(_leftHand);
+            yield return MoveHandleDown(0.05f);
+            yield return new WaitForSeconds(0.2f);
+            float depth = _serverHand.Depth;
+
+            // Walking with the thumbstick moves the hand sideways, never up or down.
+            _leftHand.transform.position += new Vector3(0.5f, 0f, 0.5f);
+            yield return new WaitForSeconds(0.3f);
+
+            Assert.AreEqual(depth, _serverHand.Depth, 0.001f, "Walking must not change the cut depth.");
+            Assert.AreEqual(_clientManager.LocalClientId, _serverHand.Controller);
+        }
+
+        [UnityTest]
+        public IEnumerator BringingTheTableBackMidStrokeEndsTheStrokeWithoutAJump()
+        {
+            yield return StartTools();
+            yield return HoldPenAndDraw(_rightHand);
+
+            // Pressing A or X moves the table root, and the body with it, while the pen stays in the hand.
+            _clientBody.transform.position += new Vector3(0.4f, 0f, 0.4f);
+            yield return new WaitForSeconds(0.5f);
+
+            Assert.IsFalse(_pen.IsDrawing, "A stroke must end when the body moves under the pen.");
+            yield return WaitFor(() => _serverLine.Drawer == GuideLine.NoDrawer, "the server to free the drawer");
+            for (int i = 1; i < _serverLine.Count; i++)
+                Assert.Less(Vector3.Distance(_serverLine[i], _serverLine[i - 1]), 0.1f, $"Point {i} jumped away from the one before it.");
+        }
+
+        [UnityTest]
+        public IEnumerator DepthHandleReturnsToTheTrayAfterTheTableMoves()
+        {
+            yield return StartTools();
+            Vector3 tray = _handleGrab.transform.position;
+            _tableRoot.position += new Vector3(1f, 0f, 0f);
+            Vector3 trayNow = tray + new Vector3(1f, 0f, 0f);
+            _leftHand.transform.position = _handleGrab.transform.position;
+
+            yield return HoldHandle(_leftHand);
+            _leftHand.EndManualInteraction();
+            yield return WaitFor(() => _serverHand.Controller == GuidingHand.NoController, "the depth to be given back");
+            yield return null;
+
+            Assert.Less(Vector3.Distance(_handleGrab.transform.position, trayNow), 0.001f,
+                $"The handle must rest on the tray where the table is now ({trayNow}), not where it was ({tray}). It is at {_handleGrab.transform.position}.");
+        }
+
+        [UnityTest]
         public IEnumerator EveryToolWorksAloneAfterBeingUsedTogether()
         {
             yield return StartTools();
@@ -177,6 +229,9 @@ namespace DIYsect.Interaction.Tests
             GameObject handleObject = Track(GameObject.CreatePrimitive(PrimitiveType.Sphere));
             handleObject.SetActive(false);
             handleObject.transform.localScale = Vector3.one * 0.05f;
+            // Like the real handle, it is a child of the table root, so the table can move it.
+            _tableRoot = Track(new GameObject("Table root")).transform;
+            handleObject.transform.SetParent(_tableRoot, false);
             handleObject.transform.position = new Vector3(2f, 1f, 2f);
             handleObject.AddComponent<Rigidbody>().isKinematic = true;
             _handleGrab = handleObject.AddComponent<XRGrabInteractable>();
