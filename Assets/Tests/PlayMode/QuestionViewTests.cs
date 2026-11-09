@@ -143,10 +143,17 @@ namespace DIYsect.Networking.Tests
         public IEnumerator PinPlacementInputSendsTheCameraPoseAsTheView()
         {
             yield return StartTwoClients();
+            // All three peers share one physics scene in this fixture. A real device only raycasts its own copy;
+            // remove the other two copies from this raycast so hit ordering cannot change the result.
+            foreach (QuestionBoard otherPeer in new[] { _boardA, _boardB })
+                foreach (Collider collider in otherPeer.GetComponentsInChildren<Collider>(true))
+                    collider.enabled = false;
             Physics.SyncTransforms();
             Vector3 target = _serverBody.Organs[OrganIndex].transform.TransformPoint(PointOn(OrganIndex));
             var ray = new Ray(target + Vector3.up * 0.5f, Vector3.down);
-            Assert.IsTrue(Physics.Raycast(ray, out _), "The test ray should hit an organ collider.");
+            Assert.IsTrue(Physics.Raycast(ray, out RaycastHit testHit), "The test ray should hit an organ collider.");
+            Assert.IsTrue(testHit.collider.transform.IsChildOf(_serverBody.transform),
+                $"The ray hit a different peer's collider: {testHit.collider.transform.root.name}.");
 
             var cameraObject = new GameObject("AskerCamera");
             cameraObject.transform.SetPositionAndRotation(_serverBody.transform.TransformPoint(ViewLocalPosition),
