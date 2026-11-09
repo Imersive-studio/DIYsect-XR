@@ -10,17 +10,17 @@ One shared human body on a table. A professor in a Quest 3 (mixed reality), a st
 | Student (a teammate) | Quest 3 | DIYsect Student (the shared `Professor_MR` scene with the `.student` role: lecture hall, VR rig) | Walks, picks up the scalpel and forceps, cuts, lifts organs |
 | Classmates (teammates) | Phones or a laptop | DIYsect Classmate | Press Join the room, orbit and zoom the body, tap an organ for its name, press and hold an organ to pin a question, raise a hand, unmute |
 
-Student controls are in `docs/VR_CONTROLS.md`.
+Student controls are in `docs/VR_CONTROLS.md`. This is the target rehearsal sequence, not evidence that the combined demo has passed. Check [integration status](INTEGRATION_166.md) before installing builds: the shared-scene compatibility work must land before the three-device rehearsal.
 
 ## The 90-second demo
 
 | Time | What happens | What you say |
 |---|---|---|
 | 0:00 to 0:10 | The judge puts on the professor Quest. The student is already in the lecture hall. Two phones are already in the room, and the roster shows them. | "In a headset the teacher cannot see the class, and students cannot say which part they mean." |
-| 0:10 to 0:30 | The student picks up the scalpel and makes the cut. The skin opens, then the muscle. The phones update. Classmates rotate their own copy freely. | "One shared body, but everyone has a private camera." |
-| 0:30 to 0:50 | The judge points at the heart. The phones show where the professor points. The student lifts an organ and puts it back. | "The pointer shows up in each classmate's own view." |
+| 0:10 to 0:30 | The professor draws a short guide line. The student holds the scalpel with grip and begins the incision while the professor adjusts depth with the depth handle. The phones show the same cut. | "One shared body, but everyone has a private camera." |
+| 0:30 to 0:50 | The skin opens automatically. The student touches the rectus and omentum with the forceps tip, then lifts an organ, holds it for inspection and puts it back. The checklist follows each step. | "The pointer shows up in each classmate's own view." |
 | 0:50 to 1:10 | A classmate presses and holds on the liver (a quick tap only shows its name). The judge sees a question pin, the roster counts it, and a raised hand shows next to the classmate's name until the judge lowers it. | "The teacher sees what was asked, and where." |
-| 1:10 to 1:25 | The judge opens the student's view in the floating window, presses **Answered** (the pin turns grey with `[x]` on every phone), and guides the cut depth with the depth handle. | "No guessing which part they meant, and everyone sees it was answered." |
+| 1:10 to 1:25 | The judge opens the student's view in the floating window, presses **Answered** (the pin turns grey with `[x]` on every phone), and answers the classmate. Depth guidance was already demonstrated during the incision. | "No guessing which part they meant, and everyone sees it was answered." |
 | 1:25 to 1:30 | Close. | "Shared state, private views, and the interface that connects them." |
 
 Say the contribution out loud: **techniques for keeping a headset user and phone users aware of each other**, not "human anatomy".
@@ -86,6 +86,6 @@ Code health:
 - The **Reset view** button tapped by a real finger, and the **Answered** button pressed in a real headset (both pass the editor tests only).
 - On a real phone: the start screen, the microphone permission dialog and hearing a classmate through Vivox after Unmute, and how the half-second hold feels under a finger.
 - Bare hand pinch grab on the student headset. Controllers are the safe path for the demo.
-- The organ info cards and the dissection checklist exist as code but are not placed in any scene yet, so they are not part of this demo.
+- Organ cards and the immersive checklist are placed in the headset scenes on main. Readability, correct target cues and the complete flow still need verification on the final shared-scene build.
 
-Update this list after each real test.
+Update this list after each real test. Record all five rehearsals in [the integration ledger](INTEGRATION_166.md), including exact commit, APKs, devices and failures. A client rejoin and a host restart are different checks: do not claim that restarting the host restores the previous lesson.

@@ -1,28 +1,21 @@
 # Task branches and commits
 
-Use one parent branch for a feature or setup milestone, and a small branch for each issue or coherent subtask. The current parent is `epic/unity-setup`; its PR targets `main`.
+Issue #166 coordinates the current classroom integration. The old `epic/unity-setup` hierarchy is historical; do not branch new demo work from it.
 
-- Branch an independent task from the parent. Branch dependent work from its prerequisite and explain that dependency in the PR.
-- Target task PRs at the parent or prerequisite branch. Merge dependent PRs into their prerequisite before merging that prerequisite into the parent, or retarget them after the prerequisite lands.
-- Prefer one focused commit for a small issue. Split larger issues into independently understandable changes; keep code and its required tests together. Avoid arbitrary one-file commits and unrelated cleanup.
-- Use `type(area): imperative summary`. Reference the actual issue in the PR. Use `Refs` for partial progress; use `Closes` only when every acceptance criterion is complete.
-- Keep binary imports separate from processing logic. Group anatomy assets by anatomy system or layer; an intact third-party source import is one coherent change even if it contains several files.
-- Preserve reviewed task commits when merging into the parent. Do not squash the entire parent milestone into one commit if that would erase the task history.
-- Review the staged diff, run relevant checks, and verify the configured author before each commit. Never rewrite published history without coordinating with the team.
+## Current delivery
 
-## Current review hierarchy
+- Start from freshly fetched main and use an isolated checkout for each writable branch. Never reset, stash, clean or switch another person's checkout. Each Unity project owns its own Library directory.
+- The historical coordination parent `integ/demo-reliability-166` was based on main `65ab921`; it is not the current main baseline or a claim that tests or devices passed. See the ledger for the checked main SHA and remaining gates.
+- Publish one coherent change at a time. Independent fixes can target main. A change requiring an open PR targets its prerequisite branch and names that dependency explicitly.
+- PR #158, including the #169 hand-reach fix, has merged to main. The earlier candidate is historical; verify the merged scene against any remaining work rather than targeting that closed prerequisite branch.
+- Reuse work already on main. At the checked baseline `58a2817`, main includes build orchestration (#148), phone controls (#164), media (#154), audience (#163), checklist (#165), shared-scene composition (#158, including #169), and the eye-height guard restoration (#174). Squash merges mean an old branch head need not be an ancestor of main; inspect actual files and main commits before replaying work.
+- Review each task PR before integration. Publish the next task separately so teammates can review incrementally. Do not merge an incomplete shared scene or declare device acceptance from source-only checks.
+- One integration owner saves the shared scene through the editor steps. Resolve scene conflicts by retaining the latest main scene and rerunning setup, never by merging scene text or copying a second network body.
 
-| Branch | PR base | Scope / checklist task |
-|---|---|---|
-| `task/repository-conventions` | `epic/unity-setup` | Local-file exclusions and LFS rules; setup prerequisite |
-| `task/unity-folders` | `epic/unity-setup` | Folder and assembly scaffold; partial task 1 |
-| `task/anatomy-tools` | `task/repository-conventions` | Fetch, extraction, skin, previews and validation; task 3 tooling |
-| `task/anatomy-assets` | `task/anatomy-tools` | Processed anatomy, provenance and credits; task 3 outputs |
-| `task/room-processing` | `task/anatomy-tools` | Room simplification and synthetic test; partial task 4 |
-| `task/mesh-slicing` | `epic/unity-setup` | Optional planar slicing source; task 9 prerequisite |
-| `task/classroom-props` | `task/unity-folders` | Primitive prop creation; partial tasks 8 and 15 |
-| `task/unity-onboarding` | `epic/unity-setup` | Setup instructions, architecture and acceptance checklist |
+## Handoff record
 
-`review/unity-setup` is a local integration preview containing all task branches for immediate setup and validation. It is not a delivery branch or an additional PR. Actual integration proceeds through the task PRs and then the parent PR.
+Each PR records branch, base commit, owner, changed areas, prerequisite PRs, exact checks run and remaining checks. Keep [the integration ledger](INTEGRATION_166.md) current as task PRs are published and reviewed. Issue #166 stays open until required device acceptance is recorded.
 
-Checklist task numbers refer to `UNITY_BACKLOG.md`, not GitHub issue numbers. The PRs link the corresponding GitHub issues. Manual template creation, device checks and login-required downloads stay open until their acceptance criteria are met.
+Use small conventional commits (`type(area): imperative summary`) with the repository's existing human identity. Keep code and required tests together. Use `Refs #166` for partial work; use `Closes` only when every acceptance criterion is met. Preserve task history, never rewrite a teammate's published branch without coordination, and review staged files before every commit.
+
+Keep secrets, raw source assets, build outputs and local logs out of commits. Use Git LFS for applicable binary assets. Distinguish source checks, Unity tests, APK builds and device evidence in every handoff.
