@@ -15,7 +15,7 @@ namespace DIYsect.Editor
     /// <summary>
     /// Builds the professor's student-view window in Professor_MR, beside the table on the professor's left and
     /// turned toward the professor: a screen showing its own render texture, a caption with the question, and
-    /// previous and next buttons (ray-selectable, wired to the window with persistent events). The window's camera
+    /// previous and next buttons and an Answered button (the professor marks the shown question answered) (ray-selectable, wired to the window with persistent events). The window's camera
     /// leaves out the CloseUpScreen layer, which the window also uses, so it never films itself.
     /// It is a child of the DIYsect root, so table alignment carries it along. Safe to run more than once.
     /// </summary>
@@ -68,6 +68,7 @@ namespace DIYsect.Editor
             var window = windowObject.AddComponent<StudentViewWindow>();
             AddButton(panel.transform, "Previous", "<", new Vector3(-ScreenSize.x / 2f - 0.06f, 0f, 0f), window, window.Previous);
             AddButton(panel.transform, "Next", ">", new Vector3(ScreenSize.x / 2f + 0.06f, 0f, 0f), window, window.Next);
+            AddButton(panel.transform, "Answered", "Answered", new Vector3(0f, -ScreenSize.y / 2f - 0.12f, 0f), window, window.MarkSelectedAnswered, width: 0.2f);
             AddText(panel.transform, "Title", new Vector3(0f, ScreenSize.y / 2f + 0.035f, -0.002f), "Student view", 0.007f);
 
             var cameraObject = new GameObject("ViewCamera");
@@ -97,17 +98,19 @@ namespace DIYsect.Editor
             Debug.Log($"{ScenePath}: student view window at {position}.");
         }
 
-        private static void AddButton(Transform parent, string name, string label, Vector3 position, StudentViewWindow window, UnityAction action)
+        private static void AddButton(Transform parent, string name, string label, Vector3 position, StudentViewWindow window, UnityAction action, float width = 0.06f)
         {
             GameObject button = GameObject.CreatePrimitive(PrimitiveType.Cube);
             button.name = name;
             button.transform.SetParent(parent, false);
             button.transform.localPosition = position;
-            button.transform.localScale = new Vector3(0.06f, 0.06f, 0.02f);
+            button.transform.localScale = new Vector3(width, 0.06f, 0.02f);
             button.GetComponent<Renderer>().sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(FrameMaterialPath);
             var interactable = button.AddComponent<XRSimpleInteractable>();
             UnityEventTools.AddVoidPersistentListener(interactable.selectEntered, action);
-            AddText(button.transform, "Label", new Vector3(0f, 0f, -0.6f), label, 0.08f);
+            TextMesh text = AddText(button.transform, "Label", new Vector3(0f, 0f, -0.6f), label, 0.08f);
+            // The button is stretched along X; undo that for the text.
+            text.transform.localScale = new Vector3(0.06f / width, 1f, 1f);
         }
 
         private static TextMesh AddText(Transform parent, string name, Vector3 position, string text, float size)
