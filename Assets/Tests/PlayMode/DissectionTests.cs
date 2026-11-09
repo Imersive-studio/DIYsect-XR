@@ -245,6 +245,26 @@ namespace DIYsect.Networking.Tests
             Assert.AreEqual(DissectionStage.Incised, _server.Stage, "A scalpel that left the zone must not open the skin.");
         }
 
+        [UnityTest]
+        public IEnumerator TracingTheGlowingLineOnTheSkinCompletesTheCut()
+        {
+            yield return StartHostAndSpawnBody();
+            _server = _serverBody.GetComponent<DissectionProgress>();
+#if UNITY_EDITOR
+            var line = _serverBody.GetComponentInChildren<IncisionLinePresenter>(true);
+            SerializedProperty path = new SerializedObject(line).FindProperty("_path");
+            Assert.Greater(path.arraySize, 1, "The glowing line has no points.");
+            for (int i = 0; i < path.arraySize; i++)
+            {
+                Vector3 point = path.GetArrayElementAtIndex(i).vector3Value;
+                SampleResult result = _server.EvaluateSample(point);
+                Assert.AreNotEqual(SampleResult.OffLine, result, $"Point {i} of the glowing line ({point}) was judged off the line.");
+                Assert.AreNotEqual(SampleResult.TooFar, result, $"Point {i} of the glowing line was judged too far ahead.");
+            }
+#endif
+            Assert.AreEqual(DissectionStage.Incised, _server.Stage, "Tracing the glowing line from end to end must complete the cut.");
+        }
+
         // A point on the midline at the given fraction, in body-local space.
         private Vector3 OnLine(float fraction)
         {

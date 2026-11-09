@@ -56,6 +56,8 @@ Owner: B. Labels: unity-setup, role:b, dissection.
 
 Done when: Incision progress follows the midline; both flaps open only after completion and state syncs to peers.
 
+How a cut is judged (`IncisionRule`): the belly arches up to about 4 cm above the straight line between the cut's ends, and the glowing guide follows the skin. A blade point counts when it is within 4 cm of the midline sideways and its height lies between 4 cm below the straight line and 4 cm above the skin, so tracing the guide or pressing into the body both work. The skin points are stored on `DissectionProgress` and the trigger box is sized to hold the whole guide; both come from **Tools > DIYsect > Add Body Dissection**.
+
 ## 10. Open muscle wall; lift omentum with forceps
 
 Owner: B. Labels: unity-setup, role:b, dissection.

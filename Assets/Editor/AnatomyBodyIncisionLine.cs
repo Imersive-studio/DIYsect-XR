@@ -24,13 +24,9 @@ namespace DIYsect.Editor
         private const float Width = 0.003f;
         private static readonly Color CutColor = new Color(0.42f, 0.03f, 0.03f);
 
-        public static void Apply(GameObject root, DissectionProgress progress, IEnumerable<Transform> flaps)
+        /// <summary>Adds the line along <paramref name="path"/>, the skin points from <see cref="MeasurePath"/>.</summary>
+        public static void Apply(GameObject root, DissectionProgress progress, Vector3[] path)
         {
-            var skin = new List<Vector3>();
-            foreach (Transform flap in flaps)
-                skin.AddRange(AnatomyBodyDissection.RootLocalVertices(root.transform, flap));
-            Vector3[] path = MeasurePath(skin, progress.LineStart, progress.LineEnd);
-
             Transform child = root.transform.Find(ChildName);
             if (child == null)
             {
@@ -61,7 +57,8 @@ namespace DIYsect.Editor
             Debug.Log($"{ChildName}: {path.Length} points on the skin from {path[0]} to {path[path.Length - 1]}.");
         }
 
-        private static Vector3[] MeasurePath(List<Vector3> skin, Vector3 start, Vector3 end)
+        /// <summary>Evenly spaced points on the skin along the midline, from start to end, in the body root's space.</summary>
+        internal static Vector3[] MeasurePath(List<Vector3> skin, Vector3 start, Vector3 end)
         {
             var midline = skin.FindAll(p => Mathf.Abs(p.x) <= MidlineBand);
             if (midline.Count == 0)
