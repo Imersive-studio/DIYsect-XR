@@ -38,7 +38,15 @@ namespace DIYsect.Editor
                 Debug.LogError($"[BuildAllDemoApks] Stopped at {result.Failed.Name}. {result.Error}");
                 return false;
             }
-            WriteSummary(result.Completed);
+            // The APKs are already built, so a summary that cannot be written is a warning, not a failed build.
+            try
+            {
+                WriteSummary(result.Completed);
+            }
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
+            {
+                Debug.LogWarning($"[BuildAllDemoApks] The builds succeeded, but {SummaryPath} could not be written: {e.Message}");
+            }
             Debug.Log($"[BuildAllDemoApks] All {result.Completed.Count} builds succeeded. Summary: {SummaryPath}");
             return true;
         }
