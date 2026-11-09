@@ -4,15 +4,18 @@ using System.IO;
 using DIYsect.Classroom;
 using DIYsect.ClassRoster;
 using UnityEditor;
+using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace DIYsect.Editor
 {
     /// <summary>
     /// Builds the professor's class roster in Professor_MR: a dark panel on the professor's right, turned toward the
-    /// professor, listing every student in the room with their device and how many questions they have pinned.
+    /// professor, listing every student in the room with their device, a marker when their hand is up, and how many questions they have pinned.
     /// It is a child of the DIYsect root, so table alignment carries it along, and it sits opposite the student view
     /// window, which is on the left. Safe to run more than once.
     /// </summary>
@@ -22,6 +25,8 @@ namespace DIYsect.Editor
         private const string RootName = "DIYsect";
         private const string RosterName = "ClassRoster";
         private const string FrameMaterialPath = "Assets/Models/Environment/ClassRosterFrame.mat";
+        private const string ButtonMaterialPath = "Assets/Models/Environment/StudentViewFrame.mat";
+        private static readonly Vector3 ButtonSize = new Vector3(0.22f, 0.06f, 0.02f);
         private static readonly Vector2 PanelSize = new Vector2(0.78f, 0.4f);
         // From the table centre: to the professor's right, a little nearer, at eye height.
         private static readonly Vector3 OffsetFromTable = new Vector3(0.95f, 0f, -0.25f);
@@ -67,11 +72,20 @@ namespace DIYsect.Editor
             text.fontSize = 64;
             text.color = Color.white;
 
+            HandBoard hands = board.GetComponent<HandBoard>()
+                ?? throw new InvalidOperationException("The body has no HandBoard. Run Tools > DIYsect > Add Raise Hand.");
             var panel = rosterObject.AddComponent<ClassRosterPanel>();
             var serialized = new SerializedObject(panel);
             serialized.FindProperty("_board").objectReferenceValue = board;
+            serialized.FindProperty("_hands").objectReferenceValue = hands;
             serialized.FindProperty("_text").objectReferenceValue = text;
             serialized.ApplyModifiedPropertiesWithoutUndo();
+
+            // Two ray-select buttons under the panel, like the quiz panel's: take down the hand that went up first, or all of them.
+            Material buttons = LoadOrCreateMaterial(ButtonMaterialPath, "Universal Render Pipeline/Lit", new Color(0.12f, 0.12f, 0.14f));
+            float row = -PanelSize.y / 2f - 0.05f;
+            AddButton(rosterObject.transform, "LowerNextHand", "Lower next hand", new Vector3(-0.12f, row, 0f), buttons, panel.LowerNext);
+            AddButton(rosterObject.transform, "LowerAllHands", "Lower all hands", new Vector3(0.12f, row, 0f), buttons, panel.LowerAll);
 
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))
@@ -96,16 +110,47 @@ namespace DIYsect.Editor
 
         private static Material LoadOrCreateFrameMaterial()
         {
-            var material = AssetDatabase.LoadAssetAtPath<Material>(FrameMaterialPath);
+            return LoadOrCreateMaterial(FrameMaterialPath, "Universal Render Pipeline/Lit", new Color(0.08f, 0.09f, 0.12f));
+        }
+
+        private static Material LoadOrCreateMaterial(string path, string shaderName, Color color)
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (material != null)
                 return material;
-            Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+            Shader shader = Shader.Find(shaderName);
             if (shader == null)
-                throw new InvalidOperationException("Universal Render Pipeline/Lit shader not found.");
-            material = new Material(shader) { name = Path.GetFileNameWithoutExtension(FrameMaterialPath) };
-            material.SetColor("_BaseColor", new Color(0.08f, 0.09f, 0.12f));
-            AssetDatabase.CreateAsset(material, FrameMaterialPath);
+                throw new InvalidOperationException($"{shaderName} shader not found.");
+            material = new Material(shader) { name = Path.GetFileNameWithoutExtension(path) };
+            material.SetColor("_BaseColor", color);
+            AssetDatabase.CreateAsset(material, path);
             return material;
+        }
+
+        // A cube with an XRSimpleInteractable that calls the action when the ray selects it, and a label on its front.
+        // The label is scaled back to square, so a wide button does not stretch its text.
+        private static void AddButton(Transform parent, string name, string label, Vector3 position, Material material, UnityAction action)
+        {
+            GameObject button = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            button.name = name;
+            button.transform.SetParent(parent, false);
+            button.transform.localPosition = position;
+            button.transform.localScale = ButtonSize;
+            button.GetComponent<Renderer>().sharedMaterial = material;
+            var interactable = button.AddComponent<XRSimpleInteractable>();
+            UnityEventTools.AddVoidPersistentListener(interactable.selectEntered, action);
+
+            var textObject = new GameObject("Label");
+            textObject.transform.SetParent(button.transform, false);
+            textObject.transform.localPosition = new Vector3(0f, 0f, -0.6f);
+            textObject.transform.localScale = new Vector3(ButtonSize.y / ButtonSize.x, 1f, 1f);
+            var mesh = textObject.AddComponent<TextMesh>();
+            mesh.text = label;
+            mesh.anchor = TextAnchor.MiddleCenter;
+            mesh.alignment = TextAlignment.Center;
+            mesh.characterSize = 0.05f;
+            mesh.fontSize = 64;
+            mesh.color = Color.white;
         }
 
         private static Transform FindRoot(Scene scene)

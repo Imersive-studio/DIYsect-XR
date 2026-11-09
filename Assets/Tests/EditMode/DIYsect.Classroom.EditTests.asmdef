@@ -5,7 +5,8 @@
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner",
     "DIYsect.Classroom",
-    "Unity.Collections"
+    "Unity.Collections",
+    "Unity.Netcode.Runtime"
   ],
   "includePlatforms": [
     "Editor"

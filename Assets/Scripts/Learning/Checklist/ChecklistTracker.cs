@@ -27,12 +27,21 @@ namespace DIYsect.Learning
 
         private readonly ChecklistProgress _progress = new ChecklistProgress();
         private Coroutine _inspectTimer;
+        private float _inspectionStarted;
 
         /// <summary>Raised with the new state each time the checklist changes.</summary>
         public event Action<ChecklistState> StateChanged;
 
+        // Presentation snaps after the initial network snapshot, even if the panel enabled before spawn.
+        public event Action StateSynchronized;
+
         /// <summary>The step the student has to do next.</summary>
         public ChecklistState State => _progress.State;
+
+        public int ActiveOrgan => _progress.ActiveOrgan;
+        public float InspectionFraction => State == ChecklistState.InspectOrgan
+            ? Mathf.Clamp01((Time.time - _inspectionStarted) / _inspectSeconds)
+            : State >= ChecklistState.PutOrganBack ? 1f : 0f;
 
         private void Awake()
         {
@@ -69,7 +78,10 @@ namespace DIYsect.Learning
             _progress.ApplyStage(stage);
             // A joining device gets no holder events for what is already in someone's hand, so read the holders once.
             if (initial)
+            {
                 ReadHolders();
+                StateSynchronized?.Invoke();
+            }
         }
 
         private void ReadHolders()
@@ -96,7 +108,10 @@ namespace DIYsect.Learning
         {
             StopInspectTimer();
             if (state == ChecklistState.InspectOrgan)
+            {
+                _inspectionStarted = Time.time;
                 _inspectTimer = StartCoroutine(InspectAfterDelay());
+            }
             StateChanged?.Invoke(state);
         }
 

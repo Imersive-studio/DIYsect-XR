@@ -23,6 +23,9 @@ namespace XRMultiplayer
         [SerializeField, Tooltip("Join the first public room found when no code was given. Turn off to make every classmate use the code or the link, like a meeting invite.")]
         private bool _autoJoinAnyRoom = true;
 
+        [SerializeField, Tooltip("Wait for the classmate to press Join on the start screen before looking for a room. An invite link or a typed code counts as pressing it. Off keeps the old behaviour: join on its own.")]
+        private bool _waitForJoinPress;
+
         private Coroutine _loop;
         private string _pendingCode = string.Empty;
         private bool _explicitCodeRequested;
@@ -36,6 +39,23 @@ namespace XRMultiplayer
 
         /// <summary>Public-room discovery is suppressed after any explicit code submission, including an invalid one.</summary>
         public bool ShouldAutoJoinAnyRoom => _autoJoinAnyRoom && !_explicitCodeRequested;
+
+        /// <summary>When on, nothing is joined until <see cref="JoinPressed"/> (see <see cref="PressJoin"/>). Off by default, so other scenes join on their own.</summary>
+        public bool WaitForJoinPress
+        {
+            get => _waitForJoinPress;
+            set => _waitForJoinPress = value;
+        }
+
+        /// <summary>True once the classmate asked to join: the start screen button, a typed code, or an invite link.</summary>
+        public bool JoinPressed { get; private set; }
+
+        /// <summary>The classmate pressed Join on the start screen: join the first public room, or the code if one was given.</summary>
+        public void PressJoin()
+        {
+            JoinPressed = true;
+            CodeRejected = false;
+        }
 
         /// <summary>The room code waiting to be used, or empty.</summary>
         public string PendingCode => _pendingCode;
@@ -51,6 +71,7 @@ namespace XRMultiplayer
                 return false;
             _pendingCode = code;
             CodeRejected = false;
+            JoinPressed = true;
             return true;
         }
 
@@ -99,6 +120,11 @@ namespace XRMultiplayer
             var wait = new WaitForSeconds(_retrySeconds);
             while (!RoomJoiner.Connected)
             {
+                if (_waitForJoinPress && !JoinPressed)
+                {
+                    yield return null;
+                    continue;
+                }
                 if (_pendingCode.Length > 0)
                 {
                     string code = _pendingCode;

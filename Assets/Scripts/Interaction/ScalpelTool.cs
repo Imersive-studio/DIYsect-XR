@@ -59,6 +59,9 @@ namespace DIYsect.Interaction
         {
             if (!other.TryGetComponent(out IncisionTrigger zone) || zone.Target != _target)
                 return;
+            // Every collider on the scalpel reports here. The handle or the grab zone leaving must not end the cut.
+            if (TipIsInside(other))
+                return;
             StopSampling();
             // Leaving the zone ends this cut: a later completion by someone else must not make this scalpel open the skin.
             Detach();
@@ -68,6 +71,12 @@ namespace DIYsect.Interaction
         private bool IsTipCollider(Collider other)
         {
             return _tip != null && Vector3.Distance(_tip.position, other.ClosestPoint(_tip.position)) < 0.005f;
+        }
+
+        // Smaller than the tip's own trigger radius, so the tip's real exit never counts as still inside.
+        private bool TipIsInside(Collider zone)
+        {
+            return _tip != null && Vector3.Distance(_tip.position, zone.ClosestPoint(_tip.position)) < 0.001f;
         }
 
         private void Attach(ICuttable target)

@@ -21,7 +21,7 @@ namespace DIYsect.Editor
     /// 2. Builds the professor's quiz panel in Professor_MR, beside the table on the professor's right (the student
     ///    view window is on the left): status text and ray-selectable &lt; &gt; Start End Clear buttons. The panel is
     ///    given the default question set (DefaultQuizQuestions.asset).
-    /// 3. Gives the classmate camera in Classmate_Desktop a QuizAnswerInput and a quiz line at the top of the screen.
+    /// 3. Gives the classmate camera in Classmate_Desktop a QuizAnswerInput and a quiz line at the top of the screen, and lists the answer input as a tap claimer on its PinPlacementInput.
     /// </summary>
     public static class AddQuiz
     {
@@ -168,6 +168,18 @@ namespace DIYsect.Editor
             answerSerialized.FindProperty("_gestures").objectReferenceValue = tracker;
             answerSerialized.FindProperty("_camera").objectReferenceValue = rig.GetComponent<Camera>();
             answerSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            // A tap during a round answers the quiz, so the question-pin input must not also place a pin.
+            var pins = rig.GetComponent<PinPlacementInput>()
+                ?? throw new InvalidOperationException($"{ClassmateRigName} has no PinPlacementInput. Run Tools > DIYsect > Add Classmate Desktop Camera.");
+            var pinSerialized = new SerializedObject(pins);
+            SerializedProperty claimers = pinSerialized.FindProperty("_tapClaimers");
+            claimers.arraySize = 1;
+            claimers.GetArrayElementAtIndex(0).objectReferenceValue = answers;
+            pinSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            // The same tap shows an organ name when there is no round; during one it is an answer and shows none.
+            AddOrganNameTap.SetClaimers(rig);
 
             Text label = GetOrCreateQuizLine(rig);
             var prompt = rig.GetComponent<QuizPrompt>();

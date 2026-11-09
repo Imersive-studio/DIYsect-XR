@@ -8,6 +8,8 @@
     "Unity.XR.Interaction.Toolkit",
     "Unity.InputSystem",
     "DIYsect.Menu",
+    "DIYsect.Networking",
+    "XRMP",
     "DIYsect.MixedReality",
     "DIYsect.Interaction",
     "DIYsect.Editor.InstrumentGrab"

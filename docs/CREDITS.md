@@ -16,3 +16,7 @@
 Derived anatomy files and anatomy previews are shared under CC BY-SA 4.0. Keep attribution and the same license with redistributed derivatives. These asset terms do not change the licenses of independent code or other assets. This is an educational prototype; the synthetic skin and simplified geometry require visual review.
 
 License texts: https://creativecommons.org/licenses/by-sa/4.0/ ; https://creativecommons.org/licenses/by-sa/2.1/jp/ ; https://creativecommons.org/licenses/by/4.0/ ; https://creativecommons.org/licenses/by-nc/4.0/ .
+
+## Seated audience
+
+The classmates in `Assets/Models/Audience` are rendered images of ten adult avatars from [Microsoft Rocketbox](https://github.com/microsoft/Microsoft-Rocketbox), MIT License, Copyright (c) 2020 Microsoft. The full notice is in `Assets/Models/Audience/LICENSE-Rocketbox.txt`. The avatars were posed seated and rendered once to transparent images. The source models are not in this repository.

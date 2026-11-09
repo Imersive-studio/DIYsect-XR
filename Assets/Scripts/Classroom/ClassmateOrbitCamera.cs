@@ -36,6 +36,18 @@ namespace DIYsect.Classroom
         public float MinDistance => _minDistance;
         public float MaxDistance => _maxDistance;
         public float MinPitch => _minPitch;
+
+        /// <summary>
+        /// True while something else (the follow camera) places the camera. The orbit state is kept as it was, drag and zoom are
+        /// ignored, and <see cref="MyPosition"/> and <see cref="MyRotation"/> still say where my view is, so it can be restored.
+        /// </summary>
+        public bool Driven { get; set; }
+
+        /// <summary>Where my own orbit view puts the camera now, whether or not the transform follows it.</summary>
+        public Vector3 MyPosition { get; private set; }
+
+        /// <summary>Which way my own orbit view looks now.</summary>
+        public Quaternion MyRotation { get; private set; } = Quaternion.identity;
         public float MaxPitch => _maxPitch;
 
         private void Awake()
@@ -63,8 +75,12 @@ namespace DIYsect.Classroom
         // After the tracker's Update, so this frame's gestures are already known.
         private void LateUpdate()
         {
-            Orbit(_gestures.FrameDrag);
-            Zoom(_gestures.FrameZoom);
+            // While another script drives the camera, drag and zoom change nothing.
+            if (!Driven)
+            {
+                Orbit(_gestures.FrameDrag);
+                Zoom(_gestures.FrameZoom);
+            }
             Step(Time.unscaledDeltaTime);
         }
 
@@ -90,7 +106,10 @@ namespace DIYsect.Classroom
             _pitch = Mathf.Lerp(_pitch, _goalPitch, OrbitMath.DampFactor(_damping, deltaTime));
             _distance = Mathf.Lerp(_distance, _goalDistance, OrbitMath.DampFactor(_damping, deltaTime));
             OrbitMath.Pose(_target.position, _yaw, _pitch, _distance, out Vector3 position, out Quaternion rotation);
-            transform.SetPositionAndRotation(position, rotation);
+            MyPosition = position;
+            MyRotation = rotation;
+            if (!Driven)
+                transform.SetPositionAndRotation(position, rotation);
         }
 
         /// <summary>Sends the goal back to the starting framing; the camera eases there.</summary>

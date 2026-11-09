@@ -8,7 +8,7 @@ namespace DIYsect.ClassRoster
 {
     /// <summary>
     /// A floating panel in the professor's headset that lists every student in the room: their name, whether they are on
-    /// a headset or a phone or laptop, and how many questions they have pinned. It refreshes when a pin changes and about
+    /// a headset or a phone or laptop, whether their hand is up and how many questions they have pinned. It refreshes when a pin changes and about
     /// once a second otherwise, because a student's name arrives a moment after they join.
     /// </summary>
     public class ClassRosterPanel : MonoBehaviour
@@ -17,6 +17,8 @@ namespace DIYsect.ClassRoster
         private const int LastHeadsetPlatform = 2;
 
         [SerializeField] private QuestionBoard _board;
+        [SerializeField, Tooltip("The raised hands. The roster shows a hand next to each name, first to raise first.")]
+        private HandBoard _hands;
         [SerializeField] private TextMesh _text;
         [SerializeField, Min(0.25f)] private float _refreshSeconds = 1f;
 
@@ -36,6 +38,8 @@ namespace DIYsect.ClassRoster
         {
             if (_board != null)
                 _board.PinsChanged += Refresh;
+            if (_hands != null)
+                _hands.Changed += Refresh;
             Refresh();
         }
 
@@ -43,6 +47,22 @@ namespace DIYsect.ClassRoster
         {
             if (_board != null)
                 _board.PinsChanged -= Refresh;
+            if (_hands != null)
+                _hands.Changed -= Refresh;
+        }
+
+        /// <summary>Takes down the hand that went up first (the next student to answer). Does nothing when no hand is up.</summary>
+        public void LowerNext()
+        {
+            if (_hands != null && _hands.Count > 0)
+                _hands.RequestLower(_hands[0]);
+        }
+
+        /// <summary>Takes down every hand.</summary>
+        public void LowerAll()
+        {
+            if (_hands != null)
+                _hands.RequestLowerAll();
         }
 
         private void Update()
@@ -61,7 +81,7 @@ namespace DIYsect.ClassRoster
                 if (player == XRINetworkPlayer.LocalPlayer || !player.IsSpawned)
                     continue;
                 RosterKind kind = player.platformType.Value <= LastHeadsetPlatform ? RosterKind.Headset : RosterKind.Screen;
-                entries.Add(new RosterEntry(player.OwnerClientId, player.playerName, kind, CountQuestions(player.OwnerClientId)));
+                entries.Add(new RosterEntry(player.OwnerClientId, player.playerName, kind, CountQuestions(player.OwnerClientId), _hands != null ? _hands.OrderOf(player.OwnerClientId) : 0));
             }
 
             // The invite is shown once a room exists, so the professor always has the code to read out.

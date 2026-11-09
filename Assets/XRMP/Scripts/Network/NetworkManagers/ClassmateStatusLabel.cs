@@ -13,6 +13,9 @@ namespace XRMultiplayer
         [SerializeField, Range(0.015f, 0.06f), Tooltip("Text height as a fraction of the screen's short side.")]
         private float _textSize = 0.032f;
 
+        /// <summary>Whether the room code box is drawn while not in a room. The start screen turns it off, because it has its own.</summary>
+        public bool ShowCodeEntry { get; set; } = true;
+
         private ClassmateAutoJoin _join;
         private string _typedCode = string.Empty;
         private string _codeMessage = string.Empty;
@@ -83,7 +86,7 @@ namespace XRMultiplayer
             float left = safe.x + 12f;
             float top = Screen.height - (safe.y + safe.height) + 12f;
             GUI.Label(new Rect(left, top, size.x, size.y), _text, _style);
-            if (!_connected)
+            if (!_connected && ShowCodeEntry)
                 DrawCodeEntry(left, top + size.y + 10f);
         }
 

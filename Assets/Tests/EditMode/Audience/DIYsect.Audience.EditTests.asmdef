@@ -1,0 +1,9 @@
+{
+  "name": "DIYsect.Audience.EditTests",
+  "references": ["DIYsect.Audience", "DIYsect.Editor.Audience", "Unity.Netcode.Runtime", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
+  "includePlatforms": ["Editor"],
+  "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll"],
+  "autoReferenced": false,
+  "defineConstraints": ["UNITY_INCLUDE_TESTS"]
+}
