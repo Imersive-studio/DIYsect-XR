@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e85a11b43304a9aadbe714065988625, type: 3}
+  m_Name: DefaultQuizQuestions
+  m_EditorClassIdentifier: 
+  _questions:
+  - _prompt: Tap the organ that stores bile
+    _targetOrgan: gallbladder
+  - _prompt: Tap the largest solid organ in the abdomen
+    _targetOrgan: liver
+  - _prompt: Tap the organ that filters old blood cells
+    _targetOrgan: spleen
+  - _prompt: Tap the organ that mixes food with stomach acid
+    _targetOrgan: stomach
+  - _prompt: Tap the heart chamber that pumps blood out to the body
+    _targetOrgan: left_ventricle
+  - _prompt: Tap the heart chamber that pumps blood to the lungs
+    _targetOrgan: right_ventricle
+  - _prompt: Tap the organ that makes insulin
+    _targetOrgan: pancreas
+  - _prompt: Tap the first part of the small intestine
+    _targetOrgan: duodenum
+  - _prompt: Tap the S-shaped end of the colon
+    _targetOrgan: sigmoid_colon
+  - _prompt: Tap the patient's left kidney
+    _targetOrgan: kidney_l
