@@ -1,6 +1,7 @@
 // Authority: none. Presentation only; it reads who holds each organ and what the server judged, and never writes either.
 using System.Collections.Generic;
 using DIYsect.Networking;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -8,7 +9,7 @@ namespace DIYsect.Interaction
 {
     /// <summary>
     /// Shows the other half of grabbing on every client. While anyone holds an organ it shows the organ's name
-    /// above it and a see-through copy of the organ at its socket. On release both go away. When the server
+    /// as a callout (a leader line with its role) and a see-through copy of the organ at its socket. On release both go away. When the server
     /// accepts or rejects a drop, the ghost flashes green or red for a moment.
     /// Labels and ghosts are created the first time an organ is held. Everything is driven by events, so there is
     /// no per-frame code here. A client that joins late shows the organs that are already held.
@@ -21,14 +22,17 @@ namespace DIYsect.Interaction
         [SerializeField] private Color _acceptedColor = new Color(0.2f, 1f, 0.3f, 0.6f);
         [SerializeField] private Color _rejectedColor = new Color(1f, 0.2f, 0.2f, 0.6f);
         [SerializeField, Min(0.1f)] private float _flashSeconds = 0.8f;
-        [SerializeField, Min(0f), Tooltip("Metres between the organ's centre and its name tag.")]
-        private float _labelHeight = 0.15f;
-        [SerializeField, Min(0.001f)] private float _labelCharacterSize = 0.01f;
+        [SerializeField, Tooltip("Words for each organ. Run Tools > DIYsect > Apply Label Design to fill this in.")]
+        private OrganCaptions _captions;
+        [SerializeField, Tooltip("Callout font (Inter). Run Tools > DIYsect > Apply Label Design to fill this in.")]
+        private TMP_FontAsset _font;
+        [SerializeField, Tooltip("Unlit transparent material for the leader line. Run Tools > DIYsect > Apply Label Design to fill this in.")]
+        private Material _leaderMaterial;
 
         private SharedBody _body;
         private OrganGrabAuthority _authority;
         private OrganSocketKeeper _keeper;
-        private readonly Dictionary<int, OrganLabel> _labels = new Dictionary<int, OrganLabel>();
+        private readonly Dictionary<int, OrganCallout> _callouts = new Dictionary<int, OrganCallout>();
         private readonly Dictionary<int, OrganGhost> _ghosts = new Dictionary<int, OrganGhost>();
 
         private void Awake()
@@ -40,6 +44,10 @@ namespace DIYsect.Interaction
             {
                 Debug.LogError($"{name}: OrganGrabPresenter has no ghost material. Run Tools > DIYsect > Add Organ Sockets.", this);
                 enabled = false;
+            }
+            if (_leaderMaterial == null)
+            {
+                Debug.LogError($"{name}: OrganGrabPresenter has no leader line material. Run Tools > DIYsect > Apply Label Design. Ghosts still work; there will be no callouts.", this);
             }
         }
 
@@ -62,10 +70,10 @@ namespace DIYsect.Interaction
             Clear();
         }
 
-        /// <summary>The name tag of the organ, or null if it has never been held on this client.</summary>
-        public OrganLabel GetLabel(int organIndex)
+        /// <summary>The callout of the organ, or null if it has never been held on this client.</summary>
+        public OrganCallout GetCallout(int organIndex)
         {
-            return _labels.TryGetValue(organIndex, out OrganLabel label) ? label : null;
+            return _callouts.TryGetValue(organIndex, out OrganCallout callout) ? callout : null;
         }
 
         /// <summary>The ghost of the organ, or null if it has never been held on this client.</summary>
@@ -81,11 +89,11 @@ namespace DIYsect.Interaction
             bool held = holder != OrganGrabAuthority.NoHolder;
             if (held)
             {
-                GetOrCreateLabel(organIndex)?.Show();
+                GetOrCreateCallout(organIndex)?.Show();
                 GetOrCreateGhost(organIndex)?.SetHeld(true);
                 return;
             }
-            GetLabel(organIndex)?.Hide();
+            GetCallout(organIndex)?.Hide();
             GetGhost(organIndex)?.SetHeld(false);
         }
 
@@ -100,17 +108,17 @@ namespace DIYsect.Interaction
             ghost.Flash(outcome == SnapOutcome.Accepted ? _acceptedColor : _rejectedColor, _flashSeconds);
         }
 
-        private OrganLabel GetOrCreateLabel(int organIndex)
+        private OrganCallout GetOrCreateCallout(int organIndex)
         {
-            if (_labels.TryGetValue(organIndex, out OrganLabel existing))
+            if (_callouts.TryGetValue(organIndex, out OrganCallout existing))
                 return existing;
+            if (_leaderMaterial == null)
+                return null;
             Transform organ = _body.Organs[organIndex].transform;
-            Vector3 centre = organ.TryGetComponent(out ISnappable snappable)
-                ? Quaternion.Inverse(snappable.CurrentCentrePose.rotation) * (snappable.CurrentCentrePose.position - organ.localPosition)
-                : Vector3.zero;
-            var label = OrganLabel.Create(organ, centre, OrganNames.Display(organ.name), _labelHeight, _labelCharacterSize);
-            _labels[organIndex] = label;
-            return label;
+            OrganCaption caption = OrganCaptions.Lookup(_captions, organ.name);
+            var callout = OrganCallout.Create(organ, caption, LabelText.Resolve(_font, this), _leaderMaterial);
+            _callouts[organIndex] = callout;
+            return callout;
         }
 
         private OrganGhost GetOrCreateGhost(int organIndex)
@@ -128,13 +136,13 @@ namespace DIYsect.Interaction
 
         private void Clear()
         {
-            foreach (OrganLabel label in _labels.Values)
-                if (label != null)
-                    Destroy(label.gameObject);
+            foreach (OrganCallout callout in _callouts.Values)
+                if (callout != null)
+                    Destroy(callout.gameObject);
             foreach (OrganGhost ghost in _ghosts.Values)
                 if (ghost != null)
                     Destroy(ghost.gameObject);
-            _labels.Clear();
+            _callouts.Clear();
             _ghosts.Clear();
         }
     }

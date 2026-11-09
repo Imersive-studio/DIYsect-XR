@@ -1,23 +1,27 @@
-using System.Text;
-
 namespace DIYsect.Learning
 {
-    /// <summary>Turns an <see cref="OrganInfoEntry"/> into the words on the card. Plain C#, so it is easy to test.</summary>
+    /// <summary>The words of the inspection title, taken from an <see cref="OrganInfoEntry"/>. Plain C#, so it is easy to test.</summary>
     public static class OrganInfoCardText
     {
-        /// <summary>
-        /// The name in bold, the function, then the fact after "Good to know:". The card's text field understands the
-        /// bold tag. Returns an empty string for a missing entry.
-        /// </summary>
-        public static string Build(OrganInfoEntry entry)
+        /// <summary>The small label above the title.</summary>
+        public const string Eyebrow = "ANATOMICAL STRUCTURE";
+
+        /// <summary>The organ's name in capitals. Empty for a missing entry.</summary>
+        public static string Title(OrganInfoEntry entry)
         {
-            if (entry == null)
-                return string.Empty;
-            var text = new StringBuilder();
-            text.Append("<b>").Append(entry.DisplayName).Append("</b>\n");
-            text.Append(entry.Function).Append("\n\n");
-            text.Append("<b>Good to know:</b> ").Append(entry.Fact);
-            return text.ToString();
+            return entry == null || entry.DisplayName == null ? string.Empty : entry.DisplayName.ToUpperInvariant();
+        }
+
+        /// <summary>The sentence about what the organ does. Empty for a missing entry.</summary>
+        public static string Function(OrganInfoEntry entry)
+        {
+            return entry?.Function ?? string.Empty;
+        }
+
+        /// <summary>The short extra fact. Empty for a missing entry.</summary>
+        public static string Fact(OrganInfoEntry entry)
+        {
+            return entry?.Fact ?? string.Empty;
         }
     }
 }

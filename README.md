@@ -71,6 +71,8 @@ The Unity scene previews show `LectureHall_VR` from where the student stands: in
 ![Lecture hall seen from behind the student](docs/previews/scene_hall.png)
 ![Scalpel and forceps on the instrument stand](docs/previews/scene_instruments.png)
 
+Organ labels and step instructions share one look and motion table: see [labels and instructions](docs/LABEL_DESIGN.md).
+
 See the [student controls and seated audience setup](docs/VR_CONTROLS.md) for the lecture hall.
 
 ## Performance

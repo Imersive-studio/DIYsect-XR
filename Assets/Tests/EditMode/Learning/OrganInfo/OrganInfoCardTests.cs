@@ -1,20 +1,14 @@
-using DIYsect.Networking;
 using NUnit.Framework;
+using TMPro;
+using UnityEditor;
 using UnityEngine;
 
 namespace DIYsect.Learning.Tests
 {
-    /// <summary>Builds a card on a stand-in organ. The per-frame placement needs a running scene, so it is not tested here.</summary>
+    /// <summary>Builds a card on a stand-in organ. The per-frame placement needs a running scene, so only the build is tested here.</summary>
     public class OrganInfoCardTests
     {
-        private class FakeSnappable : ISnappable
-        {
-            public bool IsValid => true;
-            public Pose HomeRootPose => new Pose(Vector3.zero, Quaternion.identity);
-            public Pose HomeCentrePose => new Pose(Vector3.zero, Quaternion.identity);
-            public Pose CurrentCentrePose => new Pose(Vector3.zero, Quaternion.identity);
-            public void SnapHome() { }
-        }
+        private const string FontPath = "Assets/MRTabletopAssets/Fonts/Inter-Regular SDF.asset";
 
         private GameObject _organ;
         private OrganInfoCard _card;
@@ -22,10 +16,12 @@ namespace DIYsect.Learning.Tests
         [SetUp]
         public void BuildCard()
         {
-            _organ = new GameObject("liver");
-            var snappable = new FakeSnappable();
-            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            _card = OrganInfoCard.Create(_organ.transform, snappable, "<b>Liver</b>\nMakes bile.", 0.25f, font);
+            _organ = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            _organ.name = "liver";
+            var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
+            Assert.IsNotNull(font, $"{FontPath} is missing.");
+            var entry = new OrganInfoEntry("liver", "Liver", "Makes bile.", "It can regrow.", "Digestive system", "Produces bile");
+            _card = OrganInfoCard.Create(_organ.transform, entry, font, null, 0.11f);
         }
 
         [TearDown]
@@ -37,10 +33,12 @@ namespace DIYsect.Learning.Tests
         }
 
         [Test]
-        public void ACardStartsHiddenAndHoldsItsText()
+        public void ACardStartsHiddenAndHoldsItsWords()
         {
             Assert.IsFalse(_card.IsShown);
-            Assert.AreEqual("<b>Liver</b>\nMakes bile.", _card.Content);
+            Assert.AreEqual("LIVER", _card.Title);
+            Assert.AreEqual("Makes bile.", _card.Function);
+            Assert.AreEqual("It can regrow.", _card.Fact);
         }
 
         [Test]
@@ -51,18 +49,13 @@ namespace DIYsect.Learning.Tests
 
             _card.Hide();
             Assert.IsFalse(_card.IsShown);
+            Assert.IsTrue(_card.IsVisible, "It fades out over a moment before it is gone.");
         }
 
         [Test]
         public void TheCardIsNotAChildOfTheOrgan()
         {
             Assert.IsNull(_card.transform.parent);
-        }
-
-        [Test]
-        public void TheCardIsAWorldSpaceCanvas()
-        {
-            Assert.AreEqual(RenderMode.WorldSpace, _card.GetComponent<Canvas>().renderMode);
         }
     }
 }

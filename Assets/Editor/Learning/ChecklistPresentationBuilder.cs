@@ -8,6 +8,7 @@ using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using DIYsect.Presentation;
 
 namespace DIYsect.Editor
 {
@@ -24,6 +25,10 @@ namespace DIYsect.Editor
             TMP_FontAsset font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
             if (font == null) throw new InvalidOperationException($"Missing checklist font: {FontPath}");
             DissectionProgress dissection = root.GetComponentInChildren<DissectionProgress>(true);
+            SharedBody body = dissection.GetComponent<SharedBody>();
+            OrganGrabAuthority grabs = dissection.GetComponent<OrganGrabAuthority>();
+            if (body == null || grabs == null)
+                throw new InvalidOperationException("The checklist needs the body's SharedBody and OrganGrabAuthority. Run Add Body Networking.");
             var panel = Child(parent, "Panel");
             Vector3 head = new Vector3(root.position.x, 1.4f, root.position.z);
             foreach (GameObject sceneRoot in root.gameObject.scene.GetRootGameObjects())
@@ -37,42 +42,184 @@ namespace DIYsect.Editor
             panel.SetPositionAndRotation(position, Quaternion.LookRotation(position - head, Vector3.up));
             // Set the initial angular size from the actual rig position, then leave the panel anchored in the room.
             panel.localScale = Vector3.one * Mathf.Max(1f, Vector3.Distance(position, head) / 1.3f);
-            var card = Child(panel, "Next step");
+            ChecklistState first = ChecklistState.TraceIncision;
+
+            // Card: "Next step". Sorting inside the panel: halo 0, outline 1, fill 2, accents 3, chips and icon tile 4, text 10.
+            Transform card = Child(panel, "Next step");
             card.localPosition = new Vector3(0f, 0.25f, 0f);
-            Backing(card, material, new Vector2(0.68f, 0.21f));
-            TMP_Text cardText = Text(card, "Instruction", font, new Vector2(0.61f, 0.17f), 0.036f);
-            cardText.text = ChecklistLabels.Instruction(ChecklistState.TraceIncision);
-            cardText.fontStyle = FontStyles.Bold;
-            TMP_Text outgoing = Text(card, "Previous instruction", font, new Vector2(0.61f, 0.17f), 0.036f);
-            outgoing.fontStyle = FontStyles.Bold;
+            GuideShape halo = Shape(card, "Halo", GuideShapeKind.RoundedRect, new Vector2(0.75f, 0.28f), 0.045f, 0f,
+                GuidePalette.MintGlow, 0, new Vector3(0f, 0f, 0.002f), material);
+            Shape(card, "Outline", GuideShapeKind.RoundedRect, new Vector2(0.724f, 0.254f), 0.032f, 0f,
+                GuidePalette.MintLine, 1, new Vector3(0f, 0f, 0.001f), material);
+            Shape(card, "Fill", GuideShapeKind.RoundedRect, new Vector2(0.72f, 0.25f), 0.03f, 0f,
+                GuidePalette.Ink, 2, Vector3.zero, material);
+            Shape(card, "Accent", GuideShapeKind.RoundedRect, new Vector2(0.008f, 0.18f), 0.004f, 0f,
+                GuidePalette.Coral, 3, new Vector3(-0.348f, 0f, -0.001f), material);
+
+            Shape(card, "Step chip", GuideShapeKind.RoundedRect, new Vector2(0.17f, 0.034f), 0.017f, 0f,
+                GuidePalette.Mint, 4, new Vector3(-0.245f, 0.085f, -0.002f), material);
+            TMP_Text stepChip = Label(card, "Step chip text", font, new Vector3(-0.245f, 0.085f, -0.004f),
+                new Vector2(0.16f, 0.03f), 0.016f, FontStyles.Bold | FontStyles.UpperCase, TextAlignmentOptions.Midline,
+                TextWrappingModes.NoWrap, TextOverflowModes.Overflow, 0f, GuidePalette.Ink, 6f);
+            stepChip.text = ChecklistLabels.ProgressChip(first);
+
+            // The tool chip is one group so the presenter can hide it with a single SetActive.
+            Transform toolChip = Child(card, "Tool chip");
+            toolChip.localPosition = new Vector3(0.27f, 0.085f, -0.002f);
+            Shape(toolChip, "Chip", GuideShapeKind.RoundedRect, new Vector2(0.13f, 0.034f), 0.017f, 0f,
+                GuidePalette.CoralSoft, 4, Vector3.zero, material);
+            TMP_Text toolChipText = Label(toolChip, "Tool chip text", font, new Vector3(0f, 0f, -0.002f),
+                new Vector2(0.12f, 0.03f), 0.015f, FontStyles.Bold | FontStyles.UpperCase, TextAlignmentOptions.Midline,
+                TextWrappingModes.NoWrap, TextOverflowModes.Overflow, 0f, GuidePalette.Coral, 6f);
+            toolChipText.text = ChecklistLabels.ToolName(first);
+            toolChip.gameObject.SetActive(ChecklistLabels.ToolName(first).Length > 0);
+
+            // Icon tile: a slightly lighter rounded square (with a pulsing rim) holding a line drawing of the tool.
+            GuideShape tileRim = Shape(card, "Icon tile rim", GuideShapeKind.RoundedRect, new Vector2(0.128f, 0.128f), 0.03f, 0f,
+                GuidePalette.CoralSoft, 3, new Vector3(-0.255f, -0.012f, -0.001f), material);
+            Shape(card, "Icon tile", GuideShapeKind.RoundedRect, new Vector2(0.12f, 0.12f), 0.026f, 0f,
+                Color.Lerp(GuidePalette.Ink, GuidePalette.Slate, 0.35f), 4, new Vector3(-0.255f, -0.012f, -0.002f), material);
+            Transform iconRoot = Child(card, "Icon");
+            iconRoot.localPosition = new Vector3(-0.255f, -0.012f, -0.004f);
+            var iconStrokes = new LineRenderer[ChecklistIconShapes.MaxStrokes];
+            for (int i = 0; i < iconStrokes.Length; i++)
+            {
+                iconStrokes[i] = Line(iconRoot, $"Stroke {i + 1}", material, 2, false);
+                iconStrokes[i].sortingOrder = 5;
+            }
+            LineRenderer checkMark = Line(card, "Check mark", material, 3, false);
+            checkMark.sortingOrder = 5;
+
+            TMP_Text headline = Label(card, "Headline", font, new Vector3(0.095f, 0.018f, -0.004f),
+                new Vector2(0.5f, 0.06f), 0.042f, FontStyles.Bold, TextAlignmentOptions.MidlineLeft,
+                TextWrappingModes.NoWrap, TextOverflowModes.Ellipsis, 0.028f, GuidePalette.TextPrimary, 0f);
+            headline.text = ChecklistLabels.Headline(first);
+            TMP_Text outgoing = Label(card, "Outgoing headline", font, new Vector3(0.095f, 0.018f, -0.004f),
+                new Vector2(0.5f, 0.06f), 0.042f, FontStyles.Bold, TextAlignmentOptions.MidlineLeft,
+                TextWrappingModes.NoWrap, TextOverflowModes.Ellipsis, 0.026f, GuidePalette.TextPrimary, 0f);
             outgoing.alpha = 0f;
-            var list = Child(panel, "Progress");
-            list.localPosition = new Vector3(0f, -0.1f, 0f);
-            Backing(list, material, new Vector2(0.68f, 0.43f));
-            TMP_Text title = Text(list, "Title", font, new Vector2(0.6f, 0.045f), 0.034f);
-            title.transform.localPosition = new Vector3(0.015f, 0.17f, -0.008f);
-            title.text = ChecklistLabels.Title;
+            TMP_Text hint = Label(card, "Hint", font, new Vector3(0.095f, -0.04f, -0.004f),
+                new Vector2(0.5f, 0.05f), 0.019f, FontStyles.Normal, TextAlignmentOptions.TopLeft,
+                TextWrappingModes.Normal, TextOverflowModes.Overflow, 0.015f, GuidePalette.TextMuted, 0f);
+            hint.text = ChecklistLabels.Hint(first);
+
+            var segments = new GuideShape[ChecklistLabels.StepCount];
+            for (int i = 0; i < segments.Length; i++)
+                segments[i] = Shape(card, $"Segment {i + 1}", GuideShapeKind.RoundedRect, new Vector2(0.08f, 0.01f), 0.005f, 0f,
+                    i == 0 ? GuidePalette.Coral : GuidePalette.Slate, 3, new Vector3(-0.27f + i * 0.09f, -0.105f, -0.002f), material);
+
+            // Progress list: "Progress".
+            Transform list = Child(panel, "Progress");
+            list.localPosition = new Vector3(0f, -0.12f, 0f);
+            Color faintLine = GuidePalette.MintLine;
+            faintLine.a *= 0.6f;
+            Shape(list, "Outline", GuideShapeKind.RoundedRect, new Vector2(0.724f, 0.444f), 0.032f, 0f,
+                faintLine, 1, new Vector3(0f, 0f, 0.001f), material);
+            Shape(list, "Fill", GuideShapeKind.RoundedRect, new Vector2(0.72f, 0.44f), 0.03f, 0f,
+                GuidePalette.InkDeep, 2, Vector3.zero, material);
+            TMP_Text title = Label(list, "Title", font, new Vector3(-0.09f, 0.185f, -0.004f),
+                new Vector2(0.45f, 0.03f), 0.017f, FontStyles.Bold | FontStyles.UpperCase, TextAlignmentOptions.MidlineLeft,
+                TextWrappingModes.NoWrap, TextOverflowModes.Overflow, 0f, GuidePalette.Mint, 8f);
+            title.text = "DISSECTION GUIDE";
+            TMP_Text count = Label(list, "Count", font, new Vector3(0.26f, 0.185f, -0.004f),
+                new Vector2(0.12f, 0.03f), 0.017f, FontStyles.Bold, TextAlignmentOptions.MidlineRight,
+                TextWrappingModes.NoWrap, TextOverflowModes.Overflow, 0f, GuidePalette.TextMuted, 0f);
+            count.text = ChecklistLabels.Count(first);
+            Shape(list, "Divider", GuideShapeKind.RoundedRect, new Vector2(0.64f, 0.002f), 0.001f, 0f,
+                GuidePalette.Slate, 3, new Vector3(0f, 0.16f, -0.001f), material);
+            GuideShape highlight = Shape(list, "Highlight", GuideShapeKind.RoundedRect, new Vector2(0.664f, 0.042f), 0.021f, 0f,
+                GuidePalette.CoralSoft, 3, new Vector3(0f, RowY(0), -0.001f), material);
+
             var rows = new TMP_Text[ChecklistLabels.StepCount];
+            var nodes = new GuideShape[ChecklistLabels.StepCount];
             var ticks = new LineRenderer[ChecklistLabels.StepCount];
+            var connectors = new GuideShape[ChecklistLabels.StepCount - 1];
             for (int i = 0; i < rows.Length; i++)
             {
-                rows[i] = Text(list, $"Step {i + 1}", font, new Vector2(0.56f, 0.044f), 0.023f);
-                rows[i].transform.localPosition = new Vector3(0.03f, 0.115f - i * 0.044f, -0.008f);
+                float y = RowY(i);
+                bool current = i == 0;
+                nodes[i] = Shape(list, $"Node {i + 1}", current ? GuideShapeKind.Disc : GuideShapeKind.Ring,
+                    new Vector2(0.026f, 0.026f), 0f, 0.004f, current ? GuidePalette.Coral : GuidePalette.Slate, 3,
+                    new Vector3(-0.3f, y, -0.003f), material);
+                rows[i] = Label(list, $"Step {i + 1}", font, new Vector3(0.03f, y, -0.004f),
+                    new Vector2(0.56f, 0.04f), 0.021f, current ? FontStyles.Bold : FontStyles.Normal,
+                    TextAlignmentOptions.MidlineLeft, TextWrappingModes.NoWrap, TextOverflowModes.Ellipsis, 0.015f,
+                    current ? GuidePalette.TextPrimary : GuidePalette.TextMuted, 0f);
                 rows[i].text = ChecklistLabels.StepText(i);
+                // Tick: three points sized to fit the 0.026 node, drawn in front of it in Ink.
                 ticks[i] = Line(list, $"Tick {i + 1}", material, 3, false);
-                ticks[i].transform.localPosition = new Vector3(-0.29f, 0.115f - i * 0.044f, -0.009f);
+                ticks[i].transform.localPosition = new Vector3(-0.3f, y, -0.004f);
+                ticks[i].SetPositions(new[]
+                {
+                    new Vector3(-0.0065f, 0f, 0f), new Vector3(-0.002f, -0.0055f, 0f), new Vector3(0.0065f, 0.0055f, 0f),
+                });
+                ticks[i].sortingOrder = 5;
+                var inkBlock = new MaterialPropertyBlock();
+                inkBlock.SetColor("_BaseColor", GuidePalette.Ink);
+                ticks[i].SetPropertyBlock(inkBlock);
                 ticks[i].enabled = false;
+                if (i < connectors.Length)
+                    connectors[i] = Shape(list, $"Connector {i + 1}", GuideShapeKind.RoundedRect, new Vector2(0.003f, 0.024f),
+                        0.0015f, 0f, GuidePalette.Slate, 3, new Vector3(-0.3f, y - 0.025f, -0.002f), material);
             }
+            // Estimate: about 31 shapes (23 rounded rects near 30 triangles, 8 discs or rings near 24 to 48),
+            // 7 tick lines (about 4 each) and 15 text objects (about 350 glyphs, 2 triangles each) is roughly 1,700
+            // triangles and about 60 objects for the whole panel.
             ChecklistBodyCues cues = BuildCues(parent, root, tracker, dissection, material);
             var presenter = panel.gameObject.AddComponent<ChecklistPanel>();
             var serialized = new SerializedObject(presenter);
             Reference(serialized, "_tracker", tracker);
-            Reference(serialized, "_card", cardText);
-            Reference(serialized, "_outgoingCard", outgoing);
-            Reference(serialized, "_cardRoot", card);
             Reference(serialized, "_cues", cues);
+            Reference(serialized, "_cardRoot", card);
+            Reference(serialized, "_headline", headline);
+            Reference(serialized, "_outgoingHeadline", outgoing);
+            Reference(serialized, "_hint", hint);
+            Reference(serialized, "_stepChip", stepChip);
+            Reference(serialized, "_toolChip", toolChip.gameObject);
+            Reference(serialized, "_toolChipText", toolChipText);
+            Reference(serialized, "_tileRim", tileRim);
+            Reference(serialized, "_iconRoot", iconRoot);
+            References(serialized, "_iconStrokes", iconStrokes);
+            Reference(serialized, "_checkMark", checkMark);
+            Reference(serialized, "_grabs", grabs);
+            Reference(serialized, "_halo", halo);
+            References(serialized, "_segments", segments);
+            Reference(serialized, "_count", count);
+            Reference(serialized, "_highlight", highlight);
             References(serialized, "_rows", rows);
+            References(serialized, "_nodes", nodes);
             References(serialized, "_ticks", ticks);
+            References(serialized, "_connectors", connectors);
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            BuildHint(parent, body, grabs, material, font);
+        }
+
+        // The "Turn to examine" pill. Hidden until the first time this device holds an organ.
+        private static void BuildHint(Transform parent, SharedBody body, OrganGrabAuthority grabs, Material material, TMP_FontAsset font)
+        {
+            Transform container = Child(parent, "Contextual hint");
+            Transform root = Child(container, "Pill");
+            GuideShape pill = Shape(root, "Fill", GuideShapeKind.RoundedRect, new Vector2(0.2f, 0.042f), 0.021f, 0f,
+                GuidePalette.Ink, 2, Vector3.zero, material);
+            LineRenderer glyph = Line(root, "Turn glyph", material, ContextualHintGlyph.PointCount(12), false);
+            glyph.transform.localPosition = new Vector3(-0.076f, 0f, -0.002f);
+            glyph.SetPositions(ContextualHintGlyph.Points(0.0085f, 12));
+            glyph.widthMultiplier = 0.002f;
+            glyph.sortingOrder = 5;
+            glyph.enabled = true;
+            TMP_Text text = Label(root, "Hint text", font, new Vector3(0.021f, 0f, -0.003f),
+                new Vector2(0.14f, 0.034f), 0.011f, FontStyles.Bold, TextAlignmentOptions.MidlineLeft,
+                TextWrappingModes.NoWrap, TextOverflowModes.Overflow, 0.008f, GuidePalette.TextPrimary, 0f);
+            text.text = "Turn to examine";
+            root.gameObject.SetActive(false);
+            var hint = container.gameObject.AddComponent<ContextualHint>();
+            var serialized = new SerializedObject(hint);
+            Reference(serialized, "_grabs", grabs);
+            Reference(serialized, "_body", body);
+            Reference(serialized, "_root", root.gameObject);
+            Reference(serialized, "_pill", pill);
+            Reference(serialized, "_text", text);
+            Reference(serialized, "_glyph", glyph);
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -218,22 +365,67 @@ namespace DIYsect.Editor
             return child.transform;
         }
 
-        private static TMP_Text Text(Transform parent, string name, TMP_FontAsset font, Vector2 size, float height)
+        // Centre of progress row i, in the Progress group's local space.
+        private static float RowY(int i) => 0.125f - i * 0.05f;
+
+        private static GuideShape Shape(Transform parent, string name, GuideShapeKind kind, Vector2 size, float radius,
+            float thickness, Color color, int order, Vector3 localPosition, Material material)
         {
             Transform child = Child(parent, name);
-            child.localPosition = new Vector3(0f, 0f, -0.008f);
+            child.localPosition = localPosition;
+            var shape = child.gameObject.AddComponent<GuideShape>();
+            var serialized = new SerializedObject(shape);
+            serialized.FindProperty("_kind").enumValueIndex = (int)kind;
+            serialized.FindProperty("_size").vector2Value = size;
+            serialized.FindProperty("_radius").floatValue = radius;
+            serialized.FindProperty("_thickness").floatValue = thickness;
+            serialized.FindProperty("_segments").intValue = kind == GuideShapeKind.RoundedRect ? 6 : 24;
+            serialized.FindProperty("_color").colorValue = color;
+            serialized.FindProperty("_sortingOrder").intValue = order;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            var renderer = child.GetComponent<MeshRenderer>();
+            renderer.sharedMaterial = material;
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            return shape;
+        }
+
+        // Text sizes are given as cap heights in metres. autoSizeMin (a cap height) above zero turns on auto size
+        // between that and the main cap height.
+        private static TMP_Text Label(Transform parent, string name, TMP_FontAsset font, Vector3 localPosition,
+            Vector2 rect, float capHeight, FontStyles style, TextAlignmentOptions alignment, TextWrappingModes wrapping,
+            TextOverflowModes overflow, float autoSizeMin, Color color, float characterSpacing)
+        {
+            Transform child = Child(parent, name);
+            child.localPosition = localPosition;
             var text = child.gameObject.AddComponent<TextMeshPro>();
             text.font = font;
             text.fontSharedMaterial = font.material;
-            text.rectTransform.sizeDelta = size;
+            text.rectTransform.sizeDelta = rect;
             text.isOrthographic = false;
-            text.fontSize = height * font.faceInfo.pointSize / (font.faceInfo.capLine * font.faceInfo.scale * 0.1f);
-            text.alignment = TextAlignmentOptions.MidlineLeft;
-            text.color = Color.white;
-            text.textWrappingMode = TextWrappingModes.Normal;
-            text.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
-            text.GetComponent<Renderer>().receiveShadows = false;
+            text.fontSize = CapToFontSize(font, capHeight);
+            text.fontStyle = style;
+            text.alignment = alignment;
+            text.color = color;
+            text.characterSpacing = characterSpacing;
+            text.textWrappingMode = wrapping;
+            text.overflowMode = overflow;
+            if (autoSizeMin > 0f)
+            {
+                text.enableAutoSizing = true;
+                text.fontSizeMin = CapToFontSize(font, autoSizeMin);
+                text.fontSizeMax = CapToFontSize(font, capHeight);
+            }
+            var meshRenderer = text.GetComponent<MeshRenderer>();
+            meshRenderer.sortingOrder = 10;
+            meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
+            meshRenderer.receiveShadows = false;
             return text;
+        }
+
+        private static float CapToFontSize(TMP_FontAsset font, float capHeight)
+        {
+            return capHeight * font.faceInfo.pointSize / (font.faceInfo.capLine * font.faceInfo.scale * 0.1f);
         }
 
         private static LineRenderer Line(Transform parent, string name, Material material, int count, bool world)
@@ -250,24 +442,6 @@ namespace DIYsect.Editor
             block.SetColor("_BaseColor", new Color(0.55f, 1f, 0.85f));
             line.SetPropertyBlock(block);
             return line;
-        }
-
-        private static void Backing(Transform parent, Material material, Vector2 size)
-        {
-            GameObject backing = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            backing.name = "Backing";
-            backing.transform.SetParent(parent, false);
-            backing.transform.localScale = new Vector3(size.x, size.y, 1f);
-            UnityEngine.Object.DestroyImmediate(backing.GetComponent<Collider>());
-            Renderer renderer = backing.GetComponent<Renderer>();
-            renderer.sharedMaterial = material;
-            renderer.shadowCastingMode = ShadowCastingMode.Off;
-            renderer.receiveShadows = false;
-            // Property blocks are not serialized, so a component restores this tint on load.
-            var tint = backing.AddComponent<ChecklistBacking>();
-            var serialized = new SerializedObject(tint);
-            Reference(serialized, "_renderer", renderer);
-            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static Material LoadMaterial()

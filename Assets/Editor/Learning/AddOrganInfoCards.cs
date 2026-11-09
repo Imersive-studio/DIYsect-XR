@@ -11,7 +11,7 @@ namespace DIYsect.Editor
 {
     /// <summary>
     /// Adds the organ info card presenter to Assets/Prefabs/AnatomyBody.prefab and gives it the organ text asset
-    /// (Assets/Scripts/Learning/OrganInfo/OrganInfoLibrary.asset) and the built-in font. Every scene that holds the body prefab
+    /// (Assets/Scripts/Learning/OrganInfo/OrganInfoLibrary.asset). Run Tools > DIYsect > Apply Label Design afterwards for the font and panel material. Every scene that holds the body prefab
     /// gets the cards through the prefab, so no scene needs editing. Safe to run more than once: the existing component is reused.
     /// </summary>
     public static class AddOrganInfoCards
@@ -39,7 +39,6 @@ namespace DIYsect.Editor
             var library = AssetDatabase.LoadAssetAtPath<OrganInfoLibrary>(LibraryPath);
             if (library == null)
                 throw new FileNotFoundException($"{LibraryPath} is missing or did not import.");
-            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
             GameObject root = PrefabUtility.LoadPrefabContents(PrefabPath);
             try
@@ -54,7 +53,6 @@ namespace DIYsect.Editor
 
                 var serialized = new SerializedObject(presenter);
                 SetReference(serialized, "_library", library);
-                SetReference(serialized, "_font", font);
                 serialized.ApplyModifiedPropertiesWithoutUndo();
 
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);

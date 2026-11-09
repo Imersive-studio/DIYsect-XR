@@ -1,0 +1,7 @@
+{
+  "name": "DIYsect.Presentation",
+  "rootNamespace": "DIYsect.Presentation",
+  "references": [
+    "Unity.TextMeshPro"
+  ]
+}

@@ -6,6 +6,8 @@
     "DIYsect.Dissection",
     "Unity.Netcode.Runtime",
     "Unity.XR.Interaction.Toolkit",
-    "Unity.XR.CoreUtils"
+    "Unity.XR.CoreUtils",
+    "DIYsect.Presentation",
+    "Unity.TextMeshPro"
   ]
 }
