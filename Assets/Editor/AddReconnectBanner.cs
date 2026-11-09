@@ -83,7 +83,7 @@ namespace DIYsect.Editor
             background.raycastTarget = false;
             var rect = background.rectTransform;
             rect.anchorMin = new Vector2(0.15f, 0.62f);
-            rect.anchorMax = new Vector2(0.75f, 0.76f);
+            rect.anchorMax = new Vector2(0.7f, 0.76f);
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
 

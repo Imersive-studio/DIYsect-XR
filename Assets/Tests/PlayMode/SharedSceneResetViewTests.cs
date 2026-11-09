@@ -260,7 +260,7 @@ namespace DIYsect.Networking.Tests
             Rect reset = ScreenRect((RectTransform)InScene<ClassmateViewReset>().GetComponentInChildren<Button>().transform);
             Rect toast = ScreenRect((RectTransform)InScene<PinRejectionToast>().GetComponentInChildren<Text>(true).transform);
             var screen = new Rect(0f, 0f, Screen.width, Screen.height);
-            var centre = new Rect(Screen.width * 0.25f, Screen.height * 0.2f, Screen.width * 0.5f, Screen.height * 0.6f);
+            var centre = new Rect(Screen.width * 0.3f, Screen.height * 0.2f, Screen.width * 0.4f, Screen.height * 0.6f);
             var seen = new System.Collections.Generic.List<Rect>();
             foreach (string buttonName in new[] { "FollowProfessorButton", "FollowStudentButton", "BackToMyViewButton" })
             {
