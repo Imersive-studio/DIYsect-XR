@@ -31,6 +31,8 @@ namespace DIYsect.MixedReality.Tests
             LogAssert.ignoreFailingMessages = true;
             // Professor_MR is the shared scene; in the editor it starts as a classmate, which switches the alignment off.
             XRMultiplayer.ClassroomRole.OverrideForTests = XRMultiplayer.ClassroomRoleKind.Professor;
+            // The table is placed on a real table in the mixed reality view; the classroom view leaves it where the hall puts it.
+            XRMultiplayer.ClassroomRole.ProfessorViewOverrideForTests = XRMultiplayer.ProfessorViewMode.MixedReality;
 #if UNITY_EDITOR
             yield return EditorSceneManager.LoadSceneAsyncInPlayMode(ScenePath, new LoadSceneParameters(LoadSceneMode.Single));
 #else
@@ -48,6 +50,7 @@ namespace DIYsect.MixedReality.Tests
         {
             LogAssert.ignoreFailingMessages = true;
             XRMultiplayer.ClassroomRole.OverrideForTests = null;
+            XRMultiplayer.ClassroomRole.ProfessorViewOverrideForTests = null;
             foreach (NetworkManager manager in Object.FindObjectsByType<NetworkManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 manager.Shutdown();

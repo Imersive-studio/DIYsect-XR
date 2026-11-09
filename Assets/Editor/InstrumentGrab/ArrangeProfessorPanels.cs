@@ -40,6 +40,8 @@ namespace DIYsect.Editor
         public static readonly Slot[] Slots =
         {
             new Slot("RoomCodeBoard", -72f, 2.0f),
+            // The view button, low between the room code and the student window, so it overlaps neither.
+            new Slot("ProfessorViewToggle", -50f, 1.7f),
             new Slot("StudentViewWindow", -28f, 1.75f),
             // Right of the instrument tray, so the tray never hides the speaking panel below the roster.
             new Slot("ClassRoster", 38f, 1.75f),

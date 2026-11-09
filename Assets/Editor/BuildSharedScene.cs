@@ -24,11 +24,14 @@ namespace DIYsect.Editor
         // Roots (or children of MRInteractionSetup) that belong to the professor's headset only.
         private static readonly string[] ProfessorObjectNames =
         {
-            "DepthHandle", "GuidePen", "StudentViewWindow", "ClassRoster", "TableAlignmentHandle", "TableAlignment",
+            "DepthHandle", "GuidePen", "StudentViewWindow", "ClassRoster",
         };
 
         // Professor-only objects other tools add later (Add Quiz). Included when they exist.
-        private static readonly string[] OptionalProfessorObjectNames = { "QuizPanel", AddSpeakPanel.PanelName };
+        private static readonly string[] OptionalProfessorObjectNames = { "QuizPanel", AddSpeakPanel.PanelName, AddProfessorViewToggle.PanelName };
+
+        // Objects the professor uses only in the mixed reality view: the handle and the script that put the table on a real table.
+        private static readonly string[] PassthroughOnlyObjectNames = { "TableAlignmentHandle", "TableAlignment" };
 
         [MenuItem("Tools/DIYsect/Build Shared Scene")]
         public static void Apply()
@@ -122,6 +125,9 @@ namespace DIYsect.Editor
             // The participant list (who is asking to speak, who is muted, Allow / Mute) is built once and kept; Add Speak Panel rebuilds it.
             if (FindByName(scene, AddSpeakPanel.PanelName) == null)
                 AddSpeakPanel.Build(scene);
+            // The button that flips the professor between the classroom and mixed reality.
+            if (FindByName(scene, AddProfessorViewToggle.PanelName) == null)
+                AddProfessorViewToggle.Build(scene);
 
             foreach (string optional in OptionalProfessorObjectNames)
             {
@@ -189,13 +195,21 @@ namespace DIYsect.Editor
             practice.enabled = false;
             EditorUtility.SetDirty(practice);
             SetArray(serialized.FindProperty("_classroomObjects"), classroomObjects);
+            // The professor chooses between the classroom and mixed reality. Table placing only belongs to mixed reality, and the fixed
+            // eye height only to the hall (the student's, and the professor's in the classroom view).
+            var passthroughOnly = new List<GameObject>();
+            foreach (string passthroughName in PassthroughOnlyObjectNames)
+                passthroughOnly.Add(FindByName(scene, passthroughName) ?? throw new InvalidOperationException($"{ScenePath} has no {passthroughName}."));
+            SetArray(serialized.FindProperty("_passthroughOnlyObjects"), passthroughOnly.ToArray());
+            SetArray(serialized.FindProperty("_hallHeadsetBehaviours"), new Behaviour[] { calibration });
+            serialized.FindProperty("_tableRoot").objectReferenceValue = FindByName(scene, "DIYsect").transform;
             // The checklist card and progress list guide the student at the table. The professor already sees the class's
             // progress in the roster and the student window, so the card is the student's only.
             Transform checklistRoot = FindByName(scene, "DissectionChecklist")?.transform;
             Transform checklistPanel = checklistRoot != null ? checklistRoot.Find("Panel") : null;
             SetArray(serialized.FindProperty("_studentObjects"), checklistPanel != null ? new[] { checklistPanel.gameObject } : Array.Empty<GameObject>());
             SetArray(serialized.FindProperty("_studentBehaviours"), AddQuiz.WithStudentInput(
-                AddAssistRequest.WithStudentInput(new Behaviour[] { calibration, practice }, headsetOrigin.gameObject), headsetOrigin.gameObject));
+                AddAssistRequest.WithStudentInput(new Behaviour[] { practice }, headsetOrigin.gameObject), headsetOrigin.gameObject));
 
             // The professor's quiz panel needs its question set saved in the scene (Add Quiz does this too, but a scene taken
             // from another branch can lose it, and the panel then switches itself off on the headset).
