@@ -14,9 +14,10 @@ namespace DIYsect.Interaction
 {
     /// <summary>
     /// Connects an XRGrabInteractable on an organ to the body's <see cref="OrganGrabAuthority"/>.
-    /// Selecting asks the server for the organ. While granted, the pose is streamed to the server.
-    /// Deselecting sends the last pose and gives the organ back. If the server rejects the grab,
-    /// the selection is cancelled. Selecting is also blocked up front while another client holds the organ.
+    /// The request follows <see cref="GrabRequest"/>: selecting asks the server for the organ; while granted the
+    /// pose is streamed; deselecting sends the last pose and gives the organ back; a rejected grab is cancelled;
+    /// a yes that arrives after the user let go is given straight back. Selecting is also blocked up front while
+    /// another client holds the organ.
     /// </summary>
     [RequireComponent(typeof(XRGrabInteractable))]
     public class NetworkedOrganGrab : MonoBehaviour, IXRSelectFilter
@@ -29,10 +30,10 @@ namespace DIYsect.Interaction
 
         private XRGrabInteractable _interactable;
         private Coroutine _streaming;
+        private readonly GrabRequest _request = new GrabRequest();
 
-        // True from the moment this client asks for the organ until it gives it back. The replicated holder list
-        // can lag behind the server's answer, so release decisions cannot rely on it alone.
-        private bool _mayHold;
+        /// <summary>This client's grab phase for this organ (the replicated holder list can lag behind it).</summary>
+        public GrabPhase Phase => _request.Phase;
 
         /// <summary>Raised on this client when the holder of this organ changes (new holder id or <see cref="OrganGrabAuthority.NoHolder"/>). Hook for ownership feedback.</summary>
         public event Action<ulong> HolderChanged;
@@ -75,12 +76,10 @@ namespace DIYsect.Interaction
         private void OnDisable()
         {
             // Do not leave the server holding an organ nobody can move any more.
-            if (_authority != null && _authority.IsSpawned && (_mayHold || _authority.IsHeldByLocalClient(_organIndex)))
-            {
-                _mayHold = false;
-                _authority.SendPose(_organIndex, transform.localPosition, transform.localRotation);
-                _authority.Release(_organIndex);
-            }
+            GrabRequest.Actions onDisable = _request.Handle(GrabRequest.Event.Disable);
+            if ((onDisable & GrabRequest.Actions.SendRelease) == 0 && _authority != null && _authority.IsSpawned && _authority.IsHeldByLocalClient(_organIndex))
+                onDisable |= GrabRequest.Actions.SendRelease;
+            Apply(onDisable);
             _interactable.selectFilters.Remove(this);
             _interactable.selectEntered.RemoveListener(OnSelectEntered);
             _interactable.selectExited.RemoveListener(OnSelectExited);
@@ -122,35 +121,43 @@ namespace DIYsect.Interaction
 
         private void OnSelectEntered(SelectEnterEventArgs args)
         {
-            if (!_authority.IsSpawned)
-                return;
-            _mayHold = true;
-            _authority.RequestGrab(_organIndex);
+            if (_authority.IsSpawned)
+                Apply(_request.Handle(GrabRequest.Event.Select));
         }
 
         private void OnSelectExited(SelectExitEventArgs args)
         {
-            StopStreaming();
-            _mayHold = false;
-            if (!_authority.IsSpawned)
-                return;
-            // The server ignores both calls unless this client is the holder, so they are safe after a rejection.
-            _authority.SendPose(_organIndex, transform.localPosition, transform.localRotation);
-            _authority.Release(_organIndex);
+            Apply(_request.Handle(GrabRequest.Event.Exit));
         }
 
         private void OnGrabResolved(int organIndex, bool granted)
         {
-            if (organIndex != _organIndex)
-                return;
-            _mayHold = granted;
-            if (!_interactable.isSelected)
-                return;
+            if (organIndex == _organIndex)
+                Apply(_request.HandleAnswer(granted));
+        }
 
-            if (granted)
+        // Carries out what the grab state machine asked for, in this bridge's own terms.
+        private void Apply(GrabRequest.Actions actions)
+        {
+            if ((actions & GrabRequest.Actions.SendRequest) != 0)
+                _authority.RequestGrab(_organIndex);
+            if ((actions & GrabRequest.Actions.StopStreaming) != 0)
+                StopStreaming();
+            if ((actions & GrabRequest.Actions.SendRelease) != 0)
+                SendRelease();
+            if ((actions & GrabRequest.Actions.StartStreaming) != 0)
                 _streaming ??= StartCoroutine(StreamPose());
-            else
+            if ((actions & GrabRequest.Actions.CancelSelection) != 0 && _interactable.isSelected)
                 _interactable.interactionManager.CancelInteractableSelection((IXRSelectInteractable)_interactable);
+        }
+
+        // Sends the last pose and gives the organ back. The server ignores both unless this client is the holder.
+        private void SendRelease()
+        {
+            if (_authority == null || !_authority.IsSpawned)
+                return;
+            _authority.SendPose(_organIndex, transform.localPosition, transform.localRotation);
+            _authority.Release(_organIndex);
         }
 
         private void OnHolderChanged(int organIndex, ulong holder)

@@ -50,7 +50,7 @@ namespace DIYsect.MixedReality
         private Pose _handleAtGrab;
         private Pose _rootAtGrab;
         private Coroutine _follow;
-        private bool _placed;
+        private AlignmentPhase _phaseBeforeCarry;
 
         /// <summary>How the root was last placed.</summary>
         public enum Source { None, DetectedTable, Handle }
@@ -59,6 +59,12 @@ namespace DIYsect.MixedReality
         public event Action<Source> Placed;
 
         public Source LastSource { get; private set; }
+
+        /// <summary>Where the alignment is now. The follow coroutine and the plane visuals are derived from it.</summary>
+        public AlignmentPhase Phase { get; private set; }
+
+        /// <summary>Raised after the phase changes, with the new phase.</summary>
+        public event Action<AlignmentPhase> PhaseChanged;
 
         /// <summary>The root's current pose in world space.</summary>
         public Pose RootPose => new Pose(_root.position, _root.rotation);
@@ -135,10 +141,14 @@ namespace DIYsect.MixedReality
             _handle.lastSelectExited.RemoveListener(OnHandleReleased);
             if (_planeManager != null)
                 _planeManager.trackablesChanged.RemoveListener(OnPlanesChanged);
-            if (_follow != null)
+            StopFollowing();
+            // A carry cut short by disabling is not a placement. The root stays where it is, the virtual table stays
+            // visible, and the phase goes back to what it was before the grab.
+            if (Phase == AlignmentPhase.Carrying)
             {
-                StopCoroutine(_follow);
-                _follow = null;
+                SetVirtualTableVisible(true);
+                SetPlaneVisuals(false);
+                SetPhase(_phaseBeforeCarry);
             }
         }
 
@@ -149,9 +159,14 @@ namespace DIYsect.MixedReality
         {
             if (_planeManager != null)
                 _planeManager.enabled = true;
+            // A carry in progress keeps going; it goes back to detecting only if nothing was placed before it.
+            if (Phase == AlignmentPhase.AwaitingPermission && _planeManager != null)
+                SetPhase(AlignmentPhase.Detecting);
+            else if (Phase == AlignmentPhase.Carrying && _phaseBeforeCarry == AlignmentPhase.AwaitingPermission && _planeManager != null)
+                _phaseBeforeCarry = AlignmentPhase.Detecting;
         }
 
-        /// <summary>Places the root on the detected table nearest to the viewer. Returns false when no table plane is known.</summary>
+        /// <summary>Places the root on the detected table nearest to the viewer. Returns false when no table plane is known, or while the handle is carried.</summary>
         public bool PlaceOnDetectedTable()
         {
             if (_planeManager == null)
@@ -167,7 +182,19 @@ namespace DIYsect.MixedReality
             if (nearest < 0)
                 return false;
 
-            ApplyRootPose(TableAlignmentMath.RootPoseForHit(_tableCentres[nearest], _tableTopLocal, _viewer.position, _root.rotation));
+            return PlaceOnTableAt(_tableCentres[nearest]);
+        }
+
+        /// <summary>
+        /// Places the root on a table whose top is centred at this world position. Returns false while the handle is carried,
+        /// because the carry wins over a detected table.
+        /// </summary>
+        public bool PlaceOnTableAt(Vector3 tableCentre)
+        {
+            if (Phase == AlignmentPhase.Carrying)
+                return false;
+
+            ApplyRootPose(TableAlignmentMath.RootPoseForHit(tableCentre, _tableTopLocal, _viewer.position, _root.rotation));
             Finish(Source.DetectedTable);
             return true;
         }
@@ -181,19 +208,23 @@ namespace DIYsect.MixedReality
         private void OnPlanesChanged(ARTrackablesChangedEventArgs<ARPlane> args)
         {
             // A detected table places the root once, so it never pulls the table away from where the professor put it.
-            if (!_placed)
+            // Planes that arrive during a carry only get drawn; the carry decides where the table goes.
+            if (Phase == AlignmentPhase.Detecting)
                 PlaceOnDetectedTable();
-            SetPlaneVisuals(_follow != null);
+            SetPlaneVisuals(Phase == AlignmentPhase.Carrying);
         }
 
         private void OnHandleGrabbed(SelectEnterEventArgs args)
         {
+            if (Phase == AlignmentPhase.Carrying)
+                return;
             _handleAtGrab = new Pose(_handle.transform.position, _handle.transform.rotation);
             _rootAtGrab = RootPose;
+            _phaseBeforeCarry = Phase;
             SetVirtualTableVisible(true);
             SetPlaneVisuals(true);
-            if (_follow == null)
-                _follow = StartCoroutine(FollowHandle());
+            SetPhase(AlignmentPhase.Carrying);
+            _follow = StartCoroutine(FollowHandle());
         }
 
         // Runs only while the handle is held. XRI moves the handle every frame, so the root has to follow every frame.
@@ -209,11 +240,10 @@ namespace DIYsect.MixedReality
 
         private void OnHandleReleased(SelectExitEventArgs args)
         {
-            if (_follow != null)
-            {
-                StopCoroutine(_follow);
-                _follow = null;
-            }
+            // A release that arrives after the carry was cut short (for example by disabling) places nothing.
+            if (Phase != AlignmentPhase.Carrying)
+                return;
+            StopFollowing();
 
             Pose handleNow = new Pose(_handle.transform.position, _handle.transform.rotation);
             Pose pose = TableAlignmentMath.RootPoseFromHandle(_handleAtGrab, handleNow, _rootAtGrab);
@@ -258,10 +288,27 @@ namespace DIYsect.MixedReality
 
         private void Finish(Source source)
         {
-            _placed = true;
             LastSource = source;
             SetVirtualTableVisible(!_hideVirtualTableWhenPlaced);
+            SetPhase(AlignmentPhase.Placed);
             Placed?.Invoke(source);
+        }
+
+        // The only place the phase changes.
+        private void SetPhase(AlignmentPhase phase)
+        {
+            if (Phase == phase)
+                return;
+            Phase = phase;
+            PhaseChanged?.Invoke(phase);
+        }
+
+        private void StopFollowing()
+        {
+            if (_follow == null)
+                return;
+            StopCoroutine(_follow);
+            _follow = null;
         }
 
         // The handle always waits at the same spot beside the table, wherever the table has been moved to.
