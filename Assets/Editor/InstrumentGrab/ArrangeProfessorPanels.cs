@@ -41,9 +41,10 @@ namespace DIYsect.Editor
         {
             new Slot("RoomCodeBoard", -72f, 2.0f),
             new Slot("StudentViewWindow", -28f, 1.75f),
-            new Slot("ClassRoster", 26f, 1.75f),
-            new Slot("SpeakPanel", 26f, 1.75f),
-            new Slot("QuizPanel", 56f, 1.85f),
+            // Right of the instrument tray, so the tray never hides the speaking panel below the roster.
+            new Slot("ClassRoster", 38f, 1.75f),
+            new Slot("SpeakPanel", 38f, 1.75f),
+            new Slot("QuizPanel", 70f, 1.85f),
         };
 
         [MenuItem("Tools/DIYsect/Arrange Professor Panels")]
