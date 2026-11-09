@@ -27,6 +27,8 @@ namespace DIYsect.Classroom
         // Where the player wants the camera, and where it is drawn this frame.
         private float _goalYaw, _goalPitch, _goalDistance;
         private float _yaw, _pitch, _distance;
+        // The framing the camera started with, so the player can always get back to it.
+        private float _startYaw, _startPitch, _startDistance;
 
         public float Yaw => _yaw;
         public float Pitch => _pitch;
@@ -53,6 +55,9 @@ namespace DIYsect.Classroom
             _goalYaw = _yaw = yaw;
             _goalPitch = _pitch = OrbitMath.ClampPitch(pitch, _minPitch, _maxPitch);
             _goalDistance = _distance = OrbitMath.ClampDistance(distance, _minDistance, _maxDistance);
+            _startYaw = _goalYaw;
+            _startPitch = _goalPitch;
+            _startDistance = _goalDistance;
         }
 
         // After the tracker's Update, so this frame's gestures are already known.
@@ -86,6 +91,14 @@ namespace DIYsect.Classroom
             _distance = Mathf.Lerp(_distance, _goalDistance, OrbitMath.DampFactor(_damping, deltaTime));
             OrbitMath.Pose(_target.position, _yaw, _pitch, _distance, out Vector3 position, out Quaternion rotation);
             transform.SetPositionAndRotation(position, rotation);
+        }
+
+        /// <summary>Sends the goal back to the starting framing; the camera eases there.</summary>
+        public void ResetView()
+        {
+            _goalYaw = _startYaw;
+            _goalPitch = _startPitch;
+            _goalDistance = _startDistance;
         }
 
         /// <summary>Jumps straight to the goal with no easing. Used by tests and when the body is moved.</summary>

@@ -60,6 +60,7 @@ namespace DIYsect.Editor
             }
             AddRejectionToast(existingRig, board);
             AddOrbitControls(existingRig, board);
+            AddViewReset(existingRig);
 
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))
@@ -160,6 +161,63 @@ namespace DIYsect.Editor
             var serialized = new SerializedObject(toast);
             serialized.FindProperty("_board").objectReferenceValue = board;
             serialized.FindProperty("_label").objectReferenceValue = label;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // A large "Reset view" button in the top-right corner (clear of the body and of the toast at the bottom), plus the
+        // Home and R keys. A UI button needs an EventSystem, which also lets the gesture tracker ignore presses on it.
+        private static void AddViewReset(GameObject rig)
+        {
+            if (rig.GetComponent<ClassmateViewReset>() != null)
+                return;
+            if (UnityEngine.Object.FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
+            {
+                // Under the classmate camera, so the professor's headset never gets a second EventSystem.
+                var events = new GameObject("EventSystem");
+                events.transform.SetParent(rig.transform, false);
+                events.AddComponent<UnityEngine.EventSystems.EventSystem>();
+                events.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+            }
+
+            var canvasObject = new GameObject("ViewResetCanvas");
+            canvasObject.transform.SetParent(rig.transform, false);
+            var canvas = canvasObject.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            var scaler = canvasObject.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1280f, 720f);
+            canvasObject.AddComponent<GraphicRaycaster>();
+
+            var buttonObject = new GameObject("ResetViewButton");
+            buttonObject.transform.SetParent(canvasObject.transform, false);
+            var background = buttonObject.AddComponent<Image>();
+            background.color = new Color(0f, 0f, 0f, 0.65f);
+            var button = buttonObject.AddComponent<Button>();
+            button.targetGraphic = background;
+            var rect = buttonObject.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(1f, 1f);
+            rect.sizeDelta = new Vector2(240f, 96f);
+            rect.anchoredPosition = new Vector2(-24f, -24f);
+
+            var labelObject = new GameObject("Label");
+            labelObject.transform.SetParent(buttonObject.transform, false);
+            var label = labelObject.AddComponent<Text>();
+            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            label.fontSize = 36;
+            label.alignment = TextAnchor.MiddleCenter;
+            label.color = Color.white;
+            label.text = "Reset view";
+            label.raycastTarget = false;
+            var labelRect = label.rectTransform;
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
+
+            var reset = rig.AddComponent<ClassmateViewReset>();
+            var serialized = new SerializedObject(reset);
+            serialized.FindProperty("_orbit").objectReferenceValue = rig.GetComponent<ClassmateOrbitCamera>();
+            serialized.FindProperty("_button").objectReferenceValue = button;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
