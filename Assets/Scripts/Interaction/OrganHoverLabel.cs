@@ -1,22 +1,28 @@
 // Authority: none. Local presentation only; each headset shows the label for its own controllers' hover.
 using DIYsect.Networking;
+using DIYsect.Presentation;
+using TMPro;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace DIYsect.Interaction
 {
     /// <summary>
-    /// Shows the organ's name above it while a controller points at it (hovers it). It uses the same
-    /// <see cref="OrganLabel"/> and <see cref="OrganNames"/> as the grab label, but it is a separate label that only
-    /// this device sees. It stays hidden while the organ is held, by this device or by another one, because the grab
-    /// label from <see cref="OrganGrabPresenter"/> is shown then. Event driven; no per-frame code except the label's Billboard while shown.
+    /// Shows the organ's name, with its body system under it, just above the organ while a controller points at it
+    /// (hovers it). The words come from the <see cref="OrganCaptions"/> asset; when it is missing or does not know the organ
+    /// the name comes from <see cref="OrganNames"/> and there is no second line. It is a label that only this device sees.
+    /// It stays hidden while the organ is held, by this device or by another one, because the callout from
+    /// <see cref="OrganGrabPresenter"/> is shown then. Event driven; the label does its own per-frame placement only while shown.
     /// </summary>
     [RequireComponent(typeof(XRGrabInteractable))]
     public class OrganHoverLabel : MonoBehaviour
     {
-        [SerializeField, Min(0f), Tooltip("Metres between the organ's centre and its name tag. Same as the grab label.")]
-        private float _labelHeight = 0.15f;
-        [SerializeField, Min(0.001f)] private float _labelCharacterSize = 0.01f;
+        [SerializeField, Tooltip("Words for each organ. Run Tools > DIYsect > Apply Label Design to fill this in.")]
+        private OrganCaptions _captions;
+        [SerializeField, Tooltip("Label font (Inter). Run Tools > DIYsect > Apply Label Design to fill this in.")]
+        private TMP_FontAsset _font;
+        [SerializeField, Min(0f), Tooltip("Metres between the top of the organ and the label.")]
+        private float _labelGap = LabelAnchor.Gap;
 
         private XRGrabInteractable _interactable;
         private NetworkedOrganGrab _grab;
@@ -74,13 +80,16 @@ namespace DIYsect.Interaction
         {
             if (_label != null)
                 return _label;
-            // Same placement as OrganGrabPresenter: above the middle of the organ's mesh.
-            Vector3 centre = TryGetComponent(out ISnappable snappable)
-                ? Quaternion.Inverse(snappable.CurrentCentrePose.rotation) * (snappable.CurrentCentrePose.position - transform.localPosition)
-                : Vector3.zero;
-            _label = OrganLabel.Create(transform, centre, OrganNames.Display(name), _labelHeight, _labelCharacterSize);
+            OrganCaption caption = OrganCaptions.Lookup(_captions, name);
+            _label = OrganLabel.Create(transform, caption, LabelText.Resolve(_font, this), _labelGap);
             _label.gameObject.name = $"Hover Label {_label.Text}";
             return _label;
+        }
+
+        private void OnDestroy()
+        {
+            if (_label != null)
+                Destroy(_label.gameObject);
         }
     }
 }

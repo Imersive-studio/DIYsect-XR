@@ -53,16 +53,16 @@ namespace DIYsect.Networking.Tests
             foreach (SharedBody body in new[] { _serverBody, _bodyA, _bodyB })
             {
                 OrganGrabPresenter presenter = body.GetComponent<OrganGrabPresenter>();
-                yield return WaitFor(() => presenter.GetLabel(_liver) != null && presenter.GetLabel(_liver).IsShown, $"the label on {body.name}");
-                Assert.AreEqual("Liver", presenter.GetLabel(_liver).Text);
-                Assert.IsNull(presenter.GetLabel(_stomach), "Only the held organ has a label.");
+                yield return WaitFor(() => presenter.GetCallout(_liver) != null && presenter.GetCallout(_liver).IsShown, $"the label on {body.name}");
+                Assert.AreEqual("Liver", presenter.GetCallout(_liver).Text);
+                Assert.IsNull(presenter.GetCallout(_stomach), "Only the held organ has a callout.");
             }
 
             _authorityA.Release(_liver);
             foreach (SharedBody body in new[] { _serverBody, _bodyA, _bodyB })
             {
                 OrganGrabPresenter presenter = body.GetComponent<OrganGrabPresenter>();
-                yield return WaitFor(() => !presenter.GetLabel(_liver).IsShown, $"the label to hide on {body.name}");
+                yield return WaitFor(() => !presenter.GetCallout(_liver).IsShown, $"the label to hide on {body.name}");
             }
         }
 
@@ -73,8 +73,8 @@ namespace DIYsect.Networking.Tests
             int kidney = IndexOf("kidney_l");
             yield return Grab(kidney);
             OrganGrabPresenter presenter = _bodyB.GetComponent<OrganGrabPresenter>();
-            yield return WaitFor(() => presenter.GetLabel(kidney) != null && presenter.GetLabel(kidney).IsShown, "the label on client B");
-            Assert.AreEqual("Left kidney", presenter.GetLabel(kidney).Text);
+            yield return WaitFor(() => presenter.GetCallout(kidney) != null && presenter.GetCallout(kidney).IsShown, "the label on client B");
+            Assert.AreEqual("Left kidney", presenter.GetCallout(kidney).Text);
         }
 
         [UnityTest]
@@ -204,13 +204,13 @@ namespace DIYsect.Networking.Tests
             SharedBody lateBody = null;
             yield return WaitForBody(late, body => lateBody = body);
             OrganGrabPresenter presenter = lateBody.GetComponent<OrganGrabPresenter>();
-            yield return WaitFor(() => presenter.GetLabel(_liver) != null && presenter.GetLabel(_liver).IsShown, "the late client to show the label");
-            Assert.AreEqual("Liver", presenter.GetLabel(_liver).Text);
+            yield return WaitFor(() => presenter.GetCallout(_liver) != null && presenter.GetCallout(_liver).IsShown, "the late client to show the label");
+            Assert.AreEqual("Liver", presenter.GetCallout(_liver).Text);
             Assert.IsTrue(presenter.GetGhost(_liver).IsShown, "The ghost must show too.");
-            Assert.IsNull(presenter.GetLabel(_stomach));
+            Assert.IsNull(presenter.GetCallout(_stomach));
 
             _authorityA.Release(_liver);
-            yield return WaitFor(() => !presenter.GetLabel(_liver).IsShown, "the late client to hide the label");
+            yield return WaitFor(() => !presenter.GetCallout(_liver).IsShown, "the late client to hide the label");
         }
 
         private IEnumerator StartTwoClients()

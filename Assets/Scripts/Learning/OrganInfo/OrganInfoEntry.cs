@@ -20,28 +20,39 @@ namespace DIYsect.Learning
         [SerializeField, TextArea(2, 4), Tooltip("One short true fact about the organ. Keep it under 120 characters so it fits the card.")]
         private string _fact;
 
+        [SerializeField, Tooltip("The body system, shown under the name on the hover label, for example Urinary system.")]
+        private string _system;
+        [SerializeField, Tooltip("What the organ does in two to four words, shown on the callout, for example Filters blood.")]
+        private string _role;
+
         public OrganInfoEntry()
         {
         }
 
-        public OrganInfoEntry(string organName, string displayName, string function, string fact)
+        public OrganInfoEntry(string organName, string displayName, string function, string fact, string system = null, string role = null)
         {
             _organName = organName;
             _displayName = displayName;
             _function = function;
             _fact = fact;
+            _system = system;
+            _role = role;
         }
 
         public string OrganName => _organName;
         public string DisplayName => _displayName;
         public string Function => _function;
         public string Fact => _fact;
+        public string System => _system;
+        public string Role => _role;
 
-        /// <summary>True when all four fields have text.</summary>
+        /// <summary>True when all six fields have text.</summary>
         public bool IsComplete =>
             !string.IsNullOrWhiteSpace(_organName)
             && !string.IsNullOrWhiteSpace(_displayName)
             && !string.IsNullOrWhiteSpace(_function)
-            && !string.IsNullOrWhiteSpace(_fact);
+            && !string.IsNullOrWhiteSpace(_fact)
+            && !string.IsNullOrWhiteSpace(_system)
+            && !string.IsNullOrWhiteSpace(_role);
     }
 }

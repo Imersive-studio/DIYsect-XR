@@ -104,5 +104,28 @@ namespace DIYsect.Learning.Tests
             Assert.IsNull(entry);
             Assert.IsFalse(_library.TryGet(null, out OrganInfoEntry _));
         }
+
+        [Test]
+        public void EveryEntryHasABodySystemAndAShortRole()
+        {
+            foreach (OrganInfoEntry entry in _library.Entries)
+            {
+                Assert.IsFalse(string.IsNullOrWhiteSpace(entry.System), $"{entry.OrganName}: no body system.");
+                StringAssert.EndsWith("system", entry.System, $"{entry.OrganName}: the body system should read like 'Digestive system'.");
+                int words = entry.Role.Split(' ').Length;
+                Assert.That(words, Is.InRange(2, 5), $"{entry.OrganName}: the role should be a few words.");
+            }
+        }
+
+        [Test]
+        public void TheLibraryGivesLabelCaptionsAndUnknownOrgansGetNone()
+        {
+            Assert.IsTrue(_library.TryGetCaption("kidney_l", out OrganCaption caption));
+            Assert.AreEqual("Left kidney", caption.Name);
+            Assert.AreEqual("Urinary system", caption.System);
+            Assert.AreEqual("Filters blood", caption.Role);
+            Assert.IsFalse(_library.TryGetCaption("not_an_organ", out _));
+            Assert.AreEqual("Not an organ", OrganCaptions.Lookup(_library, "not_an_organ").Name);
+        }
     }
 }

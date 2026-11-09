@@ -1,14 +1,16 @@
 // Authority: none. Presentation only; it reads who holds each organ and where the pointers are, and never writes either.
 using System.Collections.Generic;
 using DIYsect.Classroom;
+using DIYsect.Interaction;
 using DIYsect.Networking;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace DIYsect.Learning
 {
     /// <summary>
-    /// Shows a small info card (name, function, one fact) next to an organ on every device while the organ is held or a
+    /// Shows the inspection title (name, function, one fact) above an organ on every device while the organ is held or a
     /// pointer rests on it, and hides it when the organ is let go and no pointer is on it.
     /// It keeps no network state of its own. It listens to events that every peer already gets:
     /// <see cref="OrganGrabAuthority.HolderChanged"/> (picked up or let go, by anyone) and
@@ -16,11 +18,10 @@ namespace DIYsect.Learning
     /// card is decided by <see cref="OrganInfoCardRules"/> through <see cref="OrganInfoCardTracker"/>.
     /// A device that joins late reads the holders and pointers once when the body spawns.
     ///
-    /// How it fits with the other labels: OrganGrabPresenter shows the organ's name just above it while it is held, and
-    /// OrganHoverLabel shows the name while this device's controller points at it. Those stay as they are. The card is the
-    /// longer text and sits higher, starting <c>_cardHeight</c> metres above the organ's middle, which is above the name
-    /// tag (the tags sit about 0.15 to 0.22 metres up), so the two never cover each other. The card never replaces a
-    /// name tag and the tags do not carry the function or the fact.
+    /// How it fits with the other labels: OrganGrabPresenter shows a callout while the organ is held, and
+    /// OrganHoverLabel shows the name while this device's controller points at it. Those stay as they are. The title sits
+    /// <c>_titleGap</c> metres above the organ's top, which is above the name label (about 0.07 metres tall), and toward the
+    /// organ's far side from the viewer, so the two never cover each other and the title never hides the anatomy.
     /// A pointer is the professor's or the student's pointer from the PointerBoard, so a card for a pointed organ shows on
     /// every device a short moment after the pointer settles. Cards are built the first time they are needed and then reused.
     /// </summary>
@@ -29,10 +30,12 @@ namespace DIYsect.Learning
     {
         [SerializeField, Tooltip("The text for every organ. Run Tools > DIYsect > Add Organ Info Cards to fill this in.")]
         private OrganInfoLibrary _library;
-        [SerializeField, Tooltip("Font for the card text. Run Tools > DIYsect > Add Organ Info Cards to fill this in.")]
-        private Font _font;
-        [SerializeField, Min(0.1f), Tooltip("Metres between the middle of the organ and the bottom of the card. Keep it above the name tag height (0.15 to 0.22).")]
-        private float _cardHeight = 0.25f;
+        [SerializeField, Tooltip("Font for the card text (Inter). Run Tools > DIYsect > Apply Label Design to fill this in.")]
+        private TMP_FontAsset _fontAsset;
+        [SerializeField, Tooltip("Unlit transparent material for the card's dark panel. Run Tools > DIYsect > Apply Label Design to fill this in.")]
+        private Material _panelMaterial;
+        [SerializeField, Min(0.05f), Tooltip("Metres between the top of the organ and the bottom of the card. Keep it above the name label (about 0.07 tall) so they never overlap.")]
+        private float _titleGap = 0.11f;
 
         private SharedBody _body;
         private OrganGrabAuthority _authority;
@@ -142,15 +145,8 @@ namespace DIYsect.Learning
                     Debug.LogWarning($"{name}: the organ info library has no entry for '{organ.name}', so it gets no card.", this);
                 return null;
             }
-            if (!organ.TryGetComponent(out ISnappable snappable))
-            {
-                if (_warned.Add(organIndex))
-                    Debug.LogError($"{organ.name}: no SnappableOrgan, so its info card cannot find the middle of the organ. Run Tools > DIYsect > Add Organ Sockets.", organ);
-                return null;
-            }
-
-            Font font = _font != null ? _font : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            OrganInfoCard card = OrganInfoCard.Create(organ, snappable, OrganInfoCardText.Build(entry), _cardHeight, font);
+            TMP_FontAsset font = LabelText.Resolve(_fontAsset, this);
+            OrganInfoCard card = OrganInfoCard.Create(organ, entry, font, _panelMaterial, _titleGap);
             _cards[organIndex] = card;
             return card;
         }
