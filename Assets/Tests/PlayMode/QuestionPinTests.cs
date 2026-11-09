@@ -235,11 +235,15 @@ namespace DIYsect.Networking.Tests
             Vector3 target = _serverBody.Organs[OrganIndex].transform.TransformPoint(PointOn(OrganIndex));
             var ray = new Ray(target + Vector3.up * 0.5f, Vector3.down);
             Assert.IsTrue(Physics.Raycast(ray, out RaycastHit expectedHit), "The test ray should hit an organ collider.");
+            // The host and both clients share one scene, so three copies of the body overlap and the ray may hit any
+            // of them first. Take the organ index from whichever body the ray hit.
+            var hitBody = expectedHit.collider.GetComponentInParent<SharedBody>();
+            Assert.IsNotNull(hitBody, $"The test ray first hit {expectedHit.collider.name} (layer {expectedHit.collider.gameObject.layer}), which is not part of a body.");
             int expectedOrgan = -1;
-            for (int i = 0; i < _serverBody.Organs.Count; i++)
-                if (expectedHit.collider.transform.IsChildOf(_serverBody.Organs[i].transform))
+            for (int i = 0; i < hitBody.Organs.Count; i++)
+                if (expectedHit.collider.transform.IsChildOf(hitBody.Organs[i].transform))
                     expectedOrgan = i;
-            Assert.GreaterOrEqual(expectedOrgan, 0, $"The test ray first hit {expectedHit.collider.name} (layer {expectedHit.collider.gameObject.layer}), which is not an organ.");
+            Assert.GreaterOrEqual(expectedOrgan, 0, $"The test ray first hit {expectedHit.collider.name}, which is not an organ.");
 
             var holder = new GameObject("PinInput");
             holder.SetActive(false);
@@ -253,7 +257,7 @@ namespace DIYsect.Networking.Tests
                 yield return WaitFor(() => _server.Count == 1, "the pin request to reach the server");
                 QuestionPin pin = _server[0];
                 Assert.AreEqual(expectedOrgan, pin.OrganIndex);
-                Vector3 expectedLocal = _serverBody.Organs[expectedOrgan].transform.InverseTransformPoint(expectedHit.point);
+                Vector3 expectedLocal = hitBody.Organs[expectedOrgan].transform.InverseTransformPoint(expectedHit.point);
                 Assert.IsTrue((pin.LocalPoint - expectedLocal).magnitude < Tolerance);
                 Assert.AreEqual(PinPlacementInput.DefaultText, pin.Text.ToString());
 
