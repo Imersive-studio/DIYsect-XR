@@ -5,7 +5,10 @@
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner",
     "Unity.XR.CoreUtils",
-    "Unity.XR.Interaction.Toolkit"
+    "Unity.XR.Interaction.Toolkit",
+    "DIYsect.Menu",
+    "DIYsect.Interaction",
+    "DIYsect.Editor.InstrumentGrab"
   ],
   "includePlatforms": [
     "Editor"
