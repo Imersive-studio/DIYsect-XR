@@ -42,6 +42,16 @@ What blocks what:
 - Each tool is a separate grab interactable, and a hand holds one at a time. Taking the handle with the hand that holds the pen lets go of the pen, which ends the stroke through the pen's own release path. Drawing with one hand while the other holds the handle is allowed and works: the line and the depth are separate server objects.
 - The pen is blocked only by another drawer (the server answers no), the handle only when nobody can be guided (`CanRequestControl`). Neither looks at the other.
 - The window never blocks a tool and no tool blocks it. A question with a view opening the window, or stepping through it, changes no pen or handle state.
-- The pen and the handle exist only in `Professor_MR`, so the student cannot grab them.
+- The pen and the handle exist only in the professor's half of `Professor_MR` (`ClassroomRole` switches them off on every other device), so a classmate cannot grab them.
 
-`ProfessorToolsTogetherTests` uses the tools together and checks that each still works alone afterwards. Not verified on a headset: which button of a real controller or hand pose each action maps to comes from the XR Interaction Toolkit rig, not from DIYsect code.
+Other professor inputs and how they meet the tools:
+
+| Input | What it does | Effect on the tools |
+|---|---|---|
+| Left thumbstick, right thumbstick (walk, snap turn) | Moves or turns the rig | None. A walk moves the hand sideways, and the handle reads only its height, so the depth does not change. A drawn point is stored in the body's space, so walking while drawing is the same as moving the hand |
+| A or X (`TableRecenterInput`) | Moves the table root, and the body, tray, handle and window with it | The pen ends its stroke when the body moves under it, and leaves out the closing point, so no line jumps across the body. The handle rests at its place relative to the table, so it goes back to the tray after the table moved |
+| Class roster | A text panel with no collider and no interactable, on the opposite side of the table from the student view window | None |
+
+No tool uses A or X, and none of them reads the thumbsticks.
+
+`ProfessorToolsTogetherTests` uses the tools together and checks that each still works alone afterwards. Not verified on a headset: that A or X is not also bound to something in the rig, and which button of a real controller or hand pose each action maps to comes from the XR Interaction Toolkit rig, not from DIYsect code.
