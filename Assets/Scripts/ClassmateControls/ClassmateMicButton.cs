@@ -24,7 +24,8 @@ namespace DIYsect.ClassmateControls
         private MicButtonModel _model;
         private IVoiceService _service;
         private float _hideMessageAt;
-        private bool _lastMayUnmute;
+        // Starts true so the first frame without permission is a change: a classmate who is not allowed to speak is muted at once.
+        private bool _lastMayUnmute = true;
 
         /// <summary>The text on the button.</summary>
         public string Label => _label.text;

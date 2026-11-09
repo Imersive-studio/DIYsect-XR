@@ -5,6 +5,18 @@ namespace DIYsect.Learning.Tests
     public class QuizMessagesTests
     {
         [Test]
+        public void TheHeadsetLineSaysWhatToDoUntilTheVerdictArrives()
+        {
+            Assert.AreEqual(QuizMessages.HeadsetHint, QuizMessages.HeadsetStatus(QuizPhase.Asking, false, false, ""));
+            Assert.AreEqual(QuizMessages.HeadsetMissed, QuizMessages.HeadsetStatus(QuizPhase.Asking, false, true, null));
+            Assert.AreEqual(QuizMessages.AnswerSent, QuizMessages.HeadsetStatus(QuizPhase.Asking, true, false, ""));
+            Assert.AreEqual("Right! That is the liver.", QuizMessages.HeadsetStatus(QuizPhase.Asking, true, false, "Right! That is the liver."));
+            Assert.AreEqual("Not quite.", QuizMessages.HeadsetStatus(QuizPhase.Revealed, true, false, "Not quite."), "The verdict stays after the reveal.");
+            Assert.AreEqual("", QuizMessages.HeadsetStatus(QuizPhase.Revealed, false, false, ""), "Nothing to do once the round is over.");
+            Assert.AreEqual("", QuizMessages.HeadsetStatus(QuizPhase.Idle, false, false, ""));
+        }
+
+        [Test]
         public void PromptNamesTheOrganInASentence()
         {
             Assert.AreEqual("Quiz: tap the left kidney", QuizMessages.Prompt("Left kidney"));

@@ -72,11 +72,24 @@ namespace DIYsect.Learning
         public void TryPoint(Ray ray)
         {
             if (TapClaims.AnyClaims(_claimers))
+            {
+                Debug.Log("[PhoneTouch] Tap taken by another feature (a quiz round).");
                 return;
+            }
             if (QuizOrganRaycast.TryHit(ray, _body, _maxDistance, _hitLayers, out int organIndex))
+            {
+                // One line per tap, so a device log shows where a tap stops: no organ, a body not linked to the room, or a refusal.
+                Debug.Log($"[PhoneTouch] Tap on organ {organIndex} ({_body.Organs[organIndex].name}). Body in the room: {_board.IsSpawned}.");
                 _board.PointAsClassmate(organIndex);
-            else if (_board.OrganOf(PointerRole.Classmate) != PointerBoard.None)
-                _board.StopClassmate();
+            }
+            else
+            {
+                Debug.Log(Physics.Raycast(ray, out RaycastHit hit, _maxDistance, _hitLayers, QueryTriggerInteraction.Ignore)
+                    ? $"[PhoneTouch] Tap hit {hit.collider.name}, not an organ."
+                    : "[PhoneTouch] Tap hit nothing.");
+                if (_board.OrganOf(PointerRole.Classmate) != PointerBoard.None)
+                    _board.StopClassmate();
+            }
         }
     }
 }
