@@ -228,3 +228,11 @@ Read this table as: the code compiles, builds and passes its automated tests; th
 2. (Answered, see section 5.) Which headset hosts: the join code is created by whoever makes the lobby first; a headset has to create it from the template's VR menu, which has not been tried.
 3. `.gitignore` already ignores the `Builds/` folder (`[Bb]uilds/`), so the APK is never committed. Keep it that way: the README forbids files over 100 MB.
 4. (Answered.) The phone APK is built with `Tools > DIYsect > Build Classmate Phone APK` and installed with `adb install -r Builds/Android-Classmate/DIYsect-Classmate.apk` (USB debugging on; the Unity-bundled `adb` is under `PlaybackEngines/AndroidPlayer/SDK/platform-tools`).
+
+## Failed network start cleanup (#166)
+
+If the lobby is created or joined but the network session fails to start, cleanup now begins before failure notification permits a retry. The host stops its lobby heartbeat and requests deletion; a joining client requests removal of its own membership. If the service cannot complete cleanup, a warning is logged and the stopped host heartbeat lets the failed lobby expire. This is not a promise of immediate deletion while the service is unreachable.
+
+Removal captures the original lobby. A delayed delete or leave result cannot clear a replacement room that a later attempt has already selected. Failed removal returns false and retains the same room reference for a later retry; removing an already empty reference is complete.
+
+Validation for this change: an extracted production-method test reproduced the old delayed-deletion failure before the fix and passed afterward. Another extracted production-method test with fake service/network boundaries verified that failed startup begins cleanup before notifying retry listeners. Unity EditMode tests for host/client removal, replacement rooms and failure results were added but have not run here. Full cloud cancellation, practice coordination, timeout policy and device recovery remain separate #166 tasks.

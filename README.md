@@ -98,3 +98,5 @@ Follow the [task branch and commit workflow](docs/WORKFLOW.md) for every change.
 ### Immersive dissection checklist
 
 For the headset guidance upgrade, run **Tools > DIYsect > Add Dissection Checklist** in Unity 6000.3.28f1. It rebuilds the local card, progress list and body cues in `LectureHall_VR` and `Professor_MR`; the desktop scene stays unchanged. Run it after updating scenes from main, including the seated audience work. Setup, controls, validation and outstanding device checks are in [the checklist guide](docs/IMMERSIVE_CHECKLIST.md).
+
+Failed host/client network starts now initiate lobby cleanup before reporting failure. See [failed-start cleanup and remaining integration checks](docs/DEPLOYMENT.md#failed-network-start-cleanup-166).

@@ -5,7 +5,8 @@
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner",
     "XRMP",
-    "DIYsect.Classroom"
+    "DIYsect.Classroom",
+    "Unity.Services.Multiplayer"
   ],
   "includePlatforms": [
     "Editor"
