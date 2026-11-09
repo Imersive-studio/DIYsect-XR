@@ -28,6 +28,7 @@ namespace XRMultiplayer
 
         private Coroutine _loop;
         private string _pendingCode = string.Empty;
+        private bool _explicitCodeRequested;
 
         /// <summary>Join the first public room found when no code was given.</summary>
         public bool AutoJoinAnyRoom
@@ -52,6 +53,8 @@ namespace XRMultiplayer
             JoinPressed = true;
             CodeRejected = false;
         }
+        /// <summary>Public-room discovery is suppressed after any explicit code submission, including an invalid one.</summary>
+        public bool ShouldAutoJoinAnyRoom => _autoJoinAnyRoom && !_explicitCodeRequested;
 
         /// <summary>The room code waiting to be used, or empty.</summary>
         public string PendingCode => _pendingCode;
@@ -62,6 +65,7 @@ namespace XRMultiplayer
         /// <summary>Asks to join the room with this code, typed by the classmate or taken from a link. Returns false when it is not a valid code.</summary>
         public bool JoinWithCode(string typedCode)
         {
+            _explicitCodeRequested = true;
             if (!RoomInvite.TryNormalizeCode(typedCode, out string code))
                 return false;
             _pendingCode = code;
@@ -131,9 +135,9 @@ namespace XRMultiplayer
                         CodeRejected = joiner.LastCodeRejected;
                     }
                 }
-                else if (_autoJoinAnyRoom)
+                else if (ShouldAutoJoinAnyRoom)
                 {
-                    yield return joiner.TryJoinOnce();
+                    yield return joiner.TryJoinOnce(() => ShouldAutoJoinAnyRoom);
                 }
                 yield return _pendingCode.Length > 0 ? null : wait;
             }

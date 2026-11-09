@@ -66,7 +66,7 @@ namespace DIYsect.Editor
 
         // The template draws a very short thin line that disappears when nothing is hit. Controllers and hands keep a
         // clear pointer: the line always shows, at least RayLength long, and RayWidth times as wide.
-        private static int MakeRaysVisible(XROrigin origin)
+        public static int MakeRaysVisible(XROrigin origin)
         {
             int count = 0;
             foreach (CurveVisualController visual in origin.GetComponentsInChildren<CurveVisualController>(true))
