@@ -168,7 +168,7 @@ namespace DIYsect.Editor
             EditorUtility.SetDirty(practice);
             SetArray(serialized.FindProperty("_classroomObjects"), classroomObjects);
             SetArray(serialized.FindProperty("_studentObjects"), Array.Empty<GameObject>());
-            SetArray(serialized.FindProperty("_studentBehaviours"), new Behaviour[] { calibration, practice });
+            SetArray(serialized.FindProperty("_studentBehaviours"), AddAssistRequest.WithStudentInput(new Behaviour[] { calibration, practice }, headsetOrigin.gameObject));
 
             // The professor's quiz panel needs its question set saved in the scene (Add Quiz does this too, but a scene taken
             // from another branch can lose it, and the panel then switches itself off on the headset).
@@ -223,6 +223,7 @@ namespace DIYsect.Editor
             AddClassmateBottomBar.AddMic(rig);
             AddClassmateBottomBar.AddHand(rig, hands);
             AddOrganNameTap.AddTo(rig, board.GetComponent<DIYsect.Networking.SharedBody>());
+            AddClassmatePointInput.AddTo(rig, board.GetComponent<DIYsect.Networking.SharedBody>(), board.GetComponent<DIYsect.Classroom.PointerBoard>());
 
             var toast = rig.GetComponent<DIYsect.Classroom.PinRejectionToast>()
                 ?? throw new InvalidOperationException($"{rig.name} has no PinRejectionToast.");

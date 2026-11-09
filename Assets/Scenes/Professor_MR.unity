@@ -24483,6 +24483,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1145692898}
   m_Mesh: {fileID: 0}
+--- !u!114 &1147799672 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 473628674554992282, guid: 0421d8b2a5cc14833a05fb031af7ced2,
+    type: 3}
+  m_PrefabInstance: {fileID: 1431532387}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76253ba3f24b241f094d5f0354c62930, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Classroom::DIYsect.Classroom.AssistBoard
 --- !u!1 &1150934065
 GameObject:
   m_ObjectHideFlags: 0
@@ -27633,6 +27645,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: DIYsect.ClassRoster::DIYsect.ClassRoster.ClassRosterPanel
   _board: {fileID: 1431532390}
   _hands: {fileID: 1866060000}
+  _assist: {fileID: 1147799672}
   _text: {fileID: 1018377895}
   _refreshSeconds: 1
 --- !u!1 &1261295637
@@ -34296,6 +34309,7 @@ MonoBehaviour:
   _studentBehaviours:
   - {fileID: 1996598803}
   - {fileID: 1421188178}
+  - {fileID: 1996598804}
   _joiningBehaviours:
   - {fileID: 1421188177}
   _headsetCamera: {fileID: 1996598796}
@@ -36287,6 +36301,7 @@ GameObject:
   - component: {fileID: 1477613967}
   - component: {fileID: 1477613966}
   - component: {fileID: 1477613972}
+  - component: {fileID: 1477613973}
   m_Layer: 0
   m_Name: ClassmateCamera
   m_TagString: MainCamera
@@ -36684,6 +36699,28 @@ MonoBehaviour:
   _continue: {fileID: 1371555204}
   _message: {fileID: 1404892734}
   _joiner: {fileID: 1477613971}
+--- !u!114 &1477613973
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1477613951}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f886626735f245ce94775e69a091fd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Learning::DIYsect.Learning.ClassmatePointInput
+  _body: {fileID: 1170218925}
+  _board: {fileID: 1583770611}
+  _gestures: {fileID: 1477613953}
+  _camera: {fileID: 1477613957}
+  _maxDistance: 20
+  _hitLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _tapClaimers:
+  - {fileID: 1477613960}
 --- !u!1 &1480033306
 GameObject:
   m_ObjectHideFlags: 0
@@ -39581,6 +39618,18 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &1583770611 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6635560021572335089, guid: 0421d8b2a5cc14833a05fb031af7ced2,
+    type: 3}
+  m_PrefabInstance: {fileID: 1431532387}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7adf1ed2e98ae4aec8b471b30c5c1a1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Classroom::DIYsect.Classroom.PointerBoard
 --- !u!1 &1584156801
 GameObject:
   m_ObjectHideFlags: 0
@@ -49530,6 +49579,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1996598803}
+    - targetCorrespondingSourceObject: {fileID: 5632266133985503990, guid: 7d554cf076fc46143bcaf9a54fc2204d,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1996598804}
     - targetCorrespondingSourceObject: {fileID: 1258088044470187284, guid: 7d554cf076fc46143bcaf9a54fc2204d,
         type: 3}
       insertIndex: -1
@@ -49623,6 +49676,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97e5f8a07dcae4df68202315d8cb3f95, type: 3}
   m_Name: 
   m_EditorClassIdentifier: DIYsect.MixedReality::DIYsect.MixedReality.StudentEyeHeightBootstrap
+--- !u!114 &1996598804
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1996598800}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 067d20c530931446d854948f81389a54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Classroom::DIYsect.Classroom.AssistRequestInput
+  _board: {fileID: 1147799672}
 --- !u!1 &1997065661
 GameObject:
   m_ObjectHideFlags: 0
