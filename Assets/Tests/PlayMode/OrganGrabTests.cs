@@ -122,7 +122,8 @@ namespace DIYsect.Networking.Tests
             organ.SetLocalPositionAndRotation(localPosition, localRotation);
 
             yield return new WaitForSeconds(0.7f);
-            Assert.IsTrue(Near(_bodyA, localPosition, localRotation), "The holder's organ snapped back toward the stale server pose.");
+            Assert.IsTrue(Near(_bodyA, localPosition, localRotation),
+                $"The holder's organ snapped back toward the stale server pose. Wanted {localPosition}, is {organ.localPosition}; paused: {organ.GetComponent<HoldableNetworkTransform>().IsPaused}.");
 
             // Release over the open body, a little above the organ's home. The server puts an organ released there
             // back home (Returned, or Accepted/Rejected near a socket: all three end at home), so the final pose is
