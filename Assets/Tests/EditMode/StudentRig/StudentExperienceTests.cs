@@ -83,6 +83,19 @@ namespace DIYsect.StudentRig.Tests
         }
 
         [Test]
+        public void TheDrapesAreSwitchedOffOnTheBody()
+        {
+            GameObject body = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/AnatomyBody.prefab");
+            Assert.IsNotNull(body, "The body prefab is missing.");
+            Transform drapes = null;
+            foreach (Transform t in body.GetComponentsInChildren<Transform>(true))
+                if (t.name == "Drapes")
+                    drapes = t;
+            Assert.IsNotNull(drapes, "The body has no Drapes group.");
+            Assert.IsFalse(drapes.gameObject.activeSelf, "The drapes tent over the half body and a loose piece floats in the air, so they stay off.");
+        }
+
+        [Test]
         public void ProfessorRigIsNotRecalibrated()
         {
             EditorSceneManager.OpenScene(ProfessorScene, OpenSceneMode.Single);

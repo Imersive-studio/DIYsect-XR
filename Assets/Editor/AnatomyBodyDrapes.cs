@@ -14,6 +14,10 @@ namespace DIYsect.Editor
     /// </summary>
     public static class AnatomyBodyDrapes
     {
+        // The drapes tent up over the half body for no reason and a loose piece floats in the air on the headset, so
+        // they are kept in the body but switched off. Set this to true to show them again, then run the step.
+        public const bool ShowDrapes = false;
+
         private const string DrapesModel = "Assets/Models/Environment/Drapes/surgical_drapes.glb";
         private const string GroupName = "Drapes";
         private const string SupineName = "Supine";
@@ -33,6 +37,7 @@ namespace DIYsect.Editor
                 group = new GameObject(GroupName).transform;
                 group.SetParent(supine, false);
             }
+            group.gameObject.SetActive(ShowDrapes);
             string instanceName = Path.GetFileNameWithoutExtension(DrapesModel);
             if (group.Find(instanceName) != null)
                 return;
