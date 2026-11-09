@@ -14,6 +14,7 @@ namespace DIYsect.Classroom
     /// the point is not finite or not on the organ, the text is empty or too long, or the sender asked for
     /// too many pins recently. A request may carry the asker's camera pose, stored in the body's local space; an invalid
     /// pose never rejects the question, the pin is just stored without a view. A pin can be removed by its author or by the host.
+    /// The professor (see <see cref="PinAnswerRule"/>) can mark a pin answered; the server refuses anyone else and an unknown pin.
     /// </summary>
     [RequireComponent(typeof(SharedBody))]
     public class QuestionBoard : NetworkBehaviour
@@ -100,6 +101,12 @@ namespace DIYsect.Classroom
             RemovePinRpc(pinId);
         }
 
+        /// <summary>Asks the server to mark a pin answered. Only the professor is obeyed; others get a rejection.</summary>
+        public void RequestMarkAnswered(int pinId)
+        {
+            MarkAnsweredRpc(pinId);
+        }
+
         [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
         private void AddPinRpc(int organIndex, Vector3 organLocalPoint, string text,
             Vector3 viewPosition, Quaternion viewRotation, RpcParams rpcParams = default)
@@ -148,6 +155,26 @@ namespace DIYsect.Classroom
                     _pins.RemoveAt(i);
                 return;
             }
+        }
+
+        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+        private void MarkAnsweredRpc(int pinId, RpcParams rpcParams = default)
+        {
+            ulong sender = rpcParams.Receive.SenderClientId;
+            if (!PinAnswerRule.CanMarkAnswered(sender, ScalpelSteering.FindSteerer(NetworkManager)))
+            {
+                Reject(sender, PinRejection.NotProfessor);
+                return;
+            }
+            for (int i = 0; i < _pins.Count; i++)
+            {
+                if (_pins[i].Id != pinId)
+                    continue;
+                if (!_pins[i].Answered)
+                    _pins[i] = _pins[i].AsAnswered();
+                return;
+            }
+            Reject(sender, PinRejection.NoSuchPin);
         }
 
         private void Reject(ulong sender, PinRejection reason)

@@ -58,26 +58,10 @@ namespace DIYsect.Networking.Tests
             }
         }
 
-        // Spawns the scalpel and makes the given client its steerer, so the server calls that client the Student.
+        // Makes the given client the scalpel steerer, so the server calls that client the Student.
         private IEnumerator MakeSteerer(NetworkManager steererManager)
         {
-            _scalpel = Object.Instantiate(LoadScalpelPrefabAsset());
-            var spawned = _scalpel.GetComponent<NetworkObject>();
-            spawned.Spawn();
-            spawned.TrySetParent(_serverBody.GetComponent<NetworkObject>(), worldPositionStays: false);
-            ScalpelSteering steering = null;
-            yield return WaitFor(() =>
-            {
-                if (!steererManager.IsConnectedClient)
-                    return false;
-                foreach (NetworkObject o in steererManager.SpawnManager.SpawnedObjects.Values)
-                    if (o.TryGetComponent(out steering) && steering.IsSpawned)
-                        return true;
-                return false;
-            }, "the steerer to receive the scalpel");
-            steering.RequestSteer();
-            ScalpelSteering server = _scalpel.GetComponent<ScalpelSteering>();
-            yield return WaitFor(() => server.Steerer == steererManager.LocalClientId, "the server to record the steerer");
+            yield return SpawnScalpelWithSteerer(steererManager, scalpel => _scalpel = scalpel);
         }
 
         [UnityTest]
