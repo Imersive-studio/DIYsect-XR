@@ -85,7 +85,7 @@ Keep the whole visible scene below approximately **750,000 triangles**. Individu
 
 [GitHub issues](https://github.com/Imersive-studio/DIYsect-XR/issues) track implementation. [Starter checklist](docs/UNITY_BACKLOG.md) defines the 16 Unity tasks and role ownership.
 
-See [deployment and OpenXR notes](docs/DEPLOYMENT.md) to build, install and run on Quest 3.
+See [deployment and OpenXR notes](docs/DEPLOYMENT.md) to build, install and run on Quest 3, and the [student VR controls](docs/VR_CONTROLS.md) for what a tester should try.
 
 `Assets/` holds Unity content. `Tools/blender/` holds reproducible asset processing. `docs/` is the existing documentation directory (keep this casing on every platform). `SourceAssets/` is local only. The template must supply `Packages/` and `ProjectSettings/` before this is a runnable Unity project; the scaffold alone is not a working multiplayer demo.
 
