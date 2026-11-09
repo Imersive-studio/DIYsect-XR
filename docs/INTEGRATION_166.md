@@ -4,7 +4,7 @@ Owner: Prajwal. Scope: [issue #166](https://github.com/Imersive-studio/DIYsect-X
 
 ## Checked baseline
 
-Main `65ab921`, checked 9 November 2026. Shared-scene candidate `d04618f` remains separate in PR #158. Its historical 421 EditMode / 160 PlayMode report is candidate evidence, not a result for the eventual combined branch.
+Main `65ab921`, checked 9 November 2026. Shared-scene candidate `da19e72` remains separate in PR #158. Its historical 421 EditMode / 160 PlayMode report is candidate evidence, not a result for the eventual combined branch.
 
 | Area | Current condition | Next action |
 |---|---|---|
@@ -13,7 +13,7 @@ Main `65ab921`, checked 9 November 2026. Shared-scene candidate `d04618f` remain
 | Phone controls #155 / #164 | On main at `c16a807` | Preserve Join, voice, hand, name/pin and safe-area setup during role integration |
 | Build orchestration #148 | On main at `d13b748` | Reuse; build all three actual APKs from the final commit |
 | Media #154 | On main at `77304bb` | Keep editor-rendered/staged labels; do not count as device rehearsal |
-| Shared-scene candidate #158 | Open, `integ/shared-scene-combined` at `d04618f` | Reconcile with current main and preserve student presentation before integrating |
+| Shared-scene candidate #158 | Open, `integ/shared-scene-combined` at `da19e72` | Reconcile with current main and preserve student presentation before integrating |
 | Practice/cloud coordination | Main still has the timer-based practice fallback | Reproduce races, add explicit lifecycle rules and fake-service coverage, then fix |
 | Device acceptance | No new combined result recorded here | Run final suites, builds and five device rehearsals |
 
@@ -27,6 +27,33 @@ Main `65ab921`, checked 9 November 2026. Shared-scene candidate `d04618f` remain
 
 Each task is published before starting the next dependent task. Task PRs target main when independent or their prerequisite branch when dependent. Reviews and device blockers remain visible; a source-preparation PR is not a completed feature.
 
+
+## Published increments and remaining work
+
+| PR | Branch / base | Published scope | Remaining gate |
+|---|---|---|---|
+| #167 | docs/integration-166-plan / main | Workflow, demo timing and this ledger | Review |
+| #168 | feat/shared-student-presentation / integ/demo-reliability-166 | Reusable student hall, audience and light composition; preserve one body and role wiring | Reconcile newer #158 changes; save and test the scene in Unity |
+| #170 | fix/failed-room-cleanup / integ/demo-reliability-166 | Capture old room during deletion; start failed-host cleanup before retry notification | Unity suites and service/device checks |
+| #171 | fix/room-operation-cancellation / fix/failed-room-cleanup | Explicit cancellable queue; wait for service completion and cleanup; reject superseded drains | Connect live room/search/practice paths; Unity suites |
+
+The integration parent is `integ/demo-reliability-166` at `7d199b6`, based on
+main `65ab921` and the earlier shared-scene candidate. It retains the current
+main Professor_MR scene whole; it is not a scene-validated release.
+
+Latest remote check: #158 advanced to `da19e72` with student join, practice and
+input changes. #169 (`fix/hands-reach-organs`, `ae53a80`) addresses organ hand
+reach. Reconcile these before final composition; do not overwrite their scene
+changes or count their test reports as validation of the eventual combined build.
+
+The #171 queue passed six standalone asynchronous C# checks. The superseded-drain
+case was reproduced failing before the correction and passed afterwards. This
+does not yet prevent practice takeover in the live app: cloud operations must use
+the queue, check cancellation after service awaits, and release their own
+resources. Discovery, invalid-invite retry, disconnect and practice handoff remain
+part of the next runtime increment.
+
+No runtime draft above is merged or declared complete by this ledger.
 ## Ownership and checkout boundaries
 
 Prajwal owns this integration effort. Issue assignments identify Aaditya for room lifecycle, Arjun for professor/phone UI and Saurav for student/headset validation. These assignments are not proof that their current edits have stopped. Confirm overlapping file ownership before changing their active branches or saving shared scenes.
