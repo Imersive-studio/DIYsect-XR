@@ -20,7 +20,7 @@ Student controls are in `docs/VR_CONTROLS.md`.
 | 0:10 to 0:30 | The student picks up the scalpel and makes the cut. The skin opens, then the muscle. The phones update. Classmates rotate their own copy freely. | "One shared body, but everyone has a private camera." |
 | 0:30 to 0:50 | The judge points at the heart. The phones show where the professor points. The student lifts an organ and puts it back. | "The pointer shows up in each classmate's own view." |
 | 0:50 to 1:10 | A classmate taps the liver. The judge sees a question pin and the roster counts it. | "The teacher sees what was asked, and where." |
-| 1:10 to 1:25 | The judge opens the student's view in the floating window and guides the cut depth with the depth handle. | "No guessing which part they meant." |
+| 1:10 to 1:25 | The judge opens the student's view in the floating window, presses **Answered** (the pin turns grey with `[x]` on every phone), and guides the cut depth with the depth handle. | "No guessing which part they meant, and everyone sees it was answered." |
 | 1:25 to 1:30 | Close. | "Shared state, private views, and the interface that connects them." |
 
 Say the contribution out loud: **techniques for keeping a headset user and phone users aware of each other**, not "human anatomy".
@@ -72,6 +72,8 @@ Code health:
 | "No room found with that code" | The room closed or the code was misread. Read it again from the roster panel |
 | A tool will not grab | Point at it and squeeze the grip or trigger. It turns yellow when it can be grabbed |
 | The student is stuck in the app | Left menu button (or the right B button), then Quit, then Yes, quit |
+| A classmate has lost the body on screen | Tap **Reset view** (top right), or press Home or R on a laptop |
+| The judge drew a guide line and pressed A or X | That ends the stroke on purpose (the table moved). Draw it again |
 | Wi-Fi is bad | Use a phone hotspot for every device, or play the backup video |
 | Everything fails | Play the backup video and run the laptop classmate beside it |
 
@@ -80,6 +82,7 @@ Code health:
 - Two Quests together in one room. The professor and student apps have been built, but not yet run side by side.
 - A pin placed by a real finger on a phone reaching the professor's view.
 - The join code box and the `diysect://join` link on a real phone (the APK manifest contains the link alias; no device test yet).
+- The **Reset view** button tapped by a real finger, and the **Answered** button pressed in a real headset (both pass the editor tests only).
 - Bare hand pinch grab on the student headset. Controllers are the safe path for the demo.
 - The organ info cards and the dissection checklist exist as code but are not placed in any scene yet, so they are not part of this demo.
 
