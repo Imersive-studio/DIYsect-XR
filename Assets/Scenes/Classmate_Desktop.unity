@@ -1847,6 +1847,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1421188175}
+    - targetCorrespondingSourceObject: {fileID: 8647664954492677990, guid: 0267a1d338db2bf4c9625e450bbaaad0,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1421188176}
   m_SourcePrefab: {fileID: 100100000, guid: 0267a1d338db2bf4c9625e450bbaaad0, type: 3}
 --- !u!1 &1421188172 stripped
 GameObject:
@@ -1880,6 +1884,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: XRMP::XRMultiplayer.ClassmateAutoJoin
   _retrySeconds: 5
+  _runInEditor: 0
 --- !u!114 &1421188175
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1893,6 +1898,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: XRMP::XRMultiplayer.ClassmateStatusLabel
   _textSize: 0.032
+--- !u!114 &1421188176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1421188172}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b127a2486de51472e92bbecb753e2ba4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: XRMP::XRMultiplayer.StableNetworkObjectIds
 --- !u!1001 &1431532387
 PrefabInstance:
   m_ObjectHideFlags: 0
