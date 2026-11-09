@@ -58,3 +58,27 @@ Other professor inputs and how they meet the tools:
 No tool uses A or X, and none of them reads the thumbsticks.
 
 `ProfessorToolsTogetherTests` uses the tools together and checks that each still works alone afterwards. Not verified on a headset: that A or X is not also bound to something in the rig, and which button of a real controller or hand pose each action maps to comes from the XR Interaction Toolkit rig, not from DIYsect code.
+
+## Room operation cancellation (#166)
+
+Prajwal owns the local connection queue. `RoomOperationPhase` is its explicit phase,
+`RoomOperationRule` holds the pure transitions, and `RoomOperationQueue` is the
+only writer and emits `Changed`. These are local connection intentions, not
+replicated lesson phases. Call the queue from the Unity main thread.
+
+A replacement request cancels the old intent, waits for its outstanding service
+response, and releases its resources before starting. Intermediate queued requests
+are skipped. Failed cleanup blocks new connections until cleanup succeeds.
+`CancelAndDrainAsync` returning true is the boundary a future practice adapter
+must await; merely requesting cancellation is not sufficient.
+
+This foundation is not yet connected to the live room or practice components.
+Operations must check their cancellation token after service awaits and before
+changing transport state, and roll back only resources they acquired. An SDK call
+that never returns remains pending; this queue does not claim to interrupt it.
+
+Validation: five asynchronous tests passed against the production queue source in
+a standalone C# harness: delayed cancellation, superseded requests, failed cleanup,
+cancellation from a phase callback, and retry after preparation failure. The same
+test cases are supplied for Unity EditMode; Unity execution and headset validation
+remain pending.
