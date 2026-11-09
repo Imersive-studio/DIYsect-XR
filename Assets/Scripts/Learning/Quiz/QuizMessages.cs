@@ -42,12 +42,34 @@ namespace DIYsect.Learning
                 case QuizResult.StaleRound:
                     return "That quiz round has already ended.";
                 case QuizResult.NotAllowed:
-                    return "Only classmates answer the quiz.";
+                    return "The professor does not answer the quiz.";
                 case QuizResult.BadOrgan:
                     return "Tap an organ to answer.";
                 default:
                     return "The answer was not accepted.";
             }
+        }
+
+        /// <summary>The student's line under the question in the headset, before they answer.</summary>
+        public const string HeadsetHint = "Point at the organ and pull the trigger.";
+        /// <summary>The student's line when the trigger was pulled while pointing at something that is not an organ.</summary>
+        public const string HeadsetMissed = "That was not an organ. Point at one and pull the trigger.";
+        /// <summary>The student's line while the server is judging the answer.</summary>
+        public const string AnswerSent = "Answer sent.";
+
+        /// <summary>
+        /// The small line under the question on the student's headset card: the server's verdict once it arrived,
+        /// otherwise what to do next in this phase. Empty when there is nothing to say.
+        /// </summary>
+        public static string HeadsetStatus(QuizPhase phase, bool answered, bool missed, string feedback)
+        {
+            if (!string.IsNullOrEmpty(feedback))
+                return feedback;
+            if (phase != QuizPhase.Asking)
+                return string.Empty;
+            if (answered)
+                return AnswerSent;
+            return missed ? HeadsetMissed : HeadsetHint;
         }
 
         /// <summary>What the professor reads when the server refused a start, end or close.</summary>
