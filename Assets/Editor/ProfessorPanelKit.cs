@@ -94,15 +94,15 @@ namespace DIYsect.Editor
             Vector2 localPosition, Vector2 boxSize, FontStyles style = FontStyles.Normal, float characterSpacing = 0f)
         {
             TMP_FontAsset font = LoadFont();
-            var child = new GameObject(name).transform;
-            child.SetParent(parent, false);
-            child.gameObject.layer = parent.gameObject.layer;
-            var label = child.gameObject.AddComponent<TextMeshPro>();
+            var child = new GameObject(name);
+            child.transform.SetParent(parent, false);
+            child.layer = parent.gameObject.layer;
+            // Adding TextMeshPro swaps the Transform for a RectTransform, so position through the label from here on.
+            var label = child.AddComponent<TextMeshPro>();
             label.font = font;
             label.fontSharedMaterial = font.material;
             label.rectTransform.pivot = new Vector2(0f, 1f);
             label.rectTransform.sizeDelta = boxSize;
-            child.localPosition = new Vector3(localPosition.x, localPosition.y, 0f);
             label.isOrthographic = false;
             label.fontSize = CapToFontSize(font, heightMetres);
             label.fontStyle = style;
@@ -116,6 +116,9 @@ namespace DIYsect.Editor
             meshRenderer.sortingOrder = TextOrder;
             meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
             meshRenderer.receiveShadows = false;
+            // Placed last: setting up the text resets the rect's position. Both are set so the saved scene keeps it.
+            label.rectTransform.anchoredPosition = localPosition;
+            label.rectTransform.localPosition = new Vector3(localPosition.x, localPosition.y, 0f);
             return label;
         }
 
