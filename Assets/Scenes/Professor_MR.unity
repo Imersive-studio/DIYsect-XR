@@ -12486,7 +12486,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 371553910}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.3635978, z: -0, w: 0.93155605}
+  m_LocalRotation: {x: -0, y: -0.36359778, z: -0, w: 0.93155605}
   m_LocalPosition: {x: -0.8215753, y: 1.45, z: 0.8731582}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -46628,6 +46628,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1149903581173863409, guid: 0267a1d338db2bf4c9625e450bbaaad0,
+        type: 3}
+      propertyPath: positionalVoiceChat
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2130375573001811736, guid: 0267a1d338db2bf4c9625e450bbaaad0,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -46730,6 +46735,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1421188179}
+    - targetCorrespondingSourceObject: {fileID: 8647664954492677990, guid: 0267a1d338db2bf4c9625e450bbaaad0,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1421188180}
   m_SourcePrefab: {fileID: 100100000, guid: 0267a1d338db2bf4c9625e450bbaaad0, type: 3}
 --- !u!1 &1421188172 stripped
 GameObject:
@@ -46871,6 +46880,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1676ff4d3fd8746ac92691d7446002c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: DIYsect.ClassmateControls::DIYsect.ClassmateControls.HeadsetVoice
+--- !u!114 &1421188180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1421188172}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05d3e92e6a13c4f48b63f994ab1a7c1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: XRMP::XRMultiplayer.VoiceRoleDefaults
 --- !u!1 &1422169180
 GameObject:
   m_ObjectHideFlags: 0
