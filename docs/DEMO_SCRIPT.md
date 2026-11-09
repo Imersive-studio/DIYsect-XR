@@ -29,11 +29,12 @@ Say the contribution out loud: **techniques for keeping a headset user and phone
 
 Builds (make them the evening before, from the editor menu so a graphics device is present):
 
+- [ ] One command for all three: **Tools > DIYsect > Build All Demo APKs** (stops at the first failing build and names it; writes `Builds/DemoBuilds.txt` with the commit, date, and APK sizes). Or build them one by one:
 - [ ] **Tools > DIYsect > Build Professor APK** (`Builds/Android-Professor/DIYsect-Professor.apk`)
 - [ ] **Tools > DIYsect > Build Student APK** (`Builds/Android-Student/DIYsect-Student.apk`)
 - [ ] **Tools > DIYsect > Build Classmate Phone APK** (`Builds/Android-Classmate/DIYsect-Classmate.apk`)
 - [ ] Install each with `adb install -r <apk>` (the Unity-bundled `adb` is under `PlaybackEngines/AndroidPlayer/SDK/platform-tools`)
-- [ ] Both headsets and the phones were built from the same commit
+- [ ] Both headsets and the phones were built from the same commit (`Builds/DemoBuilds.txt` shows it when you used Build All)
 
 Room and devices:
 
