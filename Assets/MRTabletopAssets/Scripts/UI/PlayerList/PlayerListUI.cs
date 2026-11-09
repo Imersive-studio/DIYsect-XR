@@ -98,8 +98,15 @@ namespace UnityEngine.XR.Templates.MRTTabletopAssets
             {
                 m_PlayerDictionary.Remove(slotToRemove);
                 Destroy(slotToRemove.gameObject);
-                m_PlayerCountText.text = $"{m_PlayerDictionary.Keys.Count}/{XRINetworkGameManager.Instance.lobbyManager.connectedLobby.MaxPlayers}";
+                m_PlayerCountText.text = PlayerCountText();
             }
+        }
+
+        // A practice session has no lobby, so there is no room size to show.
+        string PlayerCountText()
+        {
+            var lobby = XRINetworkGameManager.Instance.lobbyManager != null ? XRINetworkGameManager.Instance.lobbyManager.connectedLobby : null;
+            return lobby != null ? $"{m_PlayerDictionary.Keys.Count}/{lobby.MaxPlayers}" : $"{m_PlayerDictionary.Keys.Count}";
         }
 
         void SetupPlayerSlotUI(ulong playerId)
@@ -119,7 +126,7 @@ namespace UnityEngine.XR.Templates.MRTTabletopAssets
                     }
                     slot.playerIconImage.color = player.playerColor;
 
-                    m_PlayerCountText.text = $"{m_PlayerDictionary.Keys.Count}/{XRINetworkGameManager.Instance.lobbyManager.connectedLobby.MaxPlayers}";
+                    m_PlayerCountText.text = PlayerCountText();
                 }
             }
             else
