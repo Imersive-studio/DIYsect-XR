@@ -72,6 +72,7 @@ A and X grab, as well as the grip (the toolkit's Select action is bound to all t
 
 The student can ask only while holding the scalpel, because the professor can guide the depth only while somebody steers. Putting the scalpel down, leaving, or the professor letting go always closes the request. Set up with Tools > DIYsect > Add Help Request (`AddAssistRequest.ApplyBatch`).
 `ProfessorToolsTogetherTests` uses the tools together and checks that each still works alone afterwards. Not verified on a headset: that A or X is not also bound to something in the rig, and which button of a real controller or hand pose each action maps to comes from the XR Interaction Toolkit rig, not from DIYsect code.
+
 ## Room operation cancellation (#166)
 Prajwal owns the local connection queue. `RoomOperationPhase` is its explicit phase,
 `RoomOperationRule` holds the pure transitions, and `RoomOperationQueue` is the
@@ -86,12 +87,9 @@ This foundation is not yet connected to the live room or practice components.
 Operations must check their cancellation token after service awaits and before
 changing transport state, and roll back only resources they acquired. An SDK call
 that never returns remains pending; this queue does not claim to interrupt it.
-Validation: five asynchronous tests passed against the production queue source in
-
 Validation: six asynchronous tests passed against the production queue source in
 a standalone C# harness: delayed cancellation, superseded requests, failed cleanup,
 cancellation from a phase callback, retry after preparation failure, and a newer
 intent arriving during cleanup. The last case failed before the drain revision
 check was added and passed afterwards. The same
-test cases are supplied for Unity EditMode; Unity execution and headset validation
-remain pending.
+test cases run in Unity EditMode and pass. Headset validation remains pending.
