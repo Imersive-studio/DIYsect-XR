@@ -27,9 +27,10 @@ namespace DIYsect.Build.Tests
         }
 
         [Test]
-        public void RoleBuilds_AreDevelopmentBuilds_UnlikeThePhoneBuild()
+        public void RoleBuilds_AreNotDevelopmentBuilds_LikeThePhoneBuild()
         {
-            Assert.AreNotEqual(BuildOptions.None, BuildAndroidRole.CreateProfessorOptions().options & BuildOptions.Development);
+            Assert.AreEqual(BuildOptions.None, BuildAndroidRole.CreateProfessorOptions().options & BuildOptions.Development);
+            Assert.AreEqual(BuildOptions.None, BuildAndroidRole.CreateStudentOptions().options & BuildOptions.Development);
             Assert.AreEqual(BuildOptions.None, BuildAndroidClassmate.CreateOptions().options & BuildOptions.Development);
         }
 
