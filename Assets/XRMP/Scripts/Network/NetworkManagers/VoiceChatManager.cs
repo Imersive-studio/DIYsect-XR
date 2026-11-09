@@ -183,7 +183,11 @@ namespace XRMultiplayer
 
             if (connected)
             {
-                Login(XRINetworkGameManager.AuthenicationId, XRINetworkGameManager.Instance.lobbyManager.connectedLobby.Id);
+                // A practice session has no lobby, so there is no voice channel to join.
+                var lobby = XRINetworkGameManager.Instance.lobbyManager != null ? XRINetworkGameManager.Instance.lobbyManager.connectedLobby : null;
+                if (lobby == null)
+                    return;
+                Login(XRINetworkGameManager.AuthenicationId, lobby.Id);
             }
             else
             {
