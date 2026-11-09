@@ -69,6 +69,14 @@ namespace DIYsect.Learning
             {
                 Debug.LogError($"{name}: checklist presentation references are missing ({problem}). Run Tools > DIYsect > Add Dissection Checklist.", this);
                 enabled = false;
+                return;
+            }
+
+            // DrawTick writes three points in the line's own space, so make sure the line can take them.
+            for (int i = 0; i < _ticks.Length; i++)
+            {
+                if (_ticks[i].positionCount != 3) _ticks[i].positionCount = 3;
+                _ticks[i].useWorldSpace = false;
             }
         }
 
