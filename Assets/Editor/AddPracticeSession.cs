@@ -16,6 +16,39 @@ namespace DIYsect.Editor
     public static class AddPracticeSession
     {
         public const string ScenePath = "Assets/Scenes/LectureHall_VR.unity";
+        public const string SharedScenePath = "Assets/Scenes/Professor_MR.unity";
+        // In the shared scene the student first opens a real room, which takes longer than finding one, so practice waits.
+        public const float SharedSceneWaitSeconds = 45f;
+
+        /// <summary>Sets the practice wait in the shared scene without rebuilding it.</summary>
+        [MenuItem("Tools/DIYsect/Set Shared Scene Practice Wait")]
+        public static void SetSharedSceneWait()
+        {
+            var scene = EditorSceneManager.OpenScene(SharedScenePath, OpenSceneMode.Single);
+            var practice = UnityEngine.Object.FindFirstObjectByType<PracticeSession>(FindObjectsInactive.Include)
+                ?? throw new InvalidOperationException($"{SharedScenePath} has no PracticeSession. Run Tools > DIYsect > Build Shared Scene.");
+            var serialized = new SerializedObject(practice);
+            serialized.FindProperty("_waitSeconds").floatValue = SharedSceneWaitSeconds;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorSceneManager.MarkSceneDirty(scene);
+            if (!EditorSceneManager.SaveScene(scene))
+                throw new IOException($"Could not save {SharedScenePath}.");
+            Debug.Log($"[AddPracticeSession] {SharedScenePath}: practice waits {SharedSceneWaitSeconds} s.");
+        }
+
+        public static void SetSharedSceneWaitBatch()
+        {
+            try
+            {
+                SetSharedSceneWait();
+                EditorApplication.Exit(0);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+                EditorApplication.Exit(1);
+            }
+        }
 
         [MenuItem("Tools/DIYsect/Add Practice Session")]
         public static void Apply()

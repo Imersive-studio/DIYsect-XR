@@ -37,13 +37,20 @@ namespace DIYsect.MixedReality.Tests
             {
                 var professorObject = new GameObject("professor-only");
                 var classmateObject = new GameObject("classmate-only");
+                var studentObject = new GameObject("student-only");
+                var studentLight = studentObject.AddComponent<Light>();
                 var holder = new GameObject("holder");
                 var professorScript = holder.AddComponent<ProfessorAutoHost>();
                 var classmateScript = holder.AddComponent<ClassmateStatusLabel>();
+                var joiner = holder.AddComponent<ClassmateAutoJoin>();
+                joiner.WaitForJoinPress = true;
                 var switchObject = new GameObject("switch");
                 switchObject.SetActive(false);
                 var role = switchObject.AddComponent<ClassroomRole>();
                 Set(role, "_editorRole", kind);
+                Set(role, "_joiningBehaviours", new Behaviour[] { joiner });
+                Set(role, "_studentObjects", new[] { studentObject });
+                Set(role, "_studentBehaviours", new Behaviour[] { studentLight });
                 Set(role, "_professorObjects", new[] { professorObject });
                 Set(role, "_classmateObjects", new[] { classmateObject });
                 Set(role, "_professorBehaviours", new Behaviour[] { professorScript });
@@ -53,12 +60,15 @@ namespace DIYsect.MixedReality.Tests
 
                 bool professor = kind == ClassroomRoleKind.Professor;
                 Assert.AreEqual(kind, ClassroomRole.Current);
+                Assert.AreEqual(kind == ClassroomRoleKind.Student, studentObject.activeSelf);
+                Assert.AreEqual(kind == ClassroomRoleKind.Student, studentLight.enabled);
+                Assert.AreEqual(kind != ClassroomRoleKind.Student, joiner.WaitForJoinPress);
                 Assert.AreEqual(professor, professorObject.activeSelf, $"{kind}: professor object");
                 Assert.AreEqual(kind == ClassroomRoleKind.Classmate, classmateObject.activeSelf, $"{kind}: classmate object");
                 Assert.AreEqual(professor, professorScript.enabled, $"{kind}: professor script");
                 Assert.AreEqual(kind == ClassroomRoleKind.Classmate, classmateScript.enabled, $"{kind}: classmate script");
 
-                foreach (GameObject created in new[] { professorObject, classmateObject, holder, switchObject })
+                foreach (GameObject created in new[] { professorObject, classmateObject, studentObject, holder, switchObject })
                     Object.DestroyImmediate(created);
             }
         }
@@ -163,7 +173,8 @@ namespace DIYsect.MixedReality.Tests
             foreach (string professorOnly in new[] { "DepthHandle", "GuidePen", "StudentViewWindow", "ClassRoster", "TableAlignmentHandle", "TableAlignment", "QuizPanel" })
                 Assert.IsFalse(FindObject(professorOnly).activeInHierarchy, professorOnly);
             var host = Object.FindFirstObjectByType<ProfessorAutoHost>(FindObjectsInactive.Include);
-            Assert.IsFalse(host.enabled);
+            Assert.IsTrue(host.enabled, "A student with nobody to join opens the class's room so phones can join with its code.");
+            Assert.IsFalse(host.GetComponent<ClassmateAutoJoin>().enabled, "The host logic does its own joining, so the join-only loop stays off.");
             Assert.IsFalse(Object.FindFirstObjectByType<ClassmateStatusLabel>(FindObjectsInactive.Include).enabled);
             var role = host.GetComponent<ClassroomRole>();
             var joins = (Behaviour[])typeof(ClassroomRole).GetField("_joiningBehaviours", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(role);
@@ -177,7 +188,7 @@ namespace DIYsect.MixedReality.Tests
             Assert.IsTrue(FindObject("LectureHall").activeInHierarchy, "The student must stand in the lecture hall.");
             Assert.IsTrue(origin.GetComponent<DIYsect.MixedReality.EyeHeightCalibration>().enabled, "The student's eye height must be calibrated.");
             Assert.IsFalse(host.GetComponent<ClassmateAutoJoin>().WaitForJoinPress, "The student has no Join button, so it must not wait for one.");
-            Assert.IsTrue(host.GetComponent<DIYsect.Networking.PracticeSession>().enabled, "The student practises alone when there is no room.");
+            Assert.IsTrue(host.GetComponent<DIYsect.Networking.PracticeSession>().enabled, "The student practises alone when no room can be opened.");
             foreach (Behaviour provider in origin.transform.Find("Locomotion/Move").GetComponents<Behaviour>())
                 Assert.IsTrue(provider.enabled);
 

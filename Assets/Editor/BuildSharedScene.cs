@@ -45,7 +45,7 @@ namespace DIYsect.Editor
             Debug.Log($"[BuildSharedScene] {ScenePath} is the shared scene: professor, student and classmate roles.");
         }
 
-        // Updates only role references on the existing scene. Keeps its hierarchy, local ids and authored content intact.
+        // Updates role references and local student scenery without replacing the shared body.
         public static void UpgradeRolesBatch()
         {
             try
@@ -72,9 +72,11 @@ namespace DIYsect.Editor
 
             // The professor's rays need the same clear pointer the student rig has: the template's line is short, thin and
             // disappears when it hits nothing, so on a headset it looked as if there were no rays at all.
-            var headsetOrigin = UnityEngine.Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>(FindObjectsInactive.Include);
-            if (headsetOrigin != null)
-                ConfigureStudentRig.MakeRaysVisible(headsetOrigin);
+            var headsetOrigin = UnityEngine.Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>(FindObjectsInactive.Include)
+                ?? throw new InvalidOperationException($"{ScenePath} has no XR Origin.");
+            if (headsetOrigin.Camera == null)
+                throw new InvalidOperationException($"{ScenePath} XR Origin has no camera.");
+            ConfigureStudentRig.MakeRaysVisible(headsetOrigin);
 
             var headset = UnityEngine.Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>(FindObjectsInactive.Include);
             if (headset != null && headset.transform.Find("QuitMenu") == null)
@@ -125,6 +127,7 @@ namespace DIYsect.Editor
             classmateUi.enabled = false;
             EditorUtility.SetDirty(classmateUi);
 
+            var classroomObjects = SharedStudentPresentation.ApplyToScene(scene);
             var role = GetOrAdd<ClassroomRole>(manager.gameObject);
             var serialized = new SerializedObject(role);
             SetArray(serialized.FindProperty("_professorObjects"), professorObjects.ToArray());
@@ -135,11 +138,14 @@ namespace DIYsect.Editor
             SetArray(serialized.FindProperty("_professorBehaviours"), new Behaviour[] { autoHost });
             SetArray(serialized.FindProperty("_classmateBehaviours"), new Behaviour[] { statusLabel, classmateUi });
 
-            // The student in VR stands in the lecture hall and has the head-measured eye height. Both are off for the
-            // professor, who sees the real room through the headset, and for the phone.
-            GameObject hall = AddLectureHall.EnsureInScene(scene, removePlaceholder: false);
-            hall.SetActive(false);
-            EditorUtility.SetDirty(hall);
+            // The student in VR and the phone classmate both see the lecture hall with the seated class and the operating light.
+            // The professor sees the real room through the headset, so the role switch keeps all of it off there. Saved off,
+            // so the professor never sees it flash on while the scene loads.
+            foreach (GameObject classroomObject in classroomObjects)
+            {
+                classroomObject.SetActive(false);
+                EditorUtility.SetDirty(classroomObject);
+            }
             // The scene must not carry EyeHeightCalibration itself (the professor's rig keeps the template's floor, and a guard test
             // checks it). A small bootstrap adds it at runtime, for the student only.
             var oldCalibration = headsetOrigin.GetComponent<DIYsect.MixedReality.EyeHeightCalibration>();
@@ -155,13 +161,13 @@ namespace DIYsect.Editor
             SerializedProperty disableOnStart = practiceSerialized.FindProperty("_disableOnStart");
             disableOnStart.arraySize = 1;
             disableOnStart.GetArrayElementAtIndex(0).objectReferenceValue = autoJoin;
+            // The student first tries to open a real room (see ClassroomRole); practice is only the offline fallback.
+            practiceSerialized.FindProperty("_waitSeconds").floatValue = AddPracticeSession.SharedSceneWaitSeconds;
             practiceSerialized.ApplyModifiedPropertiesWithoutUndo();
             practice.enabled = false;
             EditorUtility.SetDirty(practice);
-            // The student and the phone both stand in the lecture hall, so everyone in the room sees the same classroom. Only the
-            // professor, in mixed reality, sees the real room instead.
-            SetArray(serialized.FindProperty("_classroomObjects"), new[] { hall });
-            SetArray(serialized.FindProperty("_studentObjects"), System.Array.Empty<GameObject>());
+            SetArray(serialized.FindProperty("_classroomObjects"), classroomObjects);
+            SetArray(serialized.FindProperty("_studentObjects"), Array.Empty<GameObject>());
             SetArray(serialized.FindProperty("_studentBehaviours"), new Behaviour[] { calibration, practice });
 
             // The professor's quiz panel needs its question set saved in the scene (Add Quiz does this too, but a scene taken

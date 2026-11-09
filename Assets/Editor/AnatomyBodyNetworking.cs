@@ -111,6 +111,7 @@ namespace DIYsect.Editor
             var grab = GetOrAdd<XRGrabInteractable>(organ);
             grab.movementType = XRBaseInteractable.MovementType.Kinematic;
             grab.throwOnDetach = false;
+            HoldOrgansWhereTouched.Configure(grab);
 
             var bridge = GetOrAdd<NetworkedOrganGrab>(organ);
             var serialized = new SerializedObject(bridge);
