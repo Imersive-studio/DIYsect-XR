@@ -120,8 +120,8 @@ namespace DIYsect.MixedReality.Tests
             Assert.IsTrue(Object.FindFirstObjectByType<ProfessorAutoHost>(FindObjectsInactive.Include).enabled, "The professor creates the room.");
             Assert.IsFalse(Object.FindFirstObjectByType<ClassmateStatusLabel>(FindObjectsInactive.Include).enabled);
             Assert.IsFalse(FindObject("ResetViewButton").activeInHierarchy, "The Reset view button must be off for the professor.");
-            int eventSystems = Object.FindObjectsByType<UnityEngine.EventSystems.EventSystem>(FindObjectsSortMode.None).Length;
-            Assert.LessOrEqual(eventSystems, 1, "The professor's headset must not get a second EventSystem.");
+            foreach (UnityEngine.EventSystems.EventSystem events in Object.FindObjectsByType<UnityEngine.EventSystems.EventSystem>(FindObjectsSortMode.None))
+                Assert.IsFalse(events.transform.IsChildOf(FindObject("ClassmateCamera").transform), "The classmate's EventSystem must be off for the professor.");
 
             ClassroomRole.OverrideForTests = null;
             foreach (NetworkManager manager in Object.FindObjectsByType<NetworkManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
