@@ -10,6 +10,8 @@
     "DIYsect.MixedReality",
     "DIYsect.ClassmateConnection",
     "DIYsect.ClassmateControls",
+    "DIYsect.ClassRoster",
+    "UnityEngine.UI",
     "Unity.Collections",
     "Unity.Netcode.Runtime",
     "Unity.InputSystem",

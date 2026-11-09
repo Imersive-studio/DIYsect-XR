@@ -10,6 +10,7 @@
     "DIYsect.Classroom",
     "DIYsect.Learning",
     "Unity.Collections",
+    "UnityEngine.UI",
     "Unity.Netcode.Runtime",
     "Unity.InputSystem",
     "Unity.InputSystem.TestFramework",
