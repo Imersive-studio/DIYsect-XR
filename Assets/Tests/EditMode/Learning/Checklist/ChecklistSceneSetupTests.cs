@@ -38,7 +38,7 @@ namespace DIYsect.Learning.Tests
                     Assert.That(checklist.GetComponentsInChildren<Collider>(true), Is.Empty);
                     Assert.That(checklist.GetComponentsInChildren<NetworkObject>(true), Is.Empty);
                     Assert.That(checklist.GetComponentsInChildren<TextMesh>(true), Is.Empty);
-                    Assert.That(checklist.GetComponentsInChildren<TMP_Text>(true).Length, Is.EqualTo(15));
+                    Assert.That(checklist.GetComponentsInChildren<TMP_Text>(true).Length, Is.EqualTo(18));
                     foreach (Transform child in checklist.GetComponentsInChildren<Transform>(true))
                         Assert.That(child.gameObject.layer, Is.EqualTo(0));
                     if (pass == 0) objectCount = checklist.GetComponentsInChildren<Transform>(true).Length;

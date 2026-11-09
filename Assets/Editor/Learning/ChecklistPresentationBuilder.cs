@@ -16,8 +16,15 @@ namespace DIYsect.Editor
     internal static class ChecklistPresentationBuilder
     {
         private const string MaterialPath = "Assets/Models/Environment/ChecklistGuidance.mat";
-        private const string FontPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset";
+        // The board uses the panel kit's Inter font so it reads as one family with the room code board.
+        private const string FontPath = ProfessorPanelKit.FontPath;
         private const int RingSegments = 24;
+        private const string BoardTitle = "Dissection steps";
+        private static readonly Vector2 BoardSize = new Vector2(0.9f, 0.6f);
+        // Card centre above the floor, the same as the room code board, and how far it stands past the table's edge.
+        private const float BoardCentreHeight = 1.55f;
+        private const float BoardOutFromTable = 0.65f;
+        private const float MinViewDistance = 1.1f;
 
         internal static void Build(Transform parent, Transform root, ChecklistTracker tracker, Bounds table)
         {
@@ -29,142 +36,146 @@ namespace DIYsect.Editor
             OrganGrabAuthority grabs = dissection.GetComponent<OrganGrabAuthority>();
             if (body == null || grabs == null)
                 throw new InvalidOperationException("The checklist needs the body's SharedBody and OrganGrabAuthority. Run Add Body Networking.");
-            var panel = Child(parent, "Panel");
-            Vector3 head = new Vector3(root.position.x, 1.4f, root.position.z);
+            ChecklistState first = ChecklistState.TraceIncision;
+
+            // The board: the same card, header and stand as the room code board (Professor Panel Kit), standing on the
+            // floor beside the table at real size. Like every kit panel its face is toward local -Z and it stays upright.
+            Vector3 head = new Vector3(root.position.x, root.position.y + 1.4f, root.position.z);
             foreach (GameObject sceneRoot in root.gameObject.scene.GetRootGameObjects())
                 foreach (Camera camera in sceneRoot.GetComponentsInChildren<Camera>(true))
-                    if (camera.CompareTag("MainCamera")) head = new Vector3(camera.transform.position.x, 1.4f, camera.transform.position.z);
-            Vector3 position = new Vector3(table.max.x + 0.65f, head.y, table.center.z);
+                    if (camera.CompareTag("MainCamera")) head = new Vector3(camera.transform.position.x, head.y, camera.transform.position.z);
+            Vector3 position = new Vector3(table.max.x + BoardOutFromTable, root.position.y + BoardCentreHeight, table.center.z);
             Vector3 horizontal = position - head;
             horizontal.y = 0f;
             if (horizontal.sqrMagnitude < 0.0001f) horizontal = Vector3.right;
-            if (horizontal.magnitude < 1.1f) position = head + horizontal.normalized * 1.1f;
-            panel.SetPositionAndRotation(position, Quaternion.LookRotation(position - head, Vector3.up));
-            // Set the initial angular size from the actual rig position, then leave the panel anchored in the room.
-            panel.localScale = Vector3.one * Mathf.Max(1f, Vector3.Distance(position, head) / 1.3f);
-            ChecklistState first = ChecklistState.TraceIncision;
+            if (horizontal.magnitude < MinViewDistance)
+            {
+                Vector3 near = head + horizontal.normalized * MinViewDistance;
+                position = new Vector3(near.x, position.y, near.z);
+                horizontal = position - head;
+                horizontal.y = 0f;
+            }
+            Transform panel = ProfessorPanelKit.BuildCard(parent, "Panel", BoardSize, BoardTitle, ChecklistLabels.ProgressChip(first));
+            panel.SetPositionAndRotation(position, Quaternion.LookRotation(horizontal.normalized, Vector3.up));
+            ProfessorPanelKit.AddStand(panel, position.y - BoardSize.y / 2f, root.position.y);
+            Transform badge = panel.Find("BadgeText");
+            TMP_Text stepChip = badge != null ? badge.GetComponent<TMP_Text>() : null;
+            if (stepChip == null) throw new InvalidOperationException("The board card has no badge text.");
 
-            // Card: "Next step". Sorting inside the panel: halo 0, outline 1, fill 2, accents 3, chips and icon tile 4, text 10.
-            Transform card = Child(panel, "Next step");
-            card.localPosition = new Vector3(0f, 0.25f, 0f);
-            GuideShape halo = Shape(card, "Halo", GuideShapeKind.RoundedRect, new Vector2(0.75f, 0.28f), 0.045f, 0f,
-                GuidePalette.MintGlow, 0, new Vector3(0f, 0f, 0.002f), material);
-            Shape(card, "Outline", GuideShapeKind.RoundedRect, new Vector2(0.724f, 0.254f), 0.032f, 0f,
-                GuidePalette.MintLine, 1, new Vector3(0f, 0f, 0.001f), material);
-            Shape(card, "Fill", GuideShapeKind.RoundedRect, new Vector2(0.72f, 0.25f), 0.03f, 0f,
-                GuidePalette.Ink, 2, Vector3.zero, material);
-            Shape(card, "Accent", GuideShapeKind.RoundedRect, new Vector2(0.008f, 0.18f), 0.004f, 0f,
-                GuidePalette.Coral, 3, new Vector3(-0.348f, 0f, -0.001f), material);
+            // Depths in front of the kit card (its content sits at -0.004). Sorting: kit parts 0 to 4, shapes 5 and 6,
+            // lines 7, text 10.
+            const float shapeZ = -0.005f, lineZ = -0.006f, textZ = -0.007f;
+            // A faint mint edge just outside the card; it brightens for a moment when the dissection is complete.
+            GuideShape halo = Shape(panel, "Halo", GuideShapeKind.RoundedRect, BoardSize + new Vector2(0.02f, 0.02f),
+                ProfessorPanelKit.CornerRadius + 0.01f, 0f, GuidePalette.MintGlow, -1, new Vector3(0f, 0f, 0.002f), material);
 
-            Shape(card, "Step chip", GuideShapeKind.RoundedRect, new Vector2(0.17f, 0.034f), 0.017f, 0f,
-                GuidePalette.Mint, 4, new Vector3(-0.245f, 0.085f, -0.002f), material);
-            TMP_Text stepChip = Label(card, "Step chip text", font, new Vector3(-0.245f, 0.085f, -0.004f),
-                new Vector2(0.16f, 0.03f), 0.016f, FontStyles.Bold | FontStyles.UpperCase, TextAlignmentOptions.Midline,
-                TextWrappingModes.NoWrap, TextOverflowModes.Overflow, 0f, GuidePalette.Ink, 6f);
-            stepChip.text = ChecklistLabels.ProgressChip(first);
+            // Left half: the step to do now. The check mark is drawn at x -0.12 in this space, just left of the headline.
+            Transform card = Child(panel, "Now");
+            card.localPosition = new Vector3(-0.29f, 0.115f, 0f);
+            TMP_Text nowLabel = Label(card, "Now label", font, new Vector3(0.05f, 0.065f, textZ), new Vector2(0.3f, 0.02f), 0.011f,
+                FontStyles.Bold, TextAlignmentOptions.MidlineLeft, TextWrappingModes.NoWrap, TextOverflowModes.Overflow, 0f,
+                GuidePalette.TextMuted, 12f);
+            nowLabel.text = "NOW";
+            LineRenderer checkMark = Line(card, "Check mark", material, 3, false);
+            checkMark.sortingOrder = 7;
+            TMP_Text headline = Label(card, "Headline", font, new Vector3(0.115f, 0f, textZ),
+                new Vector2(0.43f, 0.06f), 0.032f, FontStyles.Bold, TextAlignmentOptions.MidlineLeft,
+                TextWrappingModes.NoWrap, TextOverflowModes.Ellipsis, 0.022f, GuidePalette.TextPrimary, 0f);
+            headline.text = ChecklistLabels.Headline(first);
+            TMP_Text outgoing = Label(card, "Outgoing headline", font, new Vector3(0.115f, 0f, textZ),
+                new Vector2(0.43f, 0.06f), 0.032f, FontStyles.Bold, TextAlignmentOptions.MidlineLeft,
+                TextWrappingModes.NoWrap, TextOverflowModes.Ellipsis, 0.02f, GuidePalette.TextPrimary, 0f);
+            outgoing.alpha = 0f;
+            TMP_Text hint = Label(card, "Hint", font, new Vector3(0.115f, -0.075f, textZ),
+                new Vector2(0.43f, 0.07f), 0.016f, FontStyles.Normal, TextAlignmentOptions.TopLeft,
+                TextWrappingModes.Normal, TextOverflowModes.Overflow, 0.012f, GuidePalette.TextMuted, 0f);
+            hint.text = ChecklistLabels.Hint(first);
 
-            // The tool chip is one group so the presenter can hide it with a single SetActive.
-            Transform toolChip = Child(card, "Tool chip");
-            toolChip.localPosition = new Vector3(0.27f, 0.085f, -0.002f);
-            Shape(toolChip, "Chip", GuideShapeKind.RoundedRect, new Vector2(0.13f, 0.034f), 0.017f, 0f,
-                GuidePalette.CoralSoft, 4, Vector3.zero, material);
-            TMP_Text toolChipText = Label(toolChip, "Tool chip text", font, new Vector3(0f, 0f, -0.002f),
-                new Vector2(0.12f, 0.03f), 0.015f, FontStyles.Bold | FontStyles.UpperCase, TextAlignmentOptions.Midline,
-                TextWrappingModes.NoWrap, TextOverflowModes.Overflow, 0f, GuidePalette.Coral, 6f);
-            toolChipText.text = ChecklistLabels.ToolName(first);
-            toolChip.gameObject.SetActive(ChecklistLabels.ToolName(first).Length > 0);
-
-            // Icon tile: a slightly lighter rounded square (with a pulsing rim) holding a line drawing of the tool.
-            GuideShape tileRim = Shape(card, "Icon tile rim", GuideShapeKind.RoundedRect, new Vector2(0.128f, 0.128f), 0.03f, 0f,
-                GuidePalette.CoralSoft, 3, new Vector3(-0.255f, -0.012f, -0.001f), material);
-            Shape(card, "Icon tile", GuideShapeKind.RoundedRect, new Vector2(0.12f, 0.12f), 0.026f, 0f,
-                Color.Lerp(GuidePalette.Ink, GuidePalette.Slate, 0.35f), 4, new Vector3(-0.255f, -0.012f, -0.002f), material);
+            // Icon tile with a line drawing of the tool, and the tool's name beside it.
+            const float iconX = -0.055f, iconY = -0.17f;
+            GuideShape tileRim = Shape(card, "Icon tile rim", GuideShapeKind.RoundedRect, new Vector2(0.09f, 0.09f), 0.02f, 0f,
+                GuidePalette.CoralSoft, 5, new Vector3(iconX, iconY, shapeZ), material);
+            Shape(card, "Icon tile", GuideShapeKind.RoundedRect, new Vector2(0.084f, 0.084f), 0.018f, 0f,
+                Color.Lerp(GuidePalette.Ink, GuidePalette.Slate, 0.35f), 6, new Vector3(iconX, iconY, shapeZ - 0.0005f), material);
             Transform iconRoot = Child(card, "Icon");
-            iconRoot.localPosition = new Vector3(-0.255f, -0.012f, -0.004f);
+            iconRoot.localPosition = new Vector3(iconX, iconY, lineZ);
             var iconStrokes = new LineRenderer[ChecklistIconShapes.MaxStrokes];
             for (int i = 0; i < iconStrokes.Length; i++)
             {
                 iconStrokes[i] = Line(iconRoot, $"Stroke {i + 1}", material, 2, false);
-                iconStrokes[i].sortingOrder = 5;
+                iconStrokes[i].sortingOrder = 7;
             }
-            LineRenderer checkMark = Line(card, "Check mark", material, 3, false);
-            checkMark.sortingOrder = 5;
+            // The tool chip is one group so the presenter can hide it with a single SetActive.
+            Transform toolChip = Child(card, "Tool chip");
+            toolChip.localPosition = new Vector3(0.005f, iconY, 0f);
+            TMP_Text toolLabel = Label(toolChip, "Tool label", font, new Vector3(0.075f, 0.017f, textZ), new Vector2(0.15f, 0.02f),
+                0.0095f, FontStyles.Bold, TextAlignmentOptions.MidlineLeft, TextWrappingModes.NoWrap, TextOverflowModes.Overflow, 0f,
+                GuidePalette.TextMuted, 12f);
+            toolLabel.text = "TOOL";
+            TMP_Text toolChipText = Label(toolChip, "Tool chip text", font, new Vector3(0.15f, -0.012f, textZ),
+                new Vector2(0.3f, 0.035f), 0.018f, FontStyles.Bold | FontStyles.UpperCase, TextAlignmentOptions.MidlineLeft,
+                TextWrappingModes.NoWrap, TextOverflowModes.Overflow, 0f, GuidePalette.Coral, 4f);
+            toolChipText.text = ChecklistLabels.ToolName(first);
+            toolChip.gameObject.SetActive(ChecklistLabels.ToolName(first).Length > 0);
 
-            TMP_Text headline = Label(card, "Headline", font, new Vector3(0.095f, 0.018f, -0.004f),
-                new Vector2(0.5f, 0.06f), 0.042f, FontStyles.Bold, TextAlignmentOptions.MidlineLeft,
-                TextWrappingModes.NoWrap, TextOverflowModes.Ellipsis, 0.028f, GuidePalette.TextPrimary, 0f);
-            headline.text = ChecklistLabels.Headline(first);
-            TMP_Text outgoing = Label(card, "Outgoing headline", font, new Vector3(0.095f, 0.018f, -0.004f),
-                new Vector2(0.5f, 0.06f), 0.042f, FontStyles.Bold, TextAlignmentOptions.MidlineLeft,
-                TextWrappingModes.NoWrap, TextOverflowModes.Ellipsis, 0.026f, GuidePalette.TextPrimary, 0f);
-            outgoing.alpha = 0f;
-            TMP_Text hint = Label(card, "Hint", font, new Vector3(0.095f, -0.04f, -0.004f),
-                new Vector2(0.5f, 0.05f), 0.019f, FontStyles.Normal, TextAlignmentOptions.TopLeft,
-                TextWrappingModes.Normal, TextOverflowModes.Overflow, 0.015f, GuidePalette.TextMuted, 0f);
-            hint.text = ChecklistLabels.Hint(first);
-
+            // Progress: seven short bars along the bottom of the left half, level with the last step of the list.
             var segments = new GuideShape[ChecklistLabels.StepCount];
             for (int i = 0; i < segments.Length; i++)
-                segments[i] = Shape(card, $"Segment {i + 1}", GuideShapeKind.RoundedRect, new Vector2(0.08f, 0.01f), 0.005f, 0f,
-                    i == 0 ? GuidePalette.Coral : GuidePalette.Slate, 3, new Vector3(-0.27f + i * 0.09f, -0.105f, -0.002f), material);
+                segments[i] = Shape(card, $"Segment {i + 1}", GuideShapeKind.RoundedRect, new Vector2(0.05f, 0.008f), 0.004f, 0f,
+                    i == 0 ? GuidePalette.Coral : GuidePalette.Slate, 5, new Vector3(-0.075f + i * 0.057f, -0.31f, shapeZ), material);
 
-            // Progress list: "Progress".
+            Shape(panel, "Divider", GuideShapeKind.RoundedRect, new Vector2(0.0015f, 0.4f), 0.00075f, 0f,
+                GuidePalette.MintLine, 5, new Vector3(0.048f, -0.07f, shapeZ), material);
+
+            // Right half: every step. Rows sit at RowY, which the presenter's highlight slide also uses.
             Transform list = Child(panel, "Progress");
-            list.localPosition = new Vector3(0f, -0.12f, 0f);
-            Color faintLine = GuidePalette.MintLine;
-            faintLine.a *= 0.6f;
-            Shape(list, "Outline", GuideShapeKind.RoundedRect, new Vector2(0.724f, 0.444f), 0.032f, 0f,
-                faintLine, 1, new Vector3(0f, 0f, 0.001f), material);
-            Shape(list, "Fill", GuideShapeKind.RoundedRect, new Vector2(0.72f, 0.44f), 0.03f, 0f,
-                GuidePalette.InkDeep, 2, Vector3.zero, material);
-            TMP_Text title = Label(list, "Title", font, new Vector3(-0.09f, 0.185f, -0.004f),
-                new Vector2(0.45f, 0.03f), 0.017f, FontStyles.Bold | FontStyles.UpperCase, TextAlignmentOptions.MidlineLeft,
-                TextWrappingModes.NoWrap, TextOverflowModes.Overflow, 0f, GuidePalette.Mint, 8f);
-            title.text = "DISSECTION GUIDE";
-            TMP_Text count = Label(list, "Count", font, new Vector3(0.26f, 0.185f, -0.004f),
-                new Vector2(0.12f, 0.03f), 0.017f, FontStyles.Bold, TextAlignmentOptions.MidlineRight,
+            list.localPosition = new Vector3(0.245f, -0.02f, 0f);
+            TMP_Text title = Label(list, "Title", font, new Vector3(-0.067f, 0.2f, textZ), new Vector2(0.2f, 0.02f), 0.011f,
+                FontStyles.Bold, TextAlignmentOptions.MidlineLeft, TextWrappingModes.NoWrap, TextOverflowModes.Overflow, 0f,
+                GuidePalette.TextMuted, 12f);
+            title.text = "ALL STEPS";
+            TMP_Text count = Label(list, "Count", font, new Vector3(0.13f, 0.2f, textZ),
+                new Vector2(0.1f, 0.02f), 0.013f, FontStyles.Bold, TextAlignmentOptions.MidlineRight,
                 TextWrappingModes.NoWrap, TextOverflowModes.Overflow, 0f, GuidePalette.TextMuted, 0f);
             count.text = ChecklistLabels.Count(first);
-            Shape(list, "Divider", GuideShapeKind.RoundedRect, new Vector2(0.64f, 0.002f), 0.001f, 0f,
-                GuidePalette.Slate, 3, new Vector3(0f, 0.16f, -0.001f), material);
-            GuideShape highlight = Shape(list, "Highlight", GuideShapeKind.RoundedRect, new Vector2(0.664f, 0.042f), 0.021f, 0f,
-                GuidePalette.CoralSoft, 3, new Vector3(0f, RowY(0), -0.001f), material);
+            GuideShape highlight = Shape(list, "Highlight", GuideShapeKind.RoundedRect, new Vector2(0.368f, 0.042f), 0.012f, 0f,
+                GuidePalette.CoralSoft, 5, new Vector3(0.005f, RowY(0), shapeZ), material);
 
             var rows = new TMP_Text[ChecklistLabels.StepCount];
             var nodes = new GuideShape[ChecklistLabels.StepCount];
             var ticks = new LineRenderer[ChecklistLabels.StepCount];
             var connectors = new GuideShape[ChecklistLabels.StepCount - 1];
+            const float nodeX = -0.149f;
             for (int i = 0; i < rows.Length; i++)
             {
                 float y = RowY(i);
                 bool current = i == 0;
                 nodes[i] = Shape(list, $"Node {i + 1}", current ? GuideShapeKind.Disc : GuideShapeKind.Ring,
-                    new Vector2(0.026f, 0.026f), 0f, 0.004f, current ? GuidePalette.Coral : GuidePalette.Slate, 3,
-                    new Vector3(-0.3f, y, -0.003f), material);
-                rows[i] = Label(list, $"Step {i + 1}", font, new Vector3(0.03f, y, -0.004f),
-                    new Vector2(0.56f, 0.04f), 0.021f, current ? FontStyles.Bold : FontStyles.Normal,
-                    TextAlignmentOptions.MidlineLeft, TextWrappingModes.NoWrap, TextOverflowModes.Ellipsis, 0.015f,
+                    new Vector2(0.026f, 0.026f), 0f, 0.003f, current ? GuidePalette.Coral : GuidePalette.Slate, 6,
+                    new Vector3(nodeX, y, shapeZ - 0.0005f), material);
+                rows[i] = Label(list, $"Step {i + 1}", font, new Vector3(0.027f, y, textZ),
+                    new Vector2(0.3f, 0.04f), 0.015f, current ? FontStyles.Bold : FontStyles.Normal,
+                    TextAlignmentOptions.MidlineLeft, TextWrappingModes.NoWrap, TextOverflowModes.Ellipsis, 0.011f,
                     current ? GuidePalette.TextPrimary : GuidePalette.TextMuted, 0f);
                 rows[i].text = ChecklistLabels.StepText(i);
                 // Tick: three points sized to fit the 0.026 node, drawn in front of it in Ink.
                 ticks[i] = Line(list, $"Tick {i + 1}", material, 3, false);
-                ticks[i].transform.localPosition = new Vector3(-0.3f, y, -0.004f);
+                ticks[i].transform.localPosition = new Vector3(nodeX, y, lineZ);
                 ticks[i].SetPositions(new[]
                 {
                     new Vector3(-0.0065f, 0f, 0f), new Vector3(-0.002f, -0.0055f, 0f), new Vector3(0.0065f, 0.0055f, 0f),
                 });
-                ticks[i].sortingOrder = 5;
+                ticks[i].sortingOrder = 7;
                 var inkBlock = new MaterialPropertyBlock();
                 inkBlock.SetColor("_BaseColor", GuidePalette.Ink);
                 ticks[i].SetPropertyBlock(inkBlock);
                 ticks[i].enabled = false;
                 if (i < connectors.Length)
-                    connectors[i] = Shape(list, $"Connector {i + 1}", GuideShapeKind.RoundedRect, new Vector2(0.003f, 0.024f),
-                        0.0015f, 0f, GuidePalette.Slate, 3, new Vector3(-0.3f, y - 0.025f, -0.002f), material);
+                    connectors[i] = Shape(list, $"Connector {i + 1}", GuideShapeKind.RoundedRect, new Vector2(0.002f, 0.022f),
+                        0.001f, 0f, GuidePalette.Slate, 5, new Vector3(nodeX, y - 0.025f, shapeZ), material);
             }
-            // Estimate: about 31 shapes (23 rounded rects near 30 triangles, 8 discs or rings near 24 to 48),
-            // 7 tick lines (about 4 each) and 15 text objects (about 350 glyphs, 2 triangles each) is roughly 1,700
-            // triangles and about 60 objects for the whole panel.
+            // Estimate: the kit card and stand (about 300 triangles), 30 shapes (rounded rects near 30 triangles, discs and
+            // rings near 24 to 48), 12 lines and 18 texts (about 380 glyphs) is roughly 2,000 triangles.
             ChecklistBodyCues cues = BuildCues(parent, root, tracker, dissection, material);
             var presenter = panel.gameObject.AddComponent<ChecklistPanel>();
             var serialized = new SerializedObject(presenter);
