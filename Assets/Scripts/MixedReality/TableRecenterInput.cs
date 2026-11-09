@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 namespace DIYsect.MixedReality
 {
     /// <summary>
-    /// Press A or X, the lower face button on either Quest controller, to bring the table and the body back in front of you.
+    /// Click either thumbstick (press it in) to bring the table and the body back in front of you.
     /// It is the way out when the table starts out of reach, behind you or above your eyes, and needs no ray and no walking.
     /// It does nothing while the table is being carried by its handle.
     /// </summary>
@@ -18,10 +18,11 @@ namespace DIYsect.MixedReality
         private void Awake()
         {
             _alignment = GetComponent<TableAlignment>();
-            // XR controllers show up as XRController devices tagged with their hand; primaryButton is A on the right, X on the left.
+            // XR controllers show up as XRController devices tagged with their hand. A and X grab, B and the left menu button open
+            // the quit menu, and the thumbsticks walk and turn, so the click of a thumbstick is the one free control.
             _recenter = new InputAction("RecenterTable", InputActionType.Button);
-            _recenter.AddBinding("<XRController>{RightHand}/primaryButton");
-            _recenter.AddBinding("<XRController>{LeftHand}/primaryButton");
+            _recenter.AddBinding("<XRController>{RightHand}/{Primary2DAxisClick}");
+            _recenter.AddBinding("<XRController>{LeftHand}/{Primary2DAxisClick}");
         }
 
         private void OnEnable()

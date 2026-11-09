@@ -10,13 +10,15 @@ namespace XRMultiplayer
         Professor,
         /// <summary>A classmate on a phone or laptop: a plain camera that orbits the body and taps to pin questions.</summary>
         Classmate,
+        /// <summary>A student in VR: the headset rig and dissection tools, joining the professor's room.</summary>
+        Student,
     }
 
     /// <summary>
-    /// Lets the professor and the classmates run the same scene. Netcode only keeps clients in step when they share a scene,
-    /// and a body placed in three different scenes has three different ids. So there is one scene with both setups in it, and
+    /// Lets the professor, student and classmates run the same scene. Netcode only keeps clients in step when they share a scene,
+    /// and a body placed in three different scenes has three different ids. So there is one scene with all three setups in it, and
     /// this component, which runs before any other script, switches on the one that matches the device and switches off the
-    /// other. The role comes from the app's package name (the phone build ends in ".classmate"); in the editor it is a setting,
+    /// other. The role comes from the app's package name (".classmate" or ".student", otherwise professor); in the editor it is a setting,
     /// which defaults to classmate because the Mac has no headset.
     /// </summary>
     [DefaultExecutionOrder(-10000)]
@@ -24,6 +26,7 @@ namespace XRMultiplayer
     {
         /// <summary>The package name suffix that marks the classmate phone build.</summary>
         public const string ClassmateIdSuffix = ".classmate";
+        public const string StudentIdSuffix = ".student";
 
         [SerializeField, Tooltip("The role in the Unity editor, where there is no package name to go by.")]
         private ClassroomRoleKind _editorRole = ClassroomRoleKind.Classmate;
@@ -36,6 +39,20 @@ namespace XRMultiplayer
         [SerializeField, Tooltip("Scripts only a classmate runs.")]
         private Behaviour[] _classmateBehaviours;
 
+        [SerializeField, Tooltip("Objects used by both headset roles, including the XR origin.")]
+        private GameObject[] _headsetObjects;
+        [SerializeField, Tooltip("Behaviours used by both headset roles, including the XR UI module.")]
+        private Behaviour[] _headsetBehaviours;
+        [SerializeField, Tooltip("Objects only the student in VR uses, for example the lecture hall around the table.")]
+        private GameObject[] _studentObjects;
+        [SerializeField, Tooltip("Scripts only the student in VR runs, for example the eye height calibration.")]
+        private Behaviour[] _studentBehaviours;
+        [SerializeField, Tooltip("Join-only behaviours for the student and the phone classmate.")]
+        private Behaviour[] _joiningBehaviours;
+        [SerializeField] private Camera _headsetCamera;
+        [SerializeField, Tooltip("The rig camera's AR background. Only the professor uses passthrough.")]
+        private Behaviour _passthrough;
+
         /// <summary>Lets a test pick the role before a scene loads. Null means decide as usual. Never set outside tests.</summary>
         public static ClassroomRoleKind? OverrideForTests { get; set; }
 
@@ -47,9 +64,14 @@ namespace XRMultiplayer
         {
             if (isEditor)
                 return editorRole;
-            return !string.IsNullOrEmpty(packageName) && packageName.EndsWith(ClassmateIdSuffix, System.StringComparison.Ordinal)
-                ? ClassroomRoleKind.Classmate
-                : ClassroomRoleKind.Professor;
+            if (!string.IsNullOrEmpty(packageName))
+            {
+                if (packageName.EndsWith(ClassmateIdSuffix, System.StringComparison.Ordinal))
+                    return ClassroomRoleKind.Classmate;
+                if (packageName.EndsWith(StudentIdSuffix, System.StringComparison.Ordinal))
+                    return ClassroomRoleKind.Student;
+            }
+            return ClassroomRoleKind.Professor;
         }
 
         private void Awake()
@@ -57,9 +79,42 @@ namespace XRMultiplayer
             Current = OverrideForTests ?? Decide(Application.identifier, Application.isEditor, _editorRole);
             bool professor = Current == ClassroomRoleKind.Professor;
             SetActive(_professorObjects, professor);
-            SetActive(_classmateObjects, !professor);
+            bool classmate = Current == ClassroomRoleKind.Classmate;
+            SetActive(_classmateObjects, classmate);
+            SetActive(_headsetObjects, !classmate);
             SetEnabled(_professorBehaviours, professor);
-            SetEnabled(_classmateBehaviours, !professor);
+            SetEnabled(_classmateBehaviours, classmate);
+            SetEnabled(_headsetBehaviours, !classmate);
+            bool student = Current == ClassroomRoleKind.Student;
+            SetActive(_studentObjects, student);
+            SetEnabled(_studentBehaviours, student);
+            SetEnabled(_joiningBehaviours, !professor);
+            // The phone's start screen has the Join button and the scene saves its auto join waiting for it. The student in VR has
+            // no start screen, so it must not wait for a press that can never come.
+            if (student && _joiningBehaviours != null)
+                foreach (Behaviour joining in _joiningBehaviours)
+                    if (joining is ClassmateAutoJoin autoJoin)
+                        autoJoin.WaitForJoinPress = false;
+            if (_passthrough != null)
+                _passthrough.enabled = professor;
+            if (_headsetCamera != null)
+            {
+                if (Current == ClassroomRoleKind.Student)
+                {
+                    // Preserve the standalone student's fixed-height VR setup in the shared scene.
+                    var origin = _headsetCamera.GetComponentInParent<Unity.XR.CoreUtils.XROrigin>();
+                    if (origin != null)
+                    {
+                        origin.RequestedTrackingOriginMode = Unity.XR.CoreUtils.XROrigin.TrackingOriginMode.Device;
+                        origin.CameraYOffset = 1.6f;
+                        Vector3 position = origin.transform.position;
+                        origin.transform.position = new Vector3(position.x, 0f, position.z);
+                    }
+                }
+                _headsetCamera.clearFlags = professor ? CameraClearFlags.SolidColor : CameraClearFlags.Skybox;
+                if (professor)
+                    _headsetCamera.backgroundColor = Color.clear;
+            }
             Debug.Log($"[ClassroomRole] This device is the {Current}.");
         }
 

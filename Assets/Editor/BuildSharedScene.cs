@@ -24,7 +24,7 @@ namespace DIYsect.Editor
         // Roots (or children of MRInteractionSetup) that belong to the professor's headset only.
         private static readonly string[] ProfessorObjectNames =
         {
-            "XR Origin (XR Rig)", "DepthHandle", "GuidePen", "StudentViewWindow", "ClassRoster", "TableAlignmentHandle", "TableAlignment",
+            "DepthHandle", "GuidePen", "StudentViewWindow", "ClassRoster", "TableAlignmentHandle", "TableAlignment",
         };
 
         // Professor-only objects other tools add later (Add Quiz). Included when they exist.
@@ -37,9 +37,48 @@ namespace DIYsect.Editor
             ClassmateDesktopRig.Apply(ScenePath, switchOffXr: false);
 
             Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            ConfigureRoles(scene);
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            if (!EditorSceneManager.SaveScene(scene))
+                throw new System.IO.IOException($"Could not save {ScenePath}.");
+            Debug.Log($"[BuildSharedScene] {ScenePath} is the shared scene: professor, student and classmate roles.");
+        }
+
+        // Updates only role references on the existing scene. Keeps its hierarchy, local ids and authored content intact.
+        public static void UpgradeRolesBatch()
+        {
+            try
+            {
+                Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+                ConfigureRoles(scene);
+                EditorSceneManager.MarkSceneDirty(scene);
+                if (!EditorSceneManager.SaveScene(scene))
+                    throw new System.IO.IOException("Could not save shared scene.");
+                EditorApplication.Exit(0);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                EditorApplication.Exit(1);
+            }
+        }
+
+        private static void ConfigureRoles(Scene scene)
+        {
             XRINetworkGameManager manager = UnityEngine.Object.FindFirstObjectByType<XRINetworkGameManager>(FindObjectsInactive.Include);
             if (manager == null)
                 throw new InvalidOperationException($"{ScenePath} has no XRINetworkGameManager.");
+
+            // The professor's rays need the same clear pointer the student rig has: the template's line is short, thin and
+            // disappears when it hits nothing, so on a headset it looked as if there were no rays at all.
+            var headsetOrigin = UnityEngine.Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>(FindObjectsInactive.Include);
+            if (headsetOrigin != null)
+                ConfigureStudentRig.MakeRaysVisible(headsetOrigin);
+
+            var headset = UnityEngine.Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>(FindObjectsInactive.Include);
+            if (headset != null && headset.transform.Find("QuitMenu") == null)
+                AddQuitMenu.ApplyToScene(scene);
 
             var autoJoin = GetOrAdd<ClassmateAutoJoin>(manager.gameObject);
             var statusLabel = GetOrAdd<ClassmateStatusLabel>(manager.gameObject);
@@ -68,7 +107,7 @@ namespace DIYsect.Editor
                     professorObjects.Add(found);
             }
 
-            // The professor can walk with the left thumbstick and snap-turn with the right, and press A or X to bring the table back.
+            // The professor can walk with the left thumbstick and snap-turn with the right, and click a thumbstick to bring the table back.
             EnableProfessorLocomotion(scene);
             var alignment = UnityEngine.Object.FindFirstObjectByType<DIYsect.MixedReality.TableAlignment>(FindObjectsInactive.Include);
             if (alignment != null && alignment.GetComponent<DIYsect.MixedReality.TableRecenterInput>() == null)
@@ -86,14 +125,54 @@ namespace DIYsect.Editor
             var serialized = new SerializedObject(role);
             SetArray(serialized.FindProperty("_professorObjects"), professorObjects.ToArray());
             SetArray(serialized.FindProperty("_classmateObjects"), new[] { classmateRig });
-            SetArray(serialized.FindProperty("_professorBehaviours"), new Behaviour[] { autoHost, headsetUi });
-            SetArray(serialized.FindProperty("_classmateBehaviours"), new Behaviour[] { autoJoin, statusLabel, classmateUi });
-            serialized.ApplyModifiedPropertiesWithoutUndo();
+            SetArray(serialized.FindProperty("_headsetObjects"), new[] { FindByName(scene, "XR Origin (XR Rig)") });
+            SetArray(serialized.FindProperty("_headsetBehaviours"), new Behaviour[] { headsetUi });
+            SetArray(serialized.FindProperty("_joiningBehaviours"), new Behaviour[] { autoJoin });
+            SetArray(serialized.FindProperty("_professorBehaviours"), new Behaviour[] { autoHost });
+            SetArray(serialized.FindProperty("_classmateBehaviours"), new Behaviour[] { statusLabel, classmateUi });
 
-            EditorSceneManager.MarkSceneDirty(scene);
-            if (!EditorSceneManager.SaveScene(scene))
-                throw new System.IO.IOException($"Could not save {ScenePath}.");
-            Debug.Log($"[BuildSharedScene] {ScenePath} is the shared scene: {professorObjects.Count} professor objects, the {ClassmateRigName}, and the role switch.");
+            // The student in VR stands in the lecture hall and has the head-measured eye height. Both are off for the
+            // professor, who sees the real room through the headset, and for the phone.
+            GameObject hall = AddLectureHall.EnsureInScene(scene, removePlaceholder: false);
+            hall.SetActive(false);
+            EditorUtility.SetDirty(hall);
+            var calibration = GetOrAdd<DIYsect.MixedReality.EyeHeightCalibration>(headsetOrigin.gameObject);
+            calibration.enabled = false;
+            EditorUtility.SetDirty(calibration);
+            // With no room to join, the student hosts a practice session after a wait, so cuts work alone. Student only: a
+            // professor creates the room, and a phone must never host.
+            var practice = GetOrAdd<DIYsect.Networking.PracticeSession>(manager.gameObject);
+            var practiceSerialized = new SerializedObject(practice);
+            SerializedProperty disableOnStart = practiceSerialized.FindProperty("_disableOnStart");
+            disableOnStart.arraySize = 1;
+            disableOnStart.GetArrayElementAtIndex(0).objectReferenceValue = autoJoin;
+            practiceSerialized.ApplyModifiedPropertiesWithoutUndo();
+            practice.enabled = false;
+            EditorUtility.SetDirty(practice);
+            SetArray(serialized.FindProperty("_studentObjects"), new[] { hall });
+            SetArray(serialized.FindProperty("_studentBehaviours"), new Behaviour[] { calibration, practice });
+
+            // The professor's quiz panel needs its question set saved in the scene (Add Quiz does this too, but a scene taken
+            // from another branch can lose it, and the panel then switches itself off on the headset).
+            var quizPanel = UnityEngine.Object.FindFirstObjectByType<DIYsect.Learning.QuizPanel>(FindObjectsInactive.Include);
+            if (quizPanel != null)
+            {
+                var questionSet = AssetDatabase.LoadAssetAtPath<DIYsect.Learning.QuizQuestionSet>(AddQuiz.QuestionsPath);
+                if (questionSet != null)
+                {
+                    var quizSerialized = new SerializedObject(quizPanel);
+                    quizSerialized.FindProperty("_questions").objectReferenceValue = questionSet;
+                    quizSerialized.ApplyModifiedPropertiesWithoutUndo();
+                }
+            }
+
+            var origin = UnityEngine.Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>(FindObjectsInactive.Include);
+            serialized.FindProperty("_headsetCamera").objectReferenceValue = origin.Camera;
+            serialized.FindProperty("_passthrough").objectReferenceValue = origin.Camera.GetComponent<UnityEngine.XR.ARFoundation.ARCameraBackground>();
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            var host = new SerializedObject(autoHost);
+            host.FindProperty("_maxAttempts").intValue = 0;
+            host.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // Batch entry point: -executeMethod DIYsect.Editor.BuildSharedScene.ApplyBatch

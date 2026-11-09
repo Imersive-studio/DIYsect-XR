@@ -7,7 +7,7 @@ One shared human body on a table. A professor in a Quest 3 (mixed reality), a st
 | Person | Device | App | What they do |
 |---|---|---|---|
 | Professor (a judge) | Quest 3 | DIYsect Professor (`Professor_MR`) | Hosts the room, sees the class roster, points, draws a guide line, controls the cut depth, opens the student's view |
-| Student (a teammate) | Quest 3 | DIYsect Student (`LectureHall_VR`) | Walks, picks up the scalpel and forceps, cuts, lifts organs |
+| Student (a teammate) | Quest 3 | DIYsect Student (the shared `Professor_MR` scene with the `.student` role: lecture hall, VR rig) | Walks, picks up the scalpel and forceps, cuts, lifts organs |
 | Classmates (teammates) | Phones or a laptop | DIYsect Classmate | Press Join the room, orbit and zoom the body, tap an organ for its name, press and hold an organ to pin a question, raise a hand, unmute |
 
 Student controls are in `docs/VR_CONTROLS.md`.
@@ -71,10 +71,10 @@ Code health:
 | The student cannot find the room | Relaunch the professor app first, wait 10 seconds, then relaunch the student |
 | A phone does not join | Keep the app open and in front. Wait for the corner line to read "Connected", or type the join code from the professor's roster panel |
 | "No room found with that code" | The room closed or the code was misread. Read it again from the roster panel |
-| A tool will not grab | Point at it and squeeze the grip or trigger. It turns yellow when it can be grabbed |
+| A tool will not grab | Point at it (the ray ends in a ball) and squeeze the grip, or press A (right) or X (left). The trigger does not grab. It turns yellow when it can be grabbed |
 | The student is stuck in the app | Left menu button (or the right B button), then Quit, then Yes, quit |
 | A classmate has lost the body on screen | Tap **Reset view** (top right), or press Home or R on a laptop |
-| The judge drew a guide line and pressed A or X | That ends the stroke on purpose (the table moved). Draw it again |
+| The judge drew a guide line and clicked a thumbstick (recenter) | That ends the stroke on purpose (the table moved). Draw it again |
 | Wi-Fi is bad | Use a phone hotspot for every device, or play the backup video |
 | Everything fails | Play the backup video and run the laptop classmate beside it |
 

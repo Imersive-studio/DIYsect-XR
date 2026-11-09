@@ -113,7 +113,7 @@ namespace DIYsect.Interaction
             while (true)
             {
                 yield return wait;
-                // The table was moved (A or X, or its handle): the pen did not move with it, so the next point would
+                // The table was moved (a thumbstick click, or its handle): the pen did not move with it, so the next point would
                 // jump across the body. End the stroke instead.
                 if (BodyMoved(body))
                 {

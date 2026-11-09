@@ -28,6 +28,7 @@ namespace XRMultiplayer
 
         private Coroutine _loop;
         private string _pendingCode = string.Empty;
+        private bool _explicitCodeRequested;
 
         /// <summary>Join the first public room found when no code was given.</summary>
         public bool AutoJoinAnyRoom
@@ -35,6 +36,9 @@ namespace XRMultiplayer
             get => _autoJoinAnyRoom;
             set => _autoJoinAnyRoom = value;
         }
+
+        /// <summary>Public-room discovery is suppressed after any explicit code submission, including an invalid one.</summary>
+        public bool ShouldAutoJoinAnyRoom => _autoJoinAnyRoom && !_explicitCodeRequested;
 
         /// <summary>When on, nothing is joined until <see cref="JoinPressed"/> (see <see cref="PressJoin"/>). Off by default, so other scenes join on their own.</summary>
         public bool WaitForJoinPress
@@ -51,6 +55,8 @@ namespace XRMultiplayer
         {
             JoinPressed = true;
             CodeRejected = false;
+            // A bad or rejected code switched public-room discovery off. Pressing Join asks for any room again, or the pending code.
+            _explicitCodeRequested = false;
         }
 
         /// <summary>The room code waiting to be used, or empty.</summary>
@@ -62,6 +68,7 @@ namespace XRMultiplayer
         /// <summary>Asks to join the room with this code, typed by the classmate or taken from a link. Returns false when it is not a valid code.</summary>
         public bool JoinWithCode(string typedCode)
         {
+            _explicitCodeRequested = true;
             if (!RoomInvite.TryNormalizeCode(typedCode, out string code))
                 return false;
             _pendingCode = code;
@@ -131,9 +138,9 @@ namespace XRMultiplayer
                         CodeRejected = joiner.LastCodeRejected;
                     }
                 }
-                else if (_autoJoinAnyRoom)
+                else if (ShouldAutoJoinAnyRoom)
                 {
-                    yield return joiner.TryJoinOnce();
+                    yield return joiner.TryJoinOnce(() => ShouldAutoJoinAnyRoom);
                 }
                 yield return _pendingCode.Length > 0 ? null : wait;
             }

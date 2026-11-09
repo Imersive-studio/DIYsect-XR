@@ -52,9 +52,9 @@ Other professor inputs and how they meet the tools:
 | Input | What it does | Effect on the tools |
 |---|---|---|
 | Left thumbstick, right thumbstick (walk, snap turn) | Moves or turns the rig | None. A walk moves the hand sideways, and the handle reads only its height, so the depth does not change. A drawn point is stored in the body's space, so walking while drawing is the same as moving the hand |
-| A or X (`TableRecenterInput`) | Moves the table root, and the body, tray, handle and window with it | The pen ends its stroke when the body moves under it, and leaves out the closing point, so no line jumps across the body. The handle rests at its place relative to the table, so it goes back to the tray after the table moved |
+| Thumbstick click (`TableRecenterInput`; it was A or X until those became grab buttons) | Moves the table root, and the body, tray, handle and window with it | The pen ends its stroke when the body moves under it, and leaves out the closing point, so no line jumps across the body. The handle rests at its place relative to the table, so it goes back to the tray after the table moved |
 | Class roster | A text panel with no collider and no interactable, on the opposite side of the table from the student view window | None |
 
-No tool uses A or X, and none of them reads the thumbsticks.
+A and X grab, as well as the grip (the toolkit's Select action is bound to all three), and no tool reads the thumbsticks or their clicks.
 
-`ProfessorToolsTogetherTests` uses the tools together and checks that each still works alone afterwards. Not verified on a headset: that A or X is not also bound to something in the rig, and which button of a real controller or hand pose each action maps to comes from the XR Interaction Toolkit rig, not from DIYsect code.
+`ProfessorToolsTogetherTests` uses the tools together and checks that each still works alone afterwards. Not verified on a headset: which button of a real controller or hand pose each action maps to comes from the XR Interaction Toolkit rig, not from DIYsect code.

@@ -13,7 +13,7 @@ namespace DIYsect.Editor
     public static class BuildAndroidRole
     {
         public const string ProfessorScene = "Assets/Scenes/Professor_MR.unity";
-        public const string StudentScene = "Assets/Scenes/LectureHall_VR.unity";
+        public const string StudentScene = ProfessorScene;
         public const string ProfessorOutput = "Builds/Android-Professor/DIYsect-Professor.apk";
         public const string StudentOutput = "Builds/Android-Student/DIYsect-Student.apk";
 

@@ -26,7 +26,7 @@ namespace DIYsect.Editor
     public static class AddQuiz
     {
         private const string PrefabPath = "Assets/Prefabs/AnatomyBody.prefab";
-        private const string QuestionsPath = "Assets/Scripts/Learning/Quiz/DefaultQuizQuestions.asset";
+        public const string QuestionsPath = "Assets/Scripts/Learning/Quiz/DefaultQuizQuestions.asset";
         private const string ProfessorScenePath = "Assets/Scenes/Professor_MR.unity";
         // Professor_MR is the shared scene: the classmate camera lives there next to the headset rig (see BuildSharedScene).
         private const string ClassmateScenePath = "Assets/Scenes/Professor_MR.unity";
@@ -80,6 +80,11 @@ namespace DIYsect.Editor
                 throw new InvalidOperationException($"{QuestionsPath} is missing or is not a QuizQuestionSet.");
 
             Scene scene = EditorSceneManager.OpenScene(ProfessorScenePath, OpenSceneMode.Single);
+            // Opening a scene in Single mode unloads unused assets, which leaves the object loaded above dangling. Assigning it
+            // then saved an empty reference and the panel disabled itself on the headset. Load it again now.
+            questions = AssetDatabase.LoadAssetAtPath<QuizQuestionSet>(QuestionsPath);
+            if (questions == null)
+                throw new InvalidOperationException($"{QuestionsPath} could not be loaded after opening the scene.");
             Transform root = FindRoot(scene, RootName);
             QuizRound quiz = root.GetComponentInChildren<QuizRound>(true);
             if (quiz == null)

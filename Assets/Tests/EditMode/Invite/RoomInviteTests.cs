@@ -5,6 +5,32 @@ namespace DIYsect.Invite.Tests
 {
     public class RoomInviteTests
     {
+        [TestCase("ABC123", true)]
+        [TestCase("invalid!", false)]
+        public void ExplicitCodesPreventPublicRoomFallbackEvenAfterThePendingCodeIsCleared(string code, bool accepted)
+        {
+            var go = new UnityEngine.GameObject("Join policy");
+            go.SetActive(false);
+            try
+            {
+                var join = go.AddComponent<ClassmateAutoJoin>();
+                Assert.IsTrue(join.ShouldAutoJoinAnyRoom);
+                Assert.AreEqual(accepted, join.JoinWithCode(code));
+                Assert.IsFalse(join.ShouldAutoJoinAnyRoom);
+                // The failed-join path consumes the pending code. An explicit choice must still suppress discovery.
+                typeof(ClassmateAutoJoin).GetField("_pendingCode", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                    .SetValue(join, string.Empty);
+                Assert.IsFalse(join.ShouldAutoJoinAnyRoom);
+                Assert.IsTrue(join.JoinWithCode("XYZ789"));
+                Assert.AreEqual("XYZ789", join.PendingCode);
+                Assert.IsFalse(join.CodeRejected);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+            }
+        }
+
         [TestCase("KHC8QH", "KHC8QH")]
         [TestCase("khc8qh", "KHC8QH")]
         [TestCase(" khc 8-qh ", "KHC8QH")]

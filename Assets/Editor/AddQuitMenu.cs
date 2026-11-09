@@ -10,6 +10,7 @@ using UnityEditor.Events;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -36,9 +37,19 @@ namespace DIYsect.Editor
         public static void Apply()
         {
             var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-            var origin = UnityEngine.Object.FindFirstObjectByType<XROrigin>();
+            ApplyToScene(scene);
+            EditorSceneManager.MarkSceneDirty(scene);
+            if (!EditorSceneManager.SaveScene(scene))
+                throw new IOException($"Could not save {ScenePath}.");
+            Debug.Log($"{ScenePath}: quit menu added.");
+        }
+
+        // Also used when wiring the shared classroom, without reopening or saving its scene.
+        public static void ApplyToScene(Scene scene)
+        {
+            var origin = UnityEngine.Object.FindFirstObjectByType<XROrigin>(FindObjectsInactive.Include);
             if (origin == null)
-                throw new InvalidOperationException($"{ScenePath} has no XROrigin.");
+                throw new InvalidOperationException($"{scene.path} has no XROrigin.");
 
             InputActionReference toggle = EnsureToggleAction();
 
@@ -88,14 +99,9 @@ namespace DIYsect.Editor
 
             var eventSystem = UnityEngine.Object.FindFirstObjectByType<EventSystem>();
             if (eventSystem == null)
-                Debug.LogWarning($"{ScenePath} has no EventSystem. The quit menu buttons will not respond until one with an XRUIInputModule is added. None was added.");
+                Debug.LogWarning($"{scene.path} has no EventSystem. The quit menu buttons will not respond until one with an XRUIInputModule is added. None was added.");
             else if (eventSystem.GetComponent<XRUIInputModule>() == null)
                 Debug.LogWarning("The scene's EventSystem has no XRUIInputModule. The quit menu buttons will not respond to controllers. None was added.");
-
-            EditorSceneManager.MarkSceneDirty(scene);
-            if (!EditorSceneManager.SaveScene(scene))
-                throw new IOException($"Could not save {ScenePath}.");
-            Debug.Log($"{ScenePath}: quit menu added.");
         }
 
         /// <summary>Same as <see cref="Apply"/> for the command line. Exits 0 on success and 1 on failure.</summary>

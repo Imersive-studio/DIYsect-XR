@@ -34,10 +34,11 @@ namespace DIYsect.StudentRig.Tests
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         }
 
-        [Test]
-        public void StudentSceneHasAQuitMenuTheRaysCanPress()
+        [TestCase(StudentScene)]
+        [TestCase(ProfessorScene)]
+        public void HeadsetSceneHasAQuitMenuTheRaysCanPress(string scenePath)
         {
-            EditorSceneManager.OpenScene(StudentScene, OpenSceneMode.Single);
+            EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
             var menu = Object.FindFirstObjectByType<QuitMenu>(FindObjectsInactive.Include);
             Assert.IsNotNull(menu, "The student scene has no QuitMenu. Run Tools > DIYsect > Add Quit Menu.");
             Assert.AreEqual(QuitMenuState.Closed, menu.State, "The menu must start closed.");
@@ -121,7 +122,10 @@ namespace DIYsect.StudentRig.Tests
         {
             EditorSceneManager.OpenScene(ProfessorScene, OpenSceneMode.Single);
             var origin = Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>();
-            Assert.IsNull(origin.GetComponent<EyeHeightCalibration>(), "The professor stands at a real table in passthrough and keeps the real floor.");
+            // The shared scene carries the calibration for the student role. It is saved switched off, and ClassroomRole turns it
+            // on for the student only, so the professor still keeps the real floor.
+            var calibration = origin.GetComponent<EyeHeightCalibration>();
+            Assert.IsTrue(calibration == null || !calibration.enabled, "The professor stands at a real table in passthrough and keeps the real floor.");
         }
 
         [TestCase(1.6f, 1.0f, 0.6f)]
@@ -171,6 +175,20 @@ namespace DIYsect.StudentRig.Tests
                 Assert.IsTrue((origin.Camera.cullingMask & (1 << layer)) != 0,
                     $"{scenePath}: the headset camera does not draw layer {layerName}, so everything on it is invisible. Run Tools > DIYsect > Show All Layers To Rig Camera.");
             }
+        }
+
+        [TestCase(StudentScene)]
+        [TestCase(ProfessorScene)]
+        public void HandsCanReachOrgansOnTheirOwnLayers(string scenePath)
+        {
+            EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+            int organs = LayerMask.GetMask("SeatedOrgan", "LooseOrgan");
+            Assert.AreNotEqual(0, organs, "The organ layers are missing.");
+            var casters = Object.FindObjectsByType<SphereInteractionCaster>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            Assert.IsNotEmpty(casters, $"{scenePath} has no near casters.");
+            foreach (SphereInteractionCaster caster in casters)
+                Assert.AreEqual(organs, caster.physicsLayerMask.value & organs,
+                    $"{caster.transform.parent.name} cannot touch organs, so they cannot be lifted. Run Tools > DIYsect > Widen Instrument Grab Zones.");
         }
 
         [TestCase(StudentScene)]
