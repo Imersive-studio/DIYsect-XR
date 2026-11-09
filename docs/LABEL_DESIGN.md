@@ -16,7 +16,11 @@ Names and callouts draw on top of the body with a soft dark halo, so they stay r
 
 ## Instructions
 
-The guide card shows one action per step with a line icon for the tool. When a step is done the old line is struck through and shrinks into a mint check while the next one rolls up. The first time this headset holds an organ, a brief "Turn to examine" hint appears beside it and dissolves.
+The steps live on a floor-standing instruction board to the right of the table, built with the same panel kit as the room code board (card, header, mint edge, Inter type and slate stand), so it reads as part of the room. Only the student at the table sees it.
+
+![The instruction board at step 3: the step to do now on the left, every step on the right](previews/instruction_board.png)
+
+The left half shows the step to do now, one line of how, and a line icon with the tool's name. The right half lists all seven steps; finished ones carry a mint check and the current one sits on a coral highlight. The board holds still while you work. When a step is done the old line is struck through and shrinks into a mint check, the highlight slides down one row and the next step rolls up. The first time this headset holds an organ, a brief "Turn to examine" hint appears beside it and dissolves.
 
 ## Timings
 

@@ -40,7 +40,6 @@ namespace DIYsect.Learning
         [SerializeField] private LineRenderer[] _ticks;
         [SerializeField] private GuideShape[] _connectors;
 
-        private const float PulsePeriod = 1.6f;
         private const float RowSpacing = 0.05f;
         private const float FirstRowY = 0.125f;
         private const float SlideSeconds = 0.25f;
@@ -48,8 +47,6 @@ namespace DIYsect.Learning
         private const float CheckSize = 0.024f;
         private const float CheckX = -0.12f;
         private const float IconHalf = 0.032f;
-        private const float BreathePeriod = 3.5f;
-        private const float BreatheAmount = 0.03f;
         private const float HandPopSeconds = 0.3f;
         private const float PopDelay = 0.2f;
         private const float PopSeconds = 0.3f;
@@ -222,8 +219,6 @@ namespace DIYsect.Learning
                 ApplyMotion(elapsed);
                 if (elapsed >= MotionSeconds) _settled = true;
             }
-            if (_tracker.State != ChecklistState.Complete)
-                ApplyPulse(Time.unscaledTime);
         }
 
         // Everything that is fixed for a state: texts, shapes and colours. Motion is applied after, in ApplyMotion.
@@ -447,14 +442,12 @@ namespace DIYsect.Learning
             }
         }
 
-        // A slow breathe, a pop when the hand takes an organ, and a pop as a new icon rolls in.
+        // The board holds still while you work: the icon only pops when the hand takes an organ and as a new icon rolls in.
         private void ApplyIcon(float time)
         {
-            bool complete = _tracker.State == ChecklistState.Complete;
-            float breathe = complete ? 1f : 1f + BreatheAmount * (0.5f - 0.5f * Mathf.Cos(time / BreathePeriod * (2f * Mathf.PI)));
             float pop = Mathf.Lerp(0.85f, 1f, Ease.OutBack((time - _popStarted) / HandPopSeconds));
             float swap = _phase == InstructionTransitionPhase.Rolling ? Mathf.Lerp(0.75f, 1f, Ease.OutBack(_rollIn.Amount)) : 1f;
-            float scale = breathe * pop * swap;
+            float scale = pop * swap;
             _iconRoot.localScale = new Vector3(scale, scale, 1f);
         }
 
@@ -495,15 +488,6 @@ namespace DIYsect.Learning
                     : Mathf.Lerp(FinishGlowAlpha, FinishRestAlpha, Mathf.Clamp01((since - FinishGlowSeconds) / FinishSettleSeconds));
                 _halo.Color = HaloColor(alpha);
             }
-        }
-
-        // The current node, current segment and badge breathe between two colours.
-        private void ApplyPulse(float time)
-        {
-            int current = (int)_tracker.State;
-            _nodes[current].Color = GuidePalette.Pulse(GuidePalette.Coral, GuidePalette.CoralSoft, time, PulsePeriod);
-            _segments[current].Color = GuidePalette.Pulse(GuidePalette.Coral, GuidePalette.CoralSoft, time, PulsePeriod);
-            _tileRim.Color = GuidePalette.Pulse(GuidePalette.CoralSoft, GuidePalette.Coral, time, PulsePeriod);
         }
 
         private static Color HaloColor(float alpha)
