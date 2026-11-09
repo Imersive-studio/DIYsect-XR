@@ -21,7 +21,8 @@ namespace DIYsect.Editor
         private const string ScenePath = "Assets/Scenes/Classmate_Desktop.unity";
         private const string RigName = "ClassmateCamera";
         private const string SimulatorName = "XR Interaction Simulator";
-        private static readonly Vector3 _cameraOffset = new Vector3(0f, 0.9f, -0.9f);
+        // The opening view: lower and a little farther back, so a phone shows the hall, the class and the body together.
+        private static readonly Vector3 _cameraOffset = ClassmateOpeningView.Offset();
 
         [MenuItem("Tools/DIYsect/Add Classmate Desktop Camera")]
         public static void Apply() => Apply(ScenePath, true);
