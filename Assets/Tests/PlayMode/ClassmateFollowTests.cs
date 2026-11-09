@@ -100,7 +100,7 @@ namespace DIYsect.Networking.Tests
             _cameraObject.transform.position = _serverBody.transform.position + new Vector3(0f, 0.9f, -0.9f);
             _cameraObject.transform.rotation = Quaternion.LookRotation(_serverBody.transform.position - _cameraObject.transform.position, Vector3.up);
             var tracker = _cameraObject.AddComponent<PointerGestureTracker>();
-            Set(tracker, "_holdSeconds", 5f);
+            Set(tracker, "_holdToPinSeconds", 5f);
             _orbit = _cameraObject.AddComponent<ClassmateOrbitCamera>();
             Set(_orbit, "_gestures", tracker);
             Set(_orbit, "_target", _serverBody.transform);

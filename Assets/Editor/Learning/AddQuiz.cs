@@ -173,6 +173,9 @@ namespace DIYsect.Editor
             claimers.GetArrayElementAtIndex(0).objectReferenceValue = answers;
             pinSerialized.ApplyModifiedPropertiesWithoutUndo();
 
+            // The same tap shows an organ name when there is no round; during one it is an answer and shows none.
+            AddOrganNameTap.SetClaimers(rig);
+
             Text label = GetOrCreateQuizLine(rig);
             var prompt = rig.GetComponent<QuizPrompt>();
             if (prompt == null)

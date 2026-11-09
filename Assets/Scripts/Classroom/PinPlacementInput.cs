@@ -6,13 +6,14 @@ using DIYsect.Networking;
 namespace DIYsect.Classroom
 {
     /// <summary>
-    /// Lets a desktop or phone classmate tap an organ to pin a question on it. A tap from the PointerGestureTracker
-    /// (mouse click or one short finger touch, not a drag) casts a ray from the camera through the pointer, finds which organ
+    /// Lets a desktop or phone classmate press and hold on an organ to pin a question on it. A hold from the PointerGestureTracker
+    /// (mouse button or one finger held still for about half a second, not a drag, not a quick tap) casts a ray from the camera through the pointer, finds which organ
     /// was hit and sends the hit point in that organ's local space
     /// together with the camera pose, so the professor can later see what the asker saw.
     /// There is no text entry yet: every pin carries <see cref="DefaultText"/> ("?"). Set <see cref="PendingText"/>
     /// from a UI field later to ask a real question.
-    /// A tap that another feature claims (see <see cref="ITapClaim"/>, for example a running quiz round) places no pin.
+    /// A press that another feature claims (see <see cref="ITapClaim"/>, for example a running quiz round) places no pin.
+    /// A quick tap does not pin: it shows the organ's name instead (OrganNameTapInput).
     /// </summary>
     public class PinPlacementInput : MonoBehaviour
     {
@@ -24,7 +25,7 @@ namespace DIYsect.Classroom
         private Camera _camera;
         [SerializeField, Min(0.1f)] private float _maxDistance = 20f;
         [SerializeField] private LayerMask _hitLayers = ~0;
-        [SerializeField, Tooltip("Reports taps; a drag (orbiting the camera) is never reported, so it cannot pin.")]
+        [SerializeField, Tooltip("Reports holds; a drag (orbiting the camera) and a quick tap are never reported, so they cannot pin.")]
         private PointerGestureTracker _gestures;
         [SerializeField, Tooltip("Behaviours that implement ITapClaim. While any of them claims the tap, no pin is placed (for example the quiz answer input).")]
         private MonoBehaviour[] _tapClaimers = new MonoBehaviour[0];
@@ -54,17 +55,17 @@ namespace DIYsect.Classroom
         {
             if (_gestures == null)
                 return;
-            _gestures.Tapped += HandleTap;
+            _gestures.Held += HandleHold;
         }
 
         private void OnDisable()
         {
             if (_gestures != null)
-                _gestures.Tapped -= HandleTap;
+                _gestures.Held -= HandleHold;
         }
 
-        // Only a tap reaches here; the tracker has already ignored drags and presses over UI.
-        private void HandleTap(Vector2 screenPosition)
+        // Only a hold reaches here; the tracker has already ignored drags, quick taps and presses over UI.
+        private void HandleHold(Vector2 screenPosition)
         {
             Camera view = ResolveCamera();
             if (view == null)

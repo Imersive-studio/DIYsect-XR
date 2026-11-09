@@ -79,13 +79,17 @@ namespace DIYsect.Learning.Tests
 
         private Vector2 CentreOfScreen() => new Vector2(_camera.pixelWidth / 2f, _camera.pixelHeight / 2f);
 
-        // The tracker's Tapped event is what a real click or short touch raises.
-        private void Tap()
+        // The tracker's Tapped event is what a real click or short touch raises; Held is a press held still for half a second.
+        private void Raise(string eventName)
         {
-            var tapped = (System.Action<Vector2>)typeof(PointerGestureTracker).GetField("Tapped", Private).GetValue(_tracker);
-            Assert.IsNotNull(tapped, "Nothing listens for a tap.");
-            tapped(CentreOfScreen());
+            var handlers = (System.Action<Vector2>)typeof(PointerGestureTracker).GetField(eventName, Private).GetValue(_tracker);
+            Assert.IsNotNull(handlers, $"Nothing listens for {eventName}.");
+            handlers(CentreOfScreen());
         }
+
+        private void Tap() => Raise("Tapped");
+
+        private void Hold() => Raise("Held");
 
         [UnityTest]
         public IEnumerator ATapDuringARoundAnswersTheQuizAndPlacesNoPin()
@@ -104,15 +108,29 @@ namespace DIYsect.Learning.Tests
         }
 
         [UnityTest]
-        public IEnumerator ATapWithNoRoundPlacesAPinAsBefore()
+        public IEnumerator AHoldWithNoRoundPlacesAPin()
         {
             yield return StartClassmateRig(claimQuiz: true);
 
-            Tap();
+            Hold();
 
             yield return WaitFor(() => _boardServer.Count == 1, "the pin request to reach the server");
             Assert.AreEqual(_aimedOrgan, _boardServer[0].OrganIndex);
             Assert.AreEqual(0, _server.RightCount + _server.WrongCount, "With no round running the tap is not an answer.");
+        }
+
+        [UnityTest]
+        public IEnumerator AHoldDuringARoundPlacesNoPinWhileTheQuizClaimsTheTap()
+        {
+            yield return StartClassmateRig(claimQuiz: true);
+            _server.RequestStart(_aimedOrgan);
+            yield return WaitFor(() => _quizA.Phase == QuizPhase.Asking, "the round to reach the classmate");
+
+            Hold();
+
+            for (int i = 0; i < 30; i++)
+                yield return null;
+            Assert.AreEqual(0, _boardServer.Count, "A running round claims the press, so no pin is placed.");
         }
 
         [UnityTest]
@@ -123,8 +141,9 @@ namespace DIYsect.Learning.Tests
             yield return WaitFor(() => _quizA.Phase == QuizPhase.Asking, "the round to reach the classmate");
 
             Tap();
+            Hold();
 
-            yield return WaitFor(() => _server.RightCount == 1 && _boardServer.Count == 1, "both the answer and the pin (nothing claims the tap)");
+            yield return WaitFor(() => _server.RightCount == 1 && _boardServer.Count == 1, "both the answer (tap) and the pin (hold) when nothing claims the press");
         }
     }
 }
