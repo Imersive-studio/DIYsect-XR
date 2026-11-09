@@ -653,6 +653,7 @@ GameObject:
   - component: {fileID: 9192066475461398655}
   - component: {fileID: 2657206760088828526}
   - component: {fileID: 4826594396617255947}
+  - component: {fileID: 4492855818238052184}
   m_Layer: 0
   m_Name: AnatomyBody
   m_TagString: Untagged
@@ -955,6 +956,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: DIYsect.Learning::DIYsect.Learning.QuizRound
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &4492855818238052184
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2832709544761105719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d88b991aacaa42cab2445dbb65d624d5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Learning::DIYsect.Learning.OrganInfoCardPresenter
+  ShowTopMostFoldoutHeaderGroup: 1
+  _library: {fileID: 11400000, guid: 1ff508170330496bb68bcca5819069a9, type: 2}
+  _font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  _cardHeight: 0.25
 --- !u!1 &3076195585154834734
 GameObject:
   m_ObjectHideFlags: 0
