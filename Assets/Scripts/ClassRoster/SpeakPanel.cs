@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using DIYsect.Classroom;
+using TMPro;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -24,13 +25,13 @@ namespace DIYsect.ClassRoster
         public class Row
         {
             public GameObject Root;
-            public TextMesh Name;
-            public TextMesh Status;
-            public TextMesh Hand;
+            public TMP_Text Name;
+            public TMP_Text Status;
+            public TMP_Text Hand;
             public Renderer HandIcon;
             public Renderer MicIcon;
             public GameObject MicSlash;
-            public TextMesh ButtonLabel;
+            public TMP_Text ButtonLabel;
             public XRSimpleInteractable Button;
         }
 
@@ -41,12 +42,12 @@ namespace DIYsect.ClassRoster
         [SerializeField] private HandBoard _hands;
         [SerializeField] private Row[] _rows;
         [SerializeField, Tooltip("Shown when no student is in the room, or how many more there are than rows.")]
-        private TextMesh _summary;
+        private TMP_Text _summary;
         [SerializeField, Min(0.1f)] private float _refreshSeconds = 0.25f;
-        [SerializeField] private Color _liveColor = new Color(0.25f, 0.9f, 0.4f);
+        [SerializeField] private Color _liveColor = new Color(0.369f, 0.949f, 0.761f);
         [SerializeField] private Color _canSpeakColor = new Color(0.45f, 0.7f, 1f);
-        [SerializeField] private Color _mutedColor = new Color(0.55f, 0.55f, 0.6f);
-        [SerializeField] private Color _handColor = new Color(1f, 0.85f, 0.2f);
+        [SerializeField] private Color _mutedColor = new Color(0.42f, 0.52f, 0.58f);
+        [SerializeField] private Color _handColor = new Color(1f, 0.478f, 0.349f);
 
         private ulong[] _rowClient;
         private UnityEngine.Events.UnityAction<SelectEnterEventArgs>[] _handlers;
@@ -181,7 +182,7 @@ namespace DIYsect.ClassRoster
             renderer.SetPropertyBlock(_block);
         }
 
-        private static void SetText(TextMesh mesh, string text)
+        private static void SetText(TMP_Text mesh, string text)
         {
             if (mesh.text != text)
                 mesh.text = text;

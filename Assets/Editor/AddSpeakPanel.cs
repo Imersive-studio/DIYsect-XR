@@ -3,6 +3,8 @@ using System;
 using System.IO;
 using DIYsect.Classroom;
 using DIYsect.ClassRoster;
+using DIYsect.Presentation;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -13,7 +15,8 @@ namespace DIYsect.Editor
 {
     /// <summary>
     /// Builds the professor's participant list in Professor_MR, under the class roster: a row per student with their name, a
-    /// raised-hand marker, a microphone marker and an Allow / Mute button, like a video call. It is a child of the DIYsect root, so
+    /// raised-hand marker, a microphone marker and an Allow / Mute button, like a video call. It is upright and stacked directly under the
+    /// roster card, and one stand runs from its bottom to the floor. It is a child of the DIYsect root, so
     /// table alignment carries it along, and Build Shared Scene switches it on for the professor only. Safe to run more than once.
     /// </summary>
     public static class AddSpeakPanel
@@ -23,13 +26,10 @@ namespace DIYsect.Editor
 
         private const string ScenePath = "Assets/Scenes/Professor_MR.unity";
         private const string RootName = "DIYsect";
-        private const string FrameMaterialPath = "Assets/Models/Environment/SpeakPanelFrame.mat";
-        private const string ButtonMaterialPath = "Assets/Models/Environment/SpeakPanelButton.mat";
-        private const string IconMaterialPath = "Assets/Models/Environment/SpeakPanelIcon.mat";
-        private static readonly Vector2 PanelSize = new Vector2(0.78f, 0.52f);
-        private const float RowHeight = 0.054f;
-        private static readonly Vector3 OffsetFromTable = new Vector3(0.95f, 0f, -0.25f);
-        private const float Height = 0.84f;
+        private static readonly Vector2 PanelSize = new Vector2(0.62f, 0.42f);
+        private const float ContentWidth = 0.56f;
+        private const float RowHeight = 0.036f;
+        private const float RowsTop = -0.01f;
 
         [MenuItem("Tools/DIYsect/Add Speak Panel")]
         public static void Apply()
@@ -69,33 +69,25 @@ namespace DIYsect.Editor
             if (old != null)
                 UnityEngine.Object.DestroyImmediate(old.gameObject);
 
-            var panelObject = new GameObject(PanelName);
-            panelObject.transform.SetParent(root, false);
-            Bounds table = FindTableTop(root, scene.path);
-            Vector3 position = new Vector3(table.center.x, Height, table.center.z) + OffsetFromTable;
-            Vector3 professorHead = new Vector3(0f, 1.45f, 0f);
-            // A text mesh reads from -Z, so +Z points away from the professor.
-            panelObject.transform.SetPositionAndRotation(position, Quaternion.LookRotation(position - professorHead, Vector3.up));
+            // Directly under the roster card, same bearing, same turn, both upright.
+            float centreY = AddClassRoster.CentreHeight - AddClassRoster.PanelSize.y / 2f - AddClassRoster.StackGap - PanelSize.y / 2f;
+            Vector3 position = AddClassRoster.ColumnPosition(root, centreY);
+            Transform card = ProfessorPanelKit.BuildCard(root, PanelName, PanelSize, "SPEAKING");
+            card.SetPositionAndRotation(position, AddClassRoster.ColumnRotation(position));
+            Transform content = card.Find("Content");
+            GameObject panelObject = card.gameObject;
 
-            Material frameMaterial = LoadOrCreateMaterial(FrameMaterialPath, new Color(0.08f, 0.09f, 0.12f));
-            Material buttonMaterial = LoadOrCreateMaterial(ButtonMaterialPath, new Color(0.14f, 0.3f, 0.2f));
-            Material iconMaterial = LoadOrCreateMaterial(IconMaterialPath, Color.white);
+            Material buttonMaterial = ProfessorPanelKit.Material("SpeakButton", GuidePalette.Slate);
+            Material iconMaterial = ProfessorPanelKit.Material("SpeakIcon", Color.white);
+            Material slashMaterial = ProfessorPanelKit.Material("SpeakSlash", GuidePalette.Coral);
 
-            GameObject frame = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            frame.name = "Frame";
-            frame.transform.SetParent(panelObject.transform, false);
-            frame.transform.localPosition = new Vector3(0f, 0f, 0.012f);
-            frame.transform.localScale = new Vector3(PanelSize.x, PanelSize.y, 0.01f);
-            UnityEngine.Object.DestroyImmediate(frame.GetComponent<Collider>());
-            frame.GetComponent<Renderer>().sharedMaterial = frameMaterial;
-
-            AddText(panelObject.transform, "Title", "Participants: raise hand, mic", new Vector3(-PanelSize.x / 2f + 0.03f, PanelSize.y / 2f - 0.015f, 0f), 0.0042f, TextAnchor.UpperLeft, Color.white);
-            TextMesh summary = AddText(panelObject.transform, "Summary", string.Empty, new Vector3(0f, -PanelSize.y / 2f + 0.012f, 0f), 0.0038f, TextAnchor.LowerCenter, new Color(0.75f, 0.8f, 0.9f));
+            float summaryY = RowsTop - RowCount * RowHeight - 0.005f;
+            TextMeshPro summary = ProfessorPanelKit.AddText(content, "Summary", string.Empty, 0.015f, GuidePalette.TextMuted,
+                TextAlignmentOptions.TopLeft, new Vector2(0f, summaryY), new Vector2(ContentWidth, 0.022f));
 
             var rows = new SpeakPanel.Row[RowCount];
-            float top = PanelSize.y / 2f - 0.07f;
             for (int i = 0; i < RowCount; i++)
-                rows[i] = BuildRow(panelObject.transform, i, top - i * RowHeight, iconMaterial, buttonMaterial);
+                rows[i] = BuildRow(content, i, RowsTop - i * RowHeight - RowHeight / 2f, iconMaterial, slashMaterial, buttonMaterial);
 
             var panel = panelObject.AddComponent<SpeakPanel>();
             var serialized = new SerializedObject(panel);
@@ -119,6 +111,9 @@ namespace DIYsect.Editor
             }
             serialized.ApplyModifiedPropertiesWithoutUndo();
 
+            // The one stand for the whole console: from the bottom of this card to the floor (the DIYsect root's height).
+            ProfessorPanelKit.AddStand(card, position.y - PanelSize.y / 2f, root.position.y);
+
             // Every row starts hidden; the panel shows a row for each student.
             foreach (SpeakPanel.Row row in rows)
                 row.Root.SetActive(false);
@@ -126,55 +121,57 @@ namespace DIYsect.Editor
             return panelObject;
         }
 
-        private static SpeakPanel.Row BuildRow(Transform parent, int index, float y, Material iconMaterial, Material buttonMaterial)
+        // y is the row's vertical centre in the content area. Text boxes hang from their top left corner.
+        private static SpeakPanel.Row BuildRow(Transform parent, int index, float y, Material iconMaterial, Material slashMaterial, Material buttonMaterial)
         {
             var rowObject = new GameObject($"Row{index}");
             rowObject.transform.SetParent(parent, false);
             rowObject.transform.localPosition = new Vector3(0f, y, 0f);
-            float left = -PanelSize.x / 2f + 0.03f;
 
-            // Raised hand: a yellow disc with the order number beside it.
-            Renderer handIcon = AddIcon(rowObject.transform, "HandIcon", PrimitiveType.Sphere, new Vector3(left + 0.012f, 0f, 0f), new Vector3(0.022f, 0.022f, 0.01f), iconMaterial);
-            TextMesh hand = AddText(rowObject.transform, "HandNumber", string.Empty, new Vector3(left + 0.03f, 0f, 0f), 0.0036f, TextAnchor.MiddleLeft, new Color(1f, 0.85f, 0.2f));
+            // Raised hand: a coral disc with the order number beside it.
+            Renderer handIcon = AddIcon(rowObject.transform, "HandIcon", PrimitiveType.Sphere, new Vector3(0.012f, 0f, 0f), new Vector3(0.016f, 0.016f, 0.006f), iconMaterial);
+            TextMeshPro hand = ProfessorPanelKit.AddText(rowObject.transform, "HandNumber", string.Empty, 0.014f, GuidePalette.Coral,
+                TextAlignmentOptions.TopLeft, new Vector2(0.026f, 0.008f), new Vector2(0.04f, 0.018f), FontStyles.Bold);
 
-            // Microphone: a capsule, green when speaking, grey when not, with a red slash across it while muted.
-            Renderer mic = AddIcon(rowObject.transform, "MicIcon", PrimitiveType.Capsule, new Vector3(left + 0.085f, 0f, 0f), new Vector3(0.014f, 0.016f, 0.01f), iconMaterial);
+            // Microphone: a capsule, mint when speaking, grey when not, with a coral slash across it while muted.
+            Renderer mic = AddIcon(rowObject.transform, "MicIcon", PrimitiveType.Capsule, new Vector3(0.085f, 0f, 0f), new Vector3(0.012f, 0.014f, 0.006f), iconMaterial);
             GameObject slash = GameObject.CreatePrimitive(PrimitiveType.Cube);
             slash.name = "MicSlash";
             slash.transform.SetParent(rowObject.transform, false);
-            slash.transform.localPosition = new Vector3(left + 0.085f, 0f, -0.007f);
+            slash.transform.localPosition = new Vector3(0.085f, 0f, -0.005f);
             slash.transform.localRotation = Quaternion.Euler(0f, 0f, -45f);
-            slash.transform.localScale = new Vector3(0.004f, 0.036f, 0.002f);
+            slash.transform.localScale = new Vector3(0.003f, 0.028f, 0.002f);
             UnityEngine.Object.DestroyImmediate(slash.GetComponent<Collider>());
-            slash.GetComponent<Renderer>().sharedMaterial = iconMaterial;
-            var slashBlock = new MaterialPropertyBlock();
-            slashBlock.SetColor("_BaseColor", new Color(0.95f, 0.25f, 0.25f));
-            slashBlock.SetColor("_Color", new Color(0.95f, 0.25f, 0.25f));
-            slash.GetComponent<Renderer>().SetPropertyBlock(slashBlock);
+            slash.GetComponent<Renderer>().sharedMaterial = slashMaterial;
 
-            TextMesh name = AddText(rowObject.transform, "Name", string.Empty, new Vector3(left + 0.13f, 0.012f, 0f), 0.0042f, TextAnchor.MiddleLeft, Color.white);
-            TextMesh status = AddText(rowObject.transform, "Status", string.Empty, new Vector3(left + 0.13f, -0.012f, 0f), 0.0030f, TextAnchor.MiddleLeft, new Color(0.75f, 0.8f, 0.9f));
+            TextMeshPro name = ProfessorPanelKit.AddText(rowObject.transform, "Name", string.Empty, 0.016f, GuidePalette.TextPrimary,
+                TextAlignmentOptions.TopLeft, new Vector2(0.115f, 0.0165f), new Vector2(0.31f, 0.019f));
+            TextMeshPro status = ProfessorPanelKit.AddText(rowObject.transform, "Status", string.Empty, 0.012f, GuidePalette.TextMuted,
+                TextAlignmentOptions.TopLeft, new Vector2(0.115f, -0.0015f), new Vector2(0.31f, 0.015f));
 
-            // The Allow / Mute button on the right, selected by the ray like the roster's buttons.
+            // The Allow / Mute button on the right, selected by the ray. The old label is kept for the kit to hide.
             GameObject button = GameObject.CreatePrimitive(PrimitiveType.Cube);
             button.name = "Button";
             button.transform.SetParent(rowObject.transform, false);
-            button.transform.localPosition = new Vector3(PanelSize.x / 2f - 0.085f, 0f, 0f);
-            button.transform.localScale = new Vector3(0.13f, 0.042f, 0.02f);
+            button.transform.localPosition = new Vector3(ContentWidth - 0.065f, 0f, -0.01f);
+            button.transform.localScale = new Vector3(0.12f, 0.03f, 0.02f);
             button.GetComponent<Renderer>().sharedMaterial = buttonMaterial;
             var interactable = button.AddComponent<XRSimpleInteractable>();
 
             var labelObject = new GameObject("Label");
             labelObject.transform.SetParent(button.transform, false);
             labelObject.transform.localPosition = new Vector3(0f, 0f, -0.6f);
-            labelObject.transform.localScale = new Vector3(0.042f / 0.13f, 1f, 1f);
-            var label = labelObject.AddComponent<TextMesh>();
-            label.text = SpeakRowText.AllowLabel;
-            label.anchor = TextAnchor.MiddleCenter;
-            label.alignment = TextAlignment.Center;
-            label.characterSize = 0.05f;
-            label.fontSize = 48;
-            label.color = Color.white;
+            labelObject.transform.localScale = new Vector3(0.03f / 0.12f, 1f, 1f);
+            var oldLabel = labelObject.AddComponent<TextMesh>();
+            oldLabel.text = SpeakRowText.AllowLabel;
+            oldLabel.anchor = TextAnchor.MiddleCenter;
+            oldLabel.alignment = TextAlignment.Center;
+            oldLabel.characterSize = 0.05f;
+            oldLabel.fontSize = 48;
+
+            ProfessorPanelKit.StyleButton(button, SpeakRowText.AllowLabel);
+            TMP_Text label = button.GetComponentInChildren<TMP_Text>(true)
+                ?? throw new InvalidOperationException("ProfessorPanelKit.StyleButton did not add a TMP label to the row button.");
 
             return new SpeakPanel.Row
             {
@@ -203,47 +200,12 @@ namespace DIYsect.Editor
             return renderer;
         }
 
-        private static TextMesh AddText(Transform parent, string name, string text, Vector3 position, float size, TextAnchor anchor, Color color)
-        {
-            var textObject = new GameObject(name);
-            textObject.transform.SetParent(parent, false);
-            textObject.transform.localPosition = position;
-            var mesh = textObject.AddComponent<TextMesh>();
-            mesh.text = text;
-            mesh.anchor = anchor;
-            mesh.alignment = anchor == TextAnchor.LowerCenter ? TextAlignment.Center : TextAlignment.Left;
-            mesh.characterSize = size;
-            mesh.fontSize = 64;
-            mesh.color = color;
-            return mesh;
-        }
-
-        private static Material LoadOrCreateMaterial(string path, Color color)
-        {
-            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
-            if (material != null)
-                return material;
-            Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? throw new InvalidOperationException("The URP Lit shader was not found.");
-            material = new Material(shader) { name = Path.GetFileNameWithoutExtension(path) };
-            material.SetColor("_BaseColor", color);
-            AssetDatabase.CreateAsset(material, path);
-            return material;
-        }
-
         private static Transform FindRoot(Scene scene)
         {
             foreach (GameObject candidate in scene.GetRootGameObjects())
                 if (candidate.name == RootName)
                     return candidate.transform;
             throw new InvalidOperationException($"{scene.path} has no {RootName} root. Run Tools > DIYsect > Create Scenes.");
-        }
-
-        private static Bounds FindTableTop(Transform root, string scenePath)
-        {
-            foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
-                if (renderer.name == "Top" && renderer.transform.parent != null && renderer.transform.parent.name.StartsWith("DissectionTable"))
-                    return renderer.bounds;
-            throw new InvalidOperationException($"{scenePath} has no DissectionTable/Top under {RootName}.");
         }
     }
 }

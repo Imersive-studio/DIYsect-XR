@@ -3,6 +3,8 @@ using System;
 using System.IO;
 using DIYsect.Classroom;
 using DIYsect.ClassRoster;
+using DIYsect.Presentation;
+using TMPro;
 using UnityEditor;
 using UnityEditor.Events;
 using UnityEditor.SceneManagement;
@@ -14,23 +16,33 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 namespace DIYsect.Editor
 {
     /// <summary>
-    /// Builds the professor's class roster in Professor_MR: a dark panel on the professor's right, turned toward the
+    /// Builds the professor's class roster in Professor_MR: a designed card on the professor's right, upright and turned toward the
     /// professor, listing every student in the room with their device, a marker when their hand is up, and how many questions they have pinned.
-    /// It is a child of the DIYsect root, so table alignment carries it along, and it sits opposite the student view
-    /// window, which is on the left. Safe to run more than once.
+    /// The speaking panel hangs directly under it and shares one stand, so the two read as one console. It is a child of the
+    /// DIYsect root, so table alignment carries it along. Safe to run more than once.
     /// </summary>
     public static class AddClassRoster
     {
         private const string ScenePath = "Assets/Scenes/Professor_MR.unity";
         private const string RootName = "DIYsect";
         private const string RosterName = "ClassRoster";
-        private const string FrameMaterialPath = "Assets/Models/Environment/ClassRosterFrame.mat";
         private const string ButtonMaterialPath = "Assets/Models/Environment/StudentViewFrame.mat";
-        private static readonly Vector3 ButtonSize = new Vector3(0.22f, 0.06f, 0.02f);
-        private static readonly Vector2 PanelSize = new Vector2(0.78f, 0.4f);
-        // From the table centre: to the professor's right, a little nearer, at eye height.
+
+        /// <summary>The card size in metres. The speaking panel is as wide.</summary>
+        public static readonly Vector2 PanelSize = new Vector2(0.62f, 0.5f);
+        /// <summary>World height of the roster's centre. The speaking panel is stacked under it.</summary>
+        public const float CentreHeight = 1.5f;
+        /// <summary>Space between the roster card and the speaking card.</summary>
+        public const float StackGap = 0.04f;
+        /// <summary>Header room the content area gives up at the top of a card. A layout estimate, not read from the kit.</summary>
+        public const float HeaderAllowance = 0.09f;
+
+        // From the table centre: to the professor's right, a little nearer.
         private static readonly Vector3 OffsetFromTable = new Vector3(0.95f, 0f, -0.25f);
-        private const float Height = 1.45f;
+        private static readonly Vector3 ButtonSize = new Vector3(0.26f, 0.04f, 0.02f);
+        private const float ContentWidth = 0.56f;
+        private const float RowPitch = 0.031f;
+        private const float RowsTop = -0.085f;
 
         [MenuItem("Tools/DIYsect/Add Class Roster")]
         public static void Apply()
@@ -40,52 +52,64 @@ namespace DIYsect.Editor
             QuestionBoard board = root.GetComponentInChildren<QuestionBoard>(true);
             if (board == null)
                 throw new InvalidOperationException($"{ScenePath} has no body with a QuestionBoard. Run Tools > DIYsect > Add Question Pins.");
-
-            Transform old = root.Find(RosterName);
-            if (old != null)
-                UnityEngine.Object.DestroyImmediate(old.gameObject);
-
-            var rosterObject = new GameObject(RosterName);
-            rosterObject.transform.SetParent(root, false);
-            Bounds table = FindTableTop(root);
-            Vector3 position = new Vector3(table.center.x, Height, table.center.z) + OffsetFromTable;
-            Vector3 professorHead = new Vector3(0f, Height, 0f);
-            // A text mesh reads from -Z, so +Z points away from the professor.
-            rosterObject.transform.SetPositionAndRotation(position, Quaternion.LookRotation(position - professorHead, Vector3.up));
-
-            GameObject frame = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            frame.name = "Frame";
-            frame.transform.SetParent(rosterObject.transform, false);
-            frame.transform.localPosition = new Vector3(0f, 0f, 0.012f);
-            frame.transform.localScale = new Vector3(PanelSize.x, PanelSize.y, 0.01f);
-            UnityEngine.Object.DestroyImmediate(frame.GetComponent<Collider>());
-            frame.GetComponent<Renderer>().sharedMaterial = LoadOrCreateFrameMaterial();
-
-            var textObject = new GameObject("Text");
-            textObject.transform.SetParent(rosterObject.transform, false);
-            textObject.transform.localPosition = new Vector3(-PanelSize.x / 2f + 0.03f, PanelSize.y / 2f - 0.03f, 0f);
-            var text = textObject.AddComponent<TextMesh>();
-            text.text = "Class: no students yet";
-            text.anchor = TextAnchor.UpperLeft;
-            text.alignment = TextAlignment.Left;
-            text.characterSize = 0.0045f;
-            text.fontSize = 64;
-            text.color = Color.white;
-
             HandBoard hands = board.GetComponent<HandBoard>()
                 ?? throw new InvalidOperationException("The body has no HandBoard. Run Tools > DIYsect > Add Raise Hand.");
-            var panel = rosterObject.AddComponent<ClassRosterPanel>();
+
+            // The help request link is made by Add Assist Request, so carry it over a rebuild.
+            AssistBoard assist = null;
+            Transform old = root.Find(RosterName);
+            if (old != null)
+            {
+                var oldPanel = old.GetComponent<ClassRosterPanel>();
+                if (oldPanel != null)
+                    assist = new SerializedObject(oldPanel).FindProperty("_assist").objectReferenceValue as AssistBoard;
+                UnityEngine.Object.DestroyImmediate(old.gameObject);
+            }
+
+            Vector3 position = ColumnPosition(root, CentreHeight);
+            Transform card = ProfessorPanelKit.BuildCard(root, RosterName, PanelSize, "CLASS");
+            card.SetPositionAndRotation(position, ColumnRotation(position));
+            Transform content = card.Find("Content");
+
+            // Help request and join code, then one line per student, then the count.
+            TextMeshPro top = ProfessorPanelKit.AddText(content, "Info", string.Empty, 0.02f, GuidePalette.TextPrimary,
+                TextAlignmentOptions.TopLeft, Vector2.zero, new Vector2(ContentWidth, 0.08f));
+
+            Material dotMaterial = ProfessorPanelKit.Material("RosterDot", GuidePalette.Mint);
+            var rows = new ClassRosterPanel.Row[ClassRosterText.MaxLines];
+            for (int i = 0; i < rows.Length; i++)
+                rows[i] = BuildRow(content, i, RowsTop - i * RowPitch, dotMaterial);
+
+            float bottom = -(PanelSize.y - HeaderAllowance);
+            TextMeshPro summary = ProfessorPanelKit.AddText(content, "Summary", string.Empty, 0.018f, GuidePalette.TextMuted,
+                TextAlignmentOptions.TopLeft, new Vector2(0f, bottom + 0.075f), new Vector2(ContentWidth, 0.025f));
+
+            var panel = card.gameObject.AddComponent<ClassRosterPanel>();
             var serialized = new SerializedObject(panel);
             serialized.FindProperty("_board").objectReferenceValue = board;
             serialized.FindProperty("_hands").objectReferenceValue = hands;
-            serialized.FindProperty("_text").objectReferenceValue = text;
+            serialized.FindProperty("_assist").objectReferenceValue = assist;
+            serialized.FindProperty("_text").objectReferenceValue = top;
+            serialized.FindProperty("_summary").objectReferenceValue = summary;
+            SerializedProperty rowList = serialized.FindProperty("_rows");
+            rowList.arraySize = rows.Length;
+            for (int i = 0; i < rows.Length; i++)
+            {
+                SerializedProperty row = rowList.GetArrayElementAtIndex(i);
+                row.FindPropertyRelative("Root").objectReferenceValue = rows[i].Root;
+                row.FindPropertyRelative("Name").objectReferenceValue = rows[i].Name;
+                row.FindPropertyRelative("Detail").objectReferenceValue = rows[i].Detail;
+                row.FindPropertyRelative("Hand").objectReferenceValue = rows[i].Hand;
+            }
             serialized.ApplyModifiedPropertiesWithoutUndo();
+            foreach (ClassRosterPanel.Row row in rows)
+                row.Root.SetActive(false);
 
-            // Two ray-select buttons under the panel, like the quiz panel's: take down the hand that went up first, or all of them.
+            // Two ray-select buttons along the bottom of the card: take down the hand that went up first, or all of them.
             Material buttons = LoadOrCreateMaterial(ButtonMaterialPath, "Universal Render Pipeline/Lit", new Color(0.12f, 0.12f, 0.14f));
-            float row = -PanelSize.y / 2f - 0.05f;
-            AddButton(rosterObject.transform, "LowerNextHand", "Lower next hand", new Vector3(-0.12f, row, 0f), buttons, panel.LowerNext);
-            AddButton(rosterObject.transform, "LowerAllHands", "Lower all hands", new Vector3(0.12f, row, 0f), buttons, panel.LowerAll);
+            float row0 = -PanelSize.y / 2f + 0.032f;
+            AddButton(card, "LowerNextHand", "Lower next hand", new Vector3(-0.14f, row0, -0.012f), buttons, panel.LowerNext);
+            AddButton(card, "LowerAllHands", "Lower all hands", new Vector3(0.14f, row0, -0.012f), buttons, panel.LowerAll);
 
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))
@@ -108,9 +132,42 @@ namespace DIYsect.Editor
             }
         }
 
-        private static Material LoadOrCreateFrameMaterial()
+        /// <summary>Where the roster column stands at a given height: to the professor's right, near the table. The speaking panel shares it.</summary>
+        public static Vector3 ColumnPosition(Transform root, float y)
         {
-            return LoadOrCreateMaterial(FrameMaterialPath, "Universal Render Pipeline/Lit", new Color(0.08f, 0.09f, 0.12f));
+            Bounds table = FindTableTop(root);
+            return new Vector3(table.center.x, y, table.center.z) + OffsetFromTable;
+        }
+
+        /// <summary>Upright and turned toward the professor. A panel reads from -Z, so +Z points away from them.</summary>
+        public static Quaternion ColumnRotation(Vector3 position)
+        {
+            var away = new Vector3(position.x, 0f, position.z);
+            return away.sqrMagnitude < 1e-6f ? Quaternion.identity : Quaternion.LookRotation(away, Vector3.up);
+        }
+
+        // A mint dot, the student's name, the device and questions in muted text, and a coral marker while the hand is up.
+        private static ClassRosterPanel.Row BuildRow(Transform content, int index, float y, Material dotMaterial)
+        {
+            var rowObject = new GameObject($"Row{index}");
+            rowObject.transform.SetParent(content, false);
+            rowObject.transform.localPosition = new Vector3(0f, y, 0f);
+
+            GameObject dot = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            dot.name = "Dot";
+            dot.transform.SetParent(rowObject.transform, false);
+            dot.transform.localPosition = new Vector3(0.012f, -0.013f, -0.002f);
+            dot.transform.localScale = new Vector3(0.012f, 0.012f, 0.003f);
+            UnityEngine.Object.DestroyImmediate(dot.GetComponent<Collider>());
+            dot.GetComponent<Renderer>().sharedMaterial = dotMaterial;
+
+            TextMeshPro name = ProfessorPanelKit.AddText(rowObject.transform, "Name", string.Empty, 0.02f, GuidePalette.TextPrimary,
+                TextAlignmentOptions.TopLeft, new Vector2(0.034f, 0f), new Vector2(0.2f, 0.027f));
+            TextMeshPro detail = ProfessorPanelKit.AddText(rowObject.transform, "Detail", string.Empty, 0.015f, GuidePalette.TextMuted,
+                TextAlignmentOptions.TopLeft, new Vector2(0.24f, -0.005f), new Vector2(0.2f, 0.022f));
+            TextMeshPro hand = ProfessorPanelKit.AddText(rowObject.transform, "Hand", string.Empty, 0.015f, GuidePalette.Coral,
+                TextAlignmentOptions.TopRight, new Vector2(0.44f, -0.005f), new Vector2(0.12f, 0.022f), FontStyles.Bold);
+            return new ClassRosterPanel.Row { Root = rowObject, Name = name, Detail = detail, Hand = hand };
         }
 
         private static Material LoadOrCreateMaterial(string path, string shaderName, Color color)
@@ -127,8 +184,8 @@ namespace DIYsect.Editor
             return material;
         }
 
-        // A cube with an XRSimpleInteractable that calls the action when the ray selects it, and a label on its front.
-        // The label is scaled back to square, so a wide button does not stretch its text.
+        // A cube with an XRSimpleInteractable that calls the action when the ray selects it. The old label is kept for the kit
+        // to hide; StyleButton adds the label that is shown.
         private static void AddButton(Transform parent, string name, string label, Vector3 position, Material material, UnityAction action)
         {
             GameObject button = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -151,6 +208,8 @@ namespace DIYsect.Editor
             mesh.characterSize = 0.05f;
             mesh.fontSize = 64;
             mesh.color = Color.white;
+
+            ProfessorPanelKit.StyleButton(button, label);
         }
 
         private static Transform FindRoot(Scene scene)

@@ -1,6 +1,8 @@
 // Authority: none. Local presentation for the professor. It reads the connected players and the server-owned pins.
 using System.Collections.Generic;
+using System;
 using DIYsect.Classroom;
+using TMPro;
 using UnityEngine;
 using XRMultiplayer;
 
@@ -13,6 +15,16 @@ namespace DIYsect.ClassRoster
     /// </summary>
     public class ClassRosterPanel : MonoBehaviour
     {
+        /// <summary>One line of the list. The mint dot is a child of Root, so it shows and hides with the line.</summary>
+        [Serializable]
+        public class Row
+        {
+            public GameObject Root;
+            public TMP_Text Name;
+            public TMP_Text Detail;
+            public TMP_Text Hand;
+        }
+
         // XRPlatformType: 0 Meta, 1 Android XR, 2 other OpenXR runtime, 3 not on OpenXR (a phone or laptop).
         private const int LastHeadsetPlatform = 2;
 
@@ -21,7 +33,12 @@ namespace DIYsect.ClassRoster
         private HandBoard _hands;
         [SerializeField, Tooltip("The student's help request. While it is open the roster says so and what to do.")]
         private AssistBoard _assist;
-        [SerializeField] private TextMesh _text;
+        [SerializeField, Tooltip("The lines above the list: the help request, then the join code and link.")]
+        private TMP_Text _text;
+        [SerializeField, Tooltip("The count under the list, such as 3 students, 1 hand up.")]
+        private TMP_Text _summary;
+        [SerializeField, Tooltip("One line per student, up to ClassRosterText.MaxLines.")]
+        private Row[] _rows;
         [SerializeField, Min(0.25f)] private float _refreshSeconds = 1f;
 
         private float _nextRefresh;
@@ -29,9 +46,14 @@ namespace DIYsect.ClassRoster
 
         private void Awake()
         {
-            if (_text == null)
+            bool valid = _text != null && _summary != null && _rows != null && _rows.Length > 0;
+            if (valid)
+                foreach (Row row in _rows)
+                    if (row == null || row.Root == null || row.Name == null || row.Detail == null || row.Hand == null)
+                        valid = false;
+            if (!valid)
             {
-                Debug.LogError($"{name}: ClassRosterPanel has no TextMesh. Run Tools > DIYsect > Add Class Roster.", this);
+                Debug.LogError($"{name}: ClassRosterPanel is missing its text, summary or rows. Run Tools > DIYsect > Add Class Roster.", this);
                 enabled = false;
             }
         }
@@ -97,11 +119,33 @@ namespace DIYsect.ClassRoster
 
             // The invite is shown once a room exists, so the professor always has the code to read out.
             string code = XRINetworkGameManager.Connected.Value ? XRINetworkGameManager.ConnectedRoomCode : null;
-            string text = AssistLine() + ClassRosterText.Format(entries, code, RoomInvite.BuildLink(code));
-            if (text == _shown)
+            string top = AssistLine() + ClassRosterText.InviteLines(code, RoomInvite.BuildLink(code));
+            List<RosterEntry> sorted = ClassRosterText.Sorted(entries);
+            string summary = ClassRosterText.Summary(sorted);
+            if (sorted.Count > _rows.Length)
+                summary += $", +{sorted.Count - _rows.Length} more";
+
+            // The whole picture as one string, so nothing is rewritten while it has not changed.
+            string key = top + "|" + summary + "|" + string.Join("|", sorted.ConvertAll(e => ClassRosterText.Label(e, sorted) + e.HandOrder + ClassRosterText.DetailText(e)));
+            if (key == _shown)
                 return;
-            _shown = text;
-            _text.text = text;
+            _shown = key;
+
+            _text.text = top;
+            _summary.text = summary;
+            for (int i = 0; i < _rows.Length; i++)
+            {
+                Row view = _rows[i];
+                bool used = i < sorted.Count;
+                if (view.Root.activeSelf != used)
+                    view.Root.SetActive(used);
+                if (!used)
+                    continue;
+                RosterEntry entry = sorted[i];
+                view.Name.text = ClassRosterText.Label(entry, sorted);
+                view.Detail.text = ClassRosterText.DetailText(entry);
+                view.Hand.text = entry.HandUp ? ClassRosterText.HandLabel(entry.HandOrder) : string.Empty;
+            }
         }
 
         // The first line of the panel while a student has asked for help, in the beacon's colours.

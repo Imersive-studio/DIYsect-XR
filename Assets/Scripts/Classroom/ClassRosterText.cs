@@ -61,7 +61,8 @@ namespace DIYsect.Classroom
             return invite.Length == 0 ? roster : invite + "\n" + roster;
         }
 
-        private static string InviteLines(string joinCode, string joinLink)
+        /// <summary>The invite lines alone (join code, then link). Empty when there is neither.</summary>
+        public static string InviteLines(string joinCode, string joinLink)
         {
             string code = Clean(joinCode);
             string link = Clean(joinLink);
@@ -77,28 +78,11 @@ namespace DIYsect.Classroom
         {
             int count = entries?.Count ?? 0;
             var text = new StringBuilder();
-            text.Append(count == 0 ? "Class: no students yet" : count == 1 ? "Class: 1 student" : $"Class: {count} students");
+            text.Append("Class: ").Append(Summary(entries));
             if (count == 0)
                 return text.ToString();
 
-            int hands = 0;
-            foreach (RosterEntry entry in entries)
-                if (entry.HandUp)
-                    hands++;
-            if (hands > 0)
-                text.Append(hands == 1 ? ", 1 hand up" : $", {hands} hands up");
-
-            // Raised hands first, in the order they went up; then everyone else by name.
-            var sorted = new List<RosterEntry>(entries);
-            sorted.Sort((a, b) =>
-            {
-                if (a.HandUp != b.HandUp)
-                    return a.HandUp ? -1 : 1;
-                if (a.HandUp && a.HandOrder != b.HandOrder)
-                    return a.HandOrder.CompareTo(b.HandOrder);
-                int byName = string.Compare(Clean(a.Name), Clean(b.Name), StringComparison.OrdinalIgnoreCase);
-                return byName != 0 ? byName : a.ClientId.CompareTo(b.ClientId);
-            });
+            List<RosterEntry> sorted = Sorted(entries);
 
             int shown = Math.Min(sorted.Count, MaxLines);
             for (int i = 0; i < shown; i++)
@@ -109,11 +93,53 @@ namespace DIYsect.Classroom
                     text.Append("  ").Append(HandLabel(entry.HandOrder));
                 text.Append("  ").Append(KindLabel(entry.Kind));
                 if (entry.Questions > 0)
-                    text.Append("  ").Append(entry.Questions == 1 ? "1 question" : $"{entry.Questions} questions");
+                    text.Append("  ").Append(QuestionLabel(entry.Questions));
             }
             if (sorted.Count > shown)
                 text.Append('\n').Append($"+{sorted.Count - shown} more");
             return text.ToString();
+        }
+
+        /// <summary>Raised hands first, in the order they went up; then everyone else by name.</summary>
+        public static List<RosterEntry> Sorted(IReadOnlyList<RosterEntry> entries)
+        {
+            var sorted = new List<RosterEntry>(entries ?? Array.Empty<RosterEntry>());
+            sorted.Sort((a, b) =>
+            {
+                if (a.HandUp != b.HandUp)
+                    return a.HandUp ? -1 : 1;
+                if (a.HandUp && a.HandOrder != b.HandOrder)
+                    return a.HandOrder.CompareTo(b.HandOrder);
+                int byName = string.Compare(Clean(a.Name), Clean(b.Name), StringComparison.OrdinalIgnoreCase);
+                return byName != 0 ? byName : a.ClientId.CompareTo(b.ClientId);
+            });
+            return sorted;
+        }
+
+        /// <summary>The class count line, such as "3 students, 1 hand up".</summary>
+        public static string Summary(IReadOnlyList<RosterEntry> entries)
+        {
+            int count = entries?.Count ?? 0;
+            if (count == 0)
+                return "no students yet";
+            var text = new StringBuilder(count == 1 ? "1 student" : $"{count} students");
+            int hands = 0;
+            foreach (RosterEntry entry in entries)
+                if (entry.HandUp)
+                    hands++;
+            if (hands > 0)
+                text.Append(hands == 1 ? ", 1 hand up" : $", {hands} hands up");
+            return text.ToString();
+        }
+
+        /// <summary>"1 question" or "3 questions".</summary>
+        public static string QuestionLabel(int questions) => questions == 1 ? "1 question" : $"{questions} questions";
+
+        /// <summary>The muted detail after a name: the device, then the pinned questions when there are any.</summary>
+        public static string DetailText(RosterEntry entry)
+        {
+            string kind = KindLabel(entry.Kind);
+            return entry.Questions > 0 ? kind + "  " + QuestionLabel(entry.Questions) : kind;
         }
 
         /// <summary>The name shown for a student. A name that two students share gets the client id added.</summary>
@@ -136,7 +162,7 @@ namespace DIYsect.Classroom
 
         public static string KindLabel(RosterKind kind) => kind == RosterKind.Headset ? "headset" : "phone/laptop";
 
-        // Names come from other players, and TextMesh reads <b>-style tags, so angle brackets and line breaks go.
+        // Names come from other players, and TextMeshPro reads <b>-style tags, so angle brackets and line breaks go.
         private static string Clean(string name)
         {
             if (string.IsNullOrEmpty(name))
