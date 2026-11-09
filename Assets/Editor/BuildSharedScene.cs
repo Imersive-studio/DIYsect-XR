@@ -136,7 +136,12 @@ namespace DIYsect.Editor
             GameObject hall = AddLectureHall.EnsureInScene(scene, removePlaceholder: false);
             hall.SetActive(false);
             EditorUtility.SetDirty(hall);
-            var calibration = GetOrAdd<DIYsect.MixedReality.EyeHeightCalibration>(headsetOrigin.gameObject);
+            // The scene must not carry EyeHeightCalibration itself (the professor's rig keeps the template's floor, and a guard test
+            // checks it). A small bootstrap adds it at runtime, for the student only.
+            var oldCalibration = headsetOrigin.GetComponent<DIYsect.MixedReality.EyeHeightCalibration>();
+            if (oldCalibration != null)
+                UnityEngine.Object.DestroyImmediate(oldCalibration);
+            var calibration = GetOrAdd<DIYsect.MixedReality.StudentEyeHeightBootstrap>(headsetOrigin.gameObject);
             calibration.enabled = false;
             EditorUtility.SetDirty(calibration);
             // With no room to join, the student hosts a practice session after a wait, so cuts work alone. Student only: a
