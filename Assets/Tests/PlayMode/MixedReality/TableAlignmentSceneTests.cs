@@ -29,6 +29,8 @@ namespace DIYsect.MixedReality.Tests
             // The template's network manager logs an error when the project is not linked to Unity Cloud. That is unrelated
             // to the table alignment, so log errors are not failures here. The tests check TableAlignment's own state instead.
             LogAssert.ignoreFailingMessages = true;
+            // Professor_MR is the shared scene; in the editor it starts as a classmate, which switches the alignment off.
+            XRMultiplayer.ClassroomRole.OverrideForTests = XRMultiplayer.ClassroomRoleKind.Professor;
 #if UNITY_EDITOR
             yield return EditorSceneManager.LoadSceneAsyncInPlayMode(ScenePath, new LoadSceneParameters(LoadSceneMode.Single));
 #else
@@ -45,6 +47,7 @@ namespace DIYsect.MixedReality.Tests
         public IEnumerator UnloadScene()
         {
             LogAssert.ignoreFailingMessages = true;
+            XRMultiplayer.ClassroomRole.OverrideForTests = null;
             foreach (NetworkManager manager in Object.FindObjectsByType<NetworkManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 manager.Shutdown();

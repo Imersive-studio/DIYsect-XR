@@ -11,11 +11,11 @@ namespace DIYsect.Build.Tests
     public class PhoneBuildTests
     {
         [Test]
-        public void Options_ContainOnlyTheClassmateScene()
+        public void Options_ContainOnlyTheSharedScene()
         {
             BuildPlayerOptions options = BuildAndroidClassmate.CreateOptions();
 
-            CollectionAssert.AreEqual(new[] { "Assets/Scenes/Classmate_Desktop.unity" }, options.scenes);
+            CollectionAssert.AreEqual(new[] { "Assets/Scenes/Professor_MR.unity" }, options.scenes);
             Assert.AreEqual(BuildTarget.Android, options.target);
             StringAssert.StartsWith("Builds/Android-Classmate/", options.locationPathName);
         }
