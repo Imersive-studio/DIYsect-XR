@@ -69,12 +69,20 @@ namespace DIYsect.Editor
             if (alignment != null && alignment.GetComponent<DIYsect.MixedReality.TableRecenterInput>() == null)
                 alignment.gameObject.AddComponent<DIYsect.MixedReality.TableRecenterInput>();
 
+            // The headset's UI module reads only the mouse for a press, so a finger tap on a button would do nothing on a phone.
+            // The scene's one EventSystem gets a second module for classmates; the role switch turns on the one that fits.
+            var headsetUi = UnityEngine.Object.FindFirstObjectByType<UnityEngine.XR.Interaction.Toolkit.UI.XRUIInputModule>(FindObjectsInactive.Include)
+                ?? throw new InvalidOperationException($"{ScenePath} has no XRUIInputModule.");
+            var classmateUi = GetOrAdd<UnityEngine.InputSystem.UI.InputSystemUIInputModule>(headsetUi.gameObject);
+            classmateUi.enabled = false;
+            EditorUtility.SetDirty(classmateUi);
+
             var role = GetOrAdd<ClassroomRole>(manager.gameObject);
             var serialized = new SerializedObject(role);
             SetArray(serialized.FindProperty("_professorObjects"), professorObjects.ToArray());
             SetArray(serialized.FindProperty("_classmateObjects"), new[] { classmateRig });
-            SetArray(serialized.FindProperty("_professorBehaviours"), new Behaviour[] { autoHost });
-            SetArray(serialized.FindProperty("_classmateBehaviours"), new Behaviour[] { autoJoin, statusLabel });
+            SetArray(serialized.FindProperty("_professorBehaviours"), new Behaviour[] { autoHost, headsetUi });
+            SetArray(serialized.FindProperty("_classmateBehaviours"), new Behaviour[] { autoJoin, statusLabel, classmateUi });
             serialized.ApplyModifiedPropertiesWithoutUndo();
 
             EditorSceneManager.MarkSceneDirty(scene);

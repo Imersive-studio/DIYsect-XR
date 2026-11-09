@@ -9,7 +9,7 @@ namespace DIYsect.Classroom
     /// camera pose in the body's local space; this window puts its own camera at that pose (so it stays right after
     /// the body is moved onto a real table) and renders it into the window's texture. The headset camera never moves.
     /// By default it shows the newest question that has a view; <see cref="Next"/> and <see cref="Previous"/> step
-    /// through the others. The camera renders on demand a few times a second while the window is shown, not every
+    /// through the others. The professor can mark the shown question answered with <see cref="MarkSelectedAnswered"/>. The camera renders on demand a few times a second while the window is shown, not every
     /// frame, to keep the second view cheap on Quest.
     /// </summary>
     public class StudentViewWindow : MonoBehaviour
@@ -68,6 +68,13 @@ namespace DIYsect.Classroom
 
         /// <summary>Shows the previous question with a view (older), wrapping around. Wired to the window's button.</summary>
         public void Previous() => Step(-1);
+
+        /// <summary>Asks the server to mark the question shown now as answered. Only the professor is obeyed. Wired to the window's button.</summary>
+        public void MarkSelectedAnswered()
+        {
+            if (_selectedId >= 0)
+                _board.RequestMarkAnswered(_selectedId);
+        }
 
         /// <summary>Goes back to following the newest question, or hides the window when none has a view.</summary>
         public void ShowNewest()
@@ -129,7 +136,7 @@ namespace DIYsect.Classroom
             }
             QuestionPin pin = _board[IndexOf(_selectedId)];
             if (_caption != null)
-                _caption.text = $"Classmate {pin.AuthorClientId}: {pin.Text}";
+                _caption.text = PinLabels.ForPin($"Classmate {pin.AuthorClientId}: {pin.Text}", pin.Answered);
             if (_refreshing == null)
                 _refreshing = StartCoroutine(Refresh());
             RenderView(pin);

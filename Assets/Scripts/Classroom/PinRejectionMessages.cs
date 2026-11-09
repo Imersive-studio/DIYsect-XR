@@ -15,6 +15,10 @@ namespace DIYsect.Classroom
                     return "Question must be 1 to " + PinRules.MaxTextLength + " characters";
                 case PinRejection.RateLimited:
                     return "Slow down: one question every few seconds";
+                case PinRejection.NotProfessor:
+                    return "Only the professor can mark a question answered";
+                case PinRejection.NoSuchPin:
+                    return "That question is gone";
                 default:
                     return "That pin was refused";
             }

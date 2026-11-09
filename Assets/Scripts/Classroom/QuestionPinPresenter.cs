@@ -7,7 +7,8 @@ namespace DIYsect.Classroom
     /// <summary>
     /// Shows the pins on this client. Whenever the pin list changes it rebuilds the cluster markers.
     /// Each marker is a child of its organ transform at the cluster's organ-local centre, so it moves
-    /// with the organ on every client without any per-frame code. A cluster glows (colour and size) with its count.
+    /// with the organ on every client without any per-frame code. A cluster glows (colour and size) with its open count; an answered pin is grey and
+    /// marked in its label, and a cluster whose pins are all answered does not glow.
     /// </summary>
     [RequireComponent(typeof(QuestionBoard))]
     public class QuestionPinPresenter : MonoBehaviour
@@ -20,6 +21,7 @@ namespace DIYsect.Classroom
         private float _glowSize = 0.02f;
         [SerializeField] private Color _calmColor = new Color(0.2f, 0.6f, 1f);
         [SerializeField] private Color _glowColor = new Color(1f, 0.85f, 0.1f);
+        [SerializeField] private Color _answeredColor = new Color(0.45f, 0.45f, 0.45f);
         [SerializeField, Tooltip("Unlit material used for the markers. Its colour is set per marker.")]
         private Material _markerMaterial;
 
@@ -76,7 +78,7 @@ namespace DIYsect.Classroom
         private PinMarker CreateMarker(PinCluster cluster, List<QuestionPin> pins)
         {
             Transform organ = _board.Body.Organs[cluster.OrganIndex].transform;
-            float glow = PinClusterer.Glow(cluster.Count);
+            float glow = cluster.AllAnswered ? 0f : PinClusterer.Glow(cluster.OpenCount);
             float diameter = _baseSize + _glowSize * glow;
 
             GameObject sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -93,7 +95,7 @@ namespace DIYsect.Classroom
             renderer.sharedMaterial = _markerMaterial;
             renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             renderer.receiveShadows = false;
-            Color color = Color.Lerp(_calmColor, _glowColor, glow);
+            Color color = cluster.AllAnswered ? _answeredColor : Color.Lerp(_calmColor, _glowColor, glow);
             renderer.GetPropertyBlock(_block);
             _block.SetColor(_baseColorId, color);
             _block.SetColor(_colorId, color);
@@ -106,10 +108,10 @@ namespace DIYsect.Classroom
             return pinMarker;
         }
 
-        // A lone pin shows its text. A cluster shows how many questions it holds.
+        // See PinLabels for the wording.
         private void AddLabel(Transform marker, PinCluster cluster, List<QuestionPin> pins, float diameter)
         {
-            string label = cluster.Count > 1 ? cluster.Count.ToString() : TextOf(pins, cluster.PinIds[0]);
+            string label = PinLabels.ForCluster(cluster.Count, cluster.OpenCount, cluster.Count == 1 ? TextOf(pins, cluster.PinIds[0]) : null);
 
             var labelObject = new GameObject("Label");
             labelObject.transform.SetParent(marker, false);
@@ -120,7 +122,7 @@ namespace DIYsect.Classroom
             text.alignment = TextAlignment.Center;
             text.characterSize = 0.01f;
             text.fontSize = 48;
-            text.color = Color.white;
+            text.color = cluster.AllAnswered ? Color.Lerp(_answeredColor, Color.white, 0.4f) : Color.white;
             // Keep the label the same world size whatever the organ scale.
             Vector3 scale = marker.lossyScale;
             labelObject.transform.localScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);

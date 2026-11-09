@@ -6,6 +6,7 @@
     "UnityEditor.TestRunner",
     "DIYsect.Classroom",
     "DIYsect.Networking",
+    "Unity.Netcode.Runtime",
     "DIYsect.Dissection"
   ],
   "includePlatforms": [

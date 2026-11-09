@@ -150,6 +150,29 @@ namespace DIYsect.Networking.Tests
             UnityEngine.Object.DestroyImmediate(manager.gameObject);
         }
 
+        // Spawns the scalpel and makes the given client its steerer, so the server calls that client the Student.
+        protected IEnumerator SpawnScalpelWithSteerer(NetworkManager steererManager, Action<GameObject> spawnedScalpel)
+        {
+            GameObject scalpel = UnityEngine.Object.Instantiate(LoadScalpelPrefabAsset());
+            spawnedScalpel(scalpel);
+            var spawned = scalpel.GetComponent<NetworkObject>();
+            spawned.Spawn();
+            spawned.TrySetParent(_serverBody.GetComponent<NetworkObject>(), worldPositionStays: false);
+            ScalpelSteering steering = null;
+            yield return WaitFor(() =>
+            {
+                if (!steererManager.IsConnectedClient)
+                    return false;
+                foreach (NetworkObject o in steererManager.SpawnManager.SpawnedObjects.Values)
+                    if (o.TryGetComponent(out steering) && steering.IsSpawned)
+                        return true;
+                return false;
+            }, "the steerer to receive the scalpel");
+            steering.RequestSteer();
+            ScalpelSteering server = scalpel.GetComponent<ScalpelSteering>();
+            yield return WaitFor(() => server.Steerer == steererManager.LocalClientId, "the server to record the steerer");
+        }
+
         protected IEnumerator WaitForBody(NetworkManager client, Action<SharedBody> found)
         {
             SharedBody body = null;

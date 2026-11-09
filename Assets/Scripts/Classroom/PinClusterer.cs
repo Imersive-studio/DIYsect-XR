@@ -6,7 +6,8 @@ namespace DIYsect.Classroom
 {
     /// <summary>
     /// Groups pins into clusters. Pins join the first cluster on the same organ whose centre is within the radius,
-    /// otherwise they start a new one. Pins on different organs never merge. The result depends only on the
+    /// otherwise they start a new one. Pins on different organs never merge. Answered pins still join clusters (they stay
+    /// visible) but the cluster counts them apart, see <see cref="PinCluster.OpenCount"/>. The result depends only on the
     /// pin order, and every client sees the same order, so every client builds the same clusters.
     /// </summary>
     public class PinClusterer
@@ -40,7 +41,7 @@ namespace DIYsect.Classroom
                     target = new PinCluster(pin.OrganIndex);
                     clusters.Add(target);
                 }
-                target.Add(pin.Id, pin.LocalPoint);
+                target.Add(pin.Id, pin.LocalPoint, pin.Answered);
             }
             return clusters;
         }
