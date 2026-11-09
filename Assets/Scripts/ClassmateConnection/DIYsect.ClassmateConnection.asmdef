@@ -1,0 +1,10 @@
+{
+  "name": "DIYsect.ClassmateConnection",
+  "rootNamespace": "DIYsect.ClassmateConnection",
+  "references": [
+    "XRMP",
+    "Unity.XR.CoreUtils",
+    "Unity.Netcode.Runtime",
+    "UnityEngine.UI"
+  ]
+}
