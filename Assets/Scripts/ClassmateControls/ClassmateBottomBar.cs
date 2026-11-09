@@ -13,6 +13,8 @@ namespace DIYsect.ClassmateControls
     {
         [SerializeField, Tooltip("The row that is shown and hidden.")]
         private GameObject _bar;
+        [SerializeField, Tooltip("The scene's network manager. Leave empty to use NetworkManager.Singleton.")]
+        private NetworkManager _network;
         [SerializeField, Min(0.05f), Tooltip("Seconds between looks at the connection.")]
         private float _checkSeconds = 0.25f;
 
@@ -43,7 +45,9 @@ namespace DIYsect.ClassmateControls
             if (Time.unscaledTime < _nextCheck)
                 return;
             _nextCheck = Time.unscaledTime + _checkSeconds;
-            bool inRoom = NetworkManager.Singleton != null && NetworkManager.Singleton.IsConnectedClient;
+            NetworkManager network = _network != null ? _network : NetworkManager.Singleton;
+            // A host (the editor's test room) is in its own room; a client is in once the server has accepted it.
+            bool inRoom = network != null && network.IsListening && (network.IsConnectedClient || network.IsHost);
             if (_bar.activeSelf != inRoom)
                 _bar.SetActive(inRoom);
         }

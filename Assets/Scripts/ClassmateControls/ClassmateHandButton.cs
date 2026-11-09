@@ -1,6 +1,5 @@
 // Authority: none. Local UI only; it asks the server's HandBoard to raise or lower this classmate's hand, and the server decides.
 using DIYsect.Classroom;
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -53,7 +52,7 @@ namespace DIYsect.ClassmateControls
 
         private void Refresh()
         {
-            _label.text = HandButtonLabels.For(_hands.IsSpawned ? _hands.OrderOf(NetworkManager.Singleton.LocalClientId) : 0);
+            _label.text = HandButtonLabels.For(_hands.IsSpawned ? _hands.OrderOf(_hands.NetworkManager.LocalClientId) : 0);
         }
     }
 }

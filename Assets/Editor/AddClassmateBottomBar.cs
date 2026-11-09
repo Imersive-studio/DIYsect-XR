@@ -40,6 +40,7 @@ namespace DIYsect.Editor
             var barBehaviour = rig.GetComponent<ClassmateBottomBar>() ?? rig.AddComponent<ClassmateBottomBar>();
             var serialized = new SerializedObject(barBehaviour);
             serialized.FindProperty("_bar").objectReferenceValue = bar.gameObject;
+            serialized.FindProperty("_network").objectReferenceValue = Object.FindFirstObjectByType<Unity.Netcode.NetworkManager>(FindObjectsInactive.Include);
             serialized.ApplyModifiedPropertiesWithoutUndo();
             return bar;
         }
@@ -52,7 +53,10 @@ namespace DIYsect.Editor
             {
                 mic = rig.AddComponent<ClassmateMicButton>();
                 Button button = AddBarButton(bar, "MuteButton", MicButtonModel.UnmuteLabel, new Vector2(1f, 0f), -12f, out Text label);
-                Text message = ClassmateUiBuilder.AddText(bar, "MicMessage", string.Empty, 30, new Color(1f, 0.85f, 0.5f), TextAnchor.MiddleCenter, new Vector2(0.15f, 0.175f), new Vector2(0.85f, 0.235f));
+                // A note just above the buttons: 124 to 176 units from the bottom edge, whatever the screen's shape.
+                Text message = ClassmateUiBuilder.AddText(bar, "MicMessage", string.Empty, 30, new Color(1f, 0.85f, 0.5f), TextAnchor.MiddleCenter, new Vector2(0.15f, 0f), new Vector2(0.85f, 0f));
+                message.rectTransform.offsetMin = new Vector2(0f, 124f);
+                message.rectTransform.offsetMax = new Vector2(0f, 176f);
                 message.gameObject.SetActive(false);
                 var serialized = new SerializedObject(mic);
                 serialized.FindProperty("_button").objectReferenceValue = button;

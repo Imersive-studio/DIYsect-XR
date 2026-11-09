@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace DIYsect.Editor
 {
     /// <summary>
-    /// Gives the classmate camera the tap-to-name card: a short label with the organ's name and what it does, in the lower middle
+    /// Gives the classmate camera the tap-to-name card: a short label with the organ's name and what it does, in the lower left of centre
     /// of the screen above the pin message, that fades after a few seconds. Called by Build Shared Scene. A running quiz round
     /// claims the tap, so the card is not shown then (the same quiz answer input that stops the pin is listed as a claimer).
     /// Safe to run more than once.
@@ -67,8 +67,8 @@ namespace DIYsect.Editor
             background.color = new Color(0f, 0f, 0f, 0.7f);
             background.raycastTarget = false;
             var rect = (RectTransform)cardObject.transform;
-            rect.anchorMin = new Vector2(0.25f, 0.36f);
-            rect.anchorMax = new Vector2(0.75f, 0.5f);
+            rect.anchorMin = new Vector2(0.2f, 0.39f);
+            rect.anchorMax = new Vector2(0.62f, 0.53f);
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
 

@@ -48,7 +48,8 @@ namespace DIYsect.Editor
 
             GameObject classmateRig = FindByName(scene, ClassmateRigName) ?? throw new InvalidOperationException($"{ClassmateRigName} was not created.");
             AddReconnectBanner.AddTo(classmateRig, autoJoin);
-            // The banner canvas is made after the camera tool ran, so it joins the safe area here.
+            AddClassmateControls(scene, classmateRig, autoJoin, statusLabel);
+            // The banner and the controls are made after the camera tool ran, so they join the safe area here.
             foreach (Canvas canvas in classmateRig.GetComponentsInChildren<Canvas>(true))
                 DIYsect.Classroom.ClassmateCanvasLayout.Apply(canvas);
             var professorObjects = new List<GameObject>();
@@ -108,6 +109,28 @@ namespace DIYsect.Editor
                 Debug.LogError(e);
                 EditorApplication.Exit(1);
             }
+        }
+
+        // The start screen, the Mute and Raise hand buttons and the tap-to-name card. The bottom row and the card sit above the
+        // pin message's old place, so the message moves up to stay clear of them.
+        private static void AddClassmateControls(Scene scene, GameObject rig, ClassmateAutoJoin autoJoin, ClassmateStatusLabel statusLabel)
+        {
+            var board = UnityEngine.Object.FindFirstObjectByType<DIYsect.Classroom.QuestionBoard>(FindObjectsInactive.Include)
+                ?? throw new InvalidOperationException($"{ScenePath} has no body with a QuestionBoard.");
+            var hands = board.GetComponent<DIYsect.Classroom.HandBoard>()
+                ?? throw new InvalidOperationException("The body has no HandBoard. Run Tools > DIYsect > Add Raise Hand.");
+
+            AddClassmateStartScreen.AddTo(rig, autoJoin, statusLabel);
+            AddClassmateBottomBar.AddMic(rig);
+            AddClassmateBottomBar.AddHand(rig, hands);
+            AddOrganNameTap.AddTo(rig, board.GetComponent<DIYsect.Networking.SharedBody>());
+
+            var toast = rig.GetComponent<DIYsect.Classroom.PinRejectionToast>()
+                ?? throw new InvalidOperationException($"{rig.name} has no PinRejectionToast.");
+            RectTransform message = toast.GetComponentInChildren<UnityEngine.UI.Text>(true).rectTransform;
+            message.anchorMin = new Vector2(0.1f, 0.25f);
+            message.anchorMax = new Vector2(0.9f, 0.35f);
+            EditorUtility.SetDirty(message);
         }
 
         // The template is a tabletop game, so its move and turn providers ship switched off. They are the standard XR Interaction

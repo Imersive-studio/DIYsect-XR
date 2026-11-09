@@ -81,7 +81,7 @@ namespace DIYsect.Editor
             codeButtonRect.offsetMin = Vector2.zero;
             codeButtonRect.offsetMax = Vector2.zero;
 
-            Text message = ClassmateUiBuilder.AddText(content.transform, "Message", string.Empty, 30, new Color(1f, 0.75f, 0.45f), TextAnchor.MiddleCenter, new Vector2(0.1f, 0.04f), new Vector2(0.9f, 0.12f));
+            Text message = ClassmateUiBuilder.AddText(content.transform, "StartMessage", string.Empty, 30, new Color(1f, 0.75f, 0.45f), TextAnchor.MiddleCenter, new Vector2(0.1f, 0.04f), new Vector2(0.9f, 0.12f));
 
             var serialized = new SerializedObject(screen);
             serialized.FindProperty("_root").objectReferenceValue = page;
