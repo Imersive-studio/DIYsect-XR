@@ -37,6 +37,18 @@ namespace DIYsect.Networking
         public bool HasSteerer => Steerer != NoSteerer;
         public bool IsSteeredByLocalClient => IsSpawned && NetworkManager != null && _steerer.Value == NetworkManager.LocalClientId;
 
+        /// <summary>
+        /// The client that steers the scalpel, or <see cref="NoSteerer"/>. The scalpel is its own NetworkObject, so this
+        /// scans the spawned objects: call it on the server, and only after a request passed its cheap checks.
+        /// </summary>
+        public static ulong FindSteerer(NetworkManager manager)
+        {
+            foreach (NetworkObject spawned in manager.SpawnManager.SpawnedObjectsList)
+                if (spawned.TryGetComponent(out ScalpelSteering steering) && steering.HasSteerer)
+                    return steering.Steerer;
+            return NoSteerer;
+        }
+
         private void Awake()
         {
             _networkTransform = GetComponent<HoldableNetworkTransform>();
