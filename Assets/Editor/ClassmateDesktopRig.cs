@@ -62,6 +62,7 @@ namespace DIYsect.Editor
             AddOrbitControls(existingRig, board);
             AddViewReset(existingRig);
             AddReconnectBannerIfJoinExists(existingRig);
+            AddFollowControls(existingRig, board);
 
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))
@@ -197,36 +198,90 @@ namespace DIYsect.Editor
             scaler.referenceResolution = new Vector2(1280f, 720f);
             canvasObject.AddComponent<GraphicRaycaster>();
 
-            var buttonObject = new GameObject("ResetViewButton");
-            buttonObject.transform.SetParent(canvasObject.transform, false);
+            Button button = MakeButton(canvasObject.transform, "ResetViewButton", "Reset view", new Vector2(240f, 96f), -24f, 36, out _);
+
+            var reset = rig.AddComponent<ClassmateViewReset>();
+            var serialized = new SerializedObject(reset);
+            serialized.FindProperty("_orbit").objectReferenceValue = rig.GetComponent<ClassmateOrbitCamera>();
+            serialized.FindProperty("_button").objectReferenceValue = button;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // A thumb-sized dark button hanging from the top-right corner, <paramref name="top"/> pixels down (reference resolution).
+        private static Button MakeButton(Transform parent, string name, string text, Vector2 size, float top, int fontSize, out Text label)
+        {
+            var buttonObject = new GameObject(name);
+            buttonObject.transform.SetParent(parent, false);
             var background = buttonObject.AddComponent<Image>();
             background.color = new Color(0f, 0f, 0f, 0.65f);
             var button = buttonObject.AddComponent<Button>();
             button.targetGraphic = background;
             var rect = buttonObject.GetComponent<RectTransform>();
             rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(1f, 1f);
-            rect.sizeDelta = new Vector2(240f, 96f);
-            rect.anchoredPosition = new Vector2(-24f, -24f);
+            rect.sizeDelta = size;
+            rect.anchoredPosition = new Vector2(-24f, top);
 
             var labelObject = new GameObject("Label");
             labelObject.transform.SetParent(buttonObject.transform, false);
-            var label = labelObject.AddComponent<Text>();
+            label = labelObject.AddComponent<Text>();
             label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            label.fontSize = 36;
+            label.fontSize = fontSize;
             label.alignment = TextAnchor.MiddleCenter;
             label.color = Color.white;
-            label.text = "Reset view";
+            label.text = text;
             label.raycastTarget = false;
+            // Long wording ("Following professor") shrinks to fit instead of spilling out of the button.
+            label.resizeTextForBestFit = true;
+            label.resizeTextMinSize = 16;
+            label.resizeTextMaxSize = fontSize;
             var labelRect = label.rectTransform;
             labelRect.anchorMin = Vector2.zero;
             labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = Vector2.zero;
-            labelRect.offsetMax = Vector2.zero;
+            labelRect.offsetMin = new Vector2(8f, 0f);
+            labelRect.offsetMax = new Vector2(-8f, 0f);
+            return button;
+        }
 
-            var reset = rig.AddComponent<ClassmateViewReset>();
-            var serialized = new SerializedObject(reset);
-            serialized.FindProperty("_orbit").objectReferenceValue = rig.GetComponent<ClassmateOrbitCamera>();
-            serialized.FindProperty("_button").objectReferenceValue = button;
+        // Three buttons in the right-hand column under Reset view: Follow professor, Follow student, and Back to my view
+        // (shown only while following). The column is clear of the status line (top-left), the toast (bottom) and the body (centre).
+        // Safe on a rig that already has them: the references are set again.
+        private static void AddFollowControls(GameObject rig, QuestionBoard board)
+        {
+            var orbit = rig.GetComponent<ClassmateOrbitCamera>() ?? throw new InvalidOperationException($"{RigName} has no ClassmateOrbitCamera.");
+            var heads = board.GetComponent<HeadPoseBoard>() ?? throw new InvalidOperationException("The body has no HeadPoseBoard. Run Tools > DIYsect > Add Head Pose first.");
+
+            var follow = rig.GetComponent<ClassmateFollowCamera>();
+            if (follow == null)
+                follow = rig.AddComponent<ClassmateFollowCamera>();
+            var followSerialized = new SerializedObject(follow);
+            followSerialized.FindProperty("_orbit").objectReferenceValue = orbit;
+            followSerialized.FindProperty("_board").objectReferenceValue = heads;
+            followSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            var reset = rig.GetComponent<ClassmateViewReset>() ?? throw new InvalidOperationException($"{RigName} has no ClassmateViewReset.");
+            var resetSerialized = new SerializedObject(reset);
+            resetSerialized.FindProperty("_follow").objectReferenceValue = follow;
+            resetSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            if (rig.GetComponent<ClassmateFollowButtons>() != null)
+            {
+                Debug.Log($"{RigName} already has the follow buttons, keeping them.");
+                return;
+            }
+            Transform canvas = rig.transform.Find("ViewResetCanvas") ?? throw new InvalidOperationException($"{RigName} has no ViewResetCanvas.");
+            var size = new Vector2(240f, 96f);
+            Button professor = MakeButton(canvas, "FollowProfessorButton", "Follow professor", size, -136f, 32, out Text professorLabel);
+            Button student = MakeButton(canvas, "FollowStudentButton", "Follow student", size, -248f, 32, out Text studentLabel);
+            Button back = MakeButton(canvas, "BackToMyViewButton", "Back to my view", size, -360f, 32, out _);
+
+            var buttons = rig.AddComponent<ClassmateFollowButtons>();
+            var serialized = new SerializedObject(buttons);
+            serialized.FindProperty("_follow").objectReferenceValue = follow;
+            serialized.FindProperty("_professorButton").objectReferenceValue = professor;
+            serialized.FindProperty("_professorLabel").objectReferenceValue = professorLabel;
+            serialized.FindProperty("_studentButton").objectReferenceValue = student;
+            serialized.FindProperty("_studentLabel").objectReferenceValue = studentLabel;
+            serialized.FindProperty("_backButton").objectReferenceValue = back;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
