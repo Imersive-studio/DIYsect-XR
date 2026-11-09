@@ -3,6 +3,7 @@ using Unity.XR.CoreUtils;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 
 namespace DIYsect.StudentRig.Tests
 {
@@ -30,6 +31,28 @@ namespace DIYsect.StudentRig.Tests
             Assert.AreEqual(XROrigin.TrackingOriginMode.Device, origin.RequestedTrackingOriginMode,
                 "Device mode puts the eyes at the camera offset, whatever the student's real height.");
             Assert.AreEqual(1.6f, origin.CameraYOffset, 0.001f, "The student's eyes must sit at 1.6 m.");
+        }
+
+        [Test]
+        public void StudentRigStandsOnTheFloor()
+        {
+            XROrigin origin = Open(StudentScene);
+            Assert.AreEqual(0f, origin.transform.position.y, 0.001f,
+                "The origin must be at floor level, or the eyes sit above the fixed 1.6 m.");
+        }
+
+        [Test]
+        public void EveryRayIsAlwaysVisibleAndClear()
+        {
+            XROrigin origin = Open(StudentScene);
+            var visuals = origin.GetComponentsInChildren<CurveVisualController>(true);
+            Assert.GreaterOrEqual(visuals.Length, 4, "Both controllers and both hands should have a ray.");
+            foreach (CurveVisualController visual in visuals)
+            {
+                Assert.IsTrue(visual.extendLineToEmptyHit, $"{visual.transform.parent.parent.name} ray vanishes when it hits nothing.");
+                Assert.GreaterOrEqual(visual.restingVisualLineLength, 0.4f, $"{visual.transform.parent.parent.name} ray is too short to see.");
+                Assert.GreaterOrEqual(visual.GetComponent<LineRenderer>().widthMultiplier, 2f, $"{visual.transform.parent.parent.name} ray is too thin.");
+            }
         }
 
         [Test]

@@ -1,0 +1,19 @@
+{
+  "name": "DIYsect.Editor.InstrumentGrab",
+  "rootNamespace": "DIYsect.Editor",
+  "references": [
+    "Unity.XR.Interaction.Toolkit",
+    "DIYsect.Interaction"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": false,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
