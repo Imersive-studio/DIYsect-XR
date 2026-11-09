@@ -9,7 +9,7 @@ namespace DIYsect.Editor
 {
     /// <summary>
     /// Builds the dock along the bottom of the classmate's screen: one floating glass pill that holds the phone's actions
-    /// (Unmute, Raise hand, and Draw and Clear when the sketch is added), centred above the bottom edge and clear of the view
+    /// (Unmute, Raise hand, Draw and Clear), centred above the bottom edge and clear of the view
     /// buttons on the right and the status chip on the left. Short notes (the microphone message) float just above it.
     /// Called by Build Shared Scene. Safe to run more than once.
     /// </summary>
@@ -106,6 +106,34 @@ namespace DIYsect.Editor
             }
             var serialized = new SerializedObject(hand);
             serialized.FindProperty("_hands").objectReferenceValue = hands;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// Draw and Clear at the end of the dock: Draw turns a finger on the body into a violet sketch everyone sees (it turns mint
+        /// and says Done while on), Clear wipes the sketch. Needs the sketch input on the camera (Add Classmate Sketch).
+        /// </summary>
+        public static void AddDraw(GameObject rig)
+        {
+            var sketch = rig.GetComponent<DIYsect.Classroom.ClassmateSketchInput>()
+                ?? throw new System.InvalidOperationException("The classmate camera has no ClassmateSketchInput. Run Tools > DIYsect > Add Classmate Sketch.");
+            Transform dock = EnsureBar(rig);
+            var draw = rig.GetComponent<DIYsect.Classroom.ClassmateDrawButton>();
+            if (ClassmateUiBuilder.NeedsUi(draw, "_button"))
+            {
+                draw = draw != null ? draw : rig.AddComponent<DIYsect.Classroom.ClassmateDrawButton>();
+                Button button = AddBarButton(dock, "DrawButton", DIYsect.Classroom.ClassmateDrawButton.DrawLabel, out TextMeshProUGUI label);
+                Button clear = AddBarButton(dock, "ClearSketchButton", "Clear", out _);
+                clear.GetComponent<LayoutElement>().preferredWidth = ButtonWidth * 0.72f;
+                var created = new SerializedObject(draw);
+                created.FindProperty("_button").objectReferenceValue = button;
+                created.FindProperty("_label").objectReferenceValue = label;
+                created.FindProperty("_background").objectReferenceValue = button.targetGraphic;
+                created.FindProperty("_clear").objectReferenceValue = clear;
+                created.ApplyModifiedPropertiesWithoutUndo();
+            }
+            var serialized = new SerializedObject(draw);
+            serialized.FindProperty("_sketch").objectReferenceValue = sketch;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 

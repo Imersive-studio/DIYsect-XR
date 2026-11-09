@@ -239,6 +239,7 @@ namespace DIYsect.Editor
             AddOrganNameTap.AddTo(rig, board.GetComponent<DIYsect.Networking.SharedBody>());
             AddClassmatePointInput.AddTo(rig, board.GetComponent<DIYsect.Networking.SharedBody>(), board.GetComponent<DIYsect.Classroom.PointerBoard>());
             AddClassmateSketch.AddToRig(rig, board.GetComponent<DIYsect.Networking.SharedBody>());
+            AddClassmateBottomBar.AddDraw(rig);
         }
 
         // The template is a tabletop game, so its move and turn providers ship switched off. They are the standard XR Interaction
