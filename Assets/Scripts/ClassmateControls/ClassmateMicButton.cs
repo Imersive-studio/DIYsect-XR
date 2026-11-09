@@ -23,6 +23,7 @@ namespace DIYsect.ClassmateControls
         private MicButtonModel _model;
         private IVoiceService _service;
         private float _hideMessageAt;
+        private bool _lastMayUnmute;
 
         /// <summary>The text on the button.</summary>
         public string Label => _label.text;
@@ -100,6 +101,14 @@ namespace DIYsect.ClassmateControls
         {
             if (_message.gameObject.activeSelf && Time.unscaledTime >= _hideMessageAt)
                 _message.gameObject.SetActive(false);
+            // The professor's permission arrives over the network at any time, so watch it: the label changes from "Ask to speak"
+            // to "Unmute" when it is given, and the microphone closes when it is taken away.
+            bool mayUnmute = _service.MayUnmute;
+            if (mayUnmute != _lastMayUnmute)
+            {
+                _lastMayUnmute = mayUnmute;
+                _model.Notify();
+            }
         }
 
         private void Refresh()

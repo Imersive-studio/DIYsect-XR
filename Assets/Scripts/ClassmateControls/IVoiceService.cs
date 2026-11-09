@@ -14,6 +14,12 @@ namespace DIYsect.ClassmateControls
         /// <summary>True when the app may use the microphone.</summary>
         bool HasMicPermission { get; }
 
+        /// <summary>True when the professor has allowed this person to speak. Without it the microphone cannot be unmuted.</summary>
+        bool MayUnmute { get; }
+
+        /// <summary>Asks the professor for permission to speak (raises the person's hand).</summary>
+        void RequestToSpeak();
+
         /// <summary>Raised when <see cref="IsMuted"/> changes.</summary>
         event Action Changed;
 

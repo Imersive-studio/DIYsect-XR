@@ -30,6 +30,8 @@ namespace DIYsect.ClassmateConnection
         private MonoBehaviour _joiner;
         [SerializeField, Tooltip("The corner status line. Its own code box is switched off while this page is up, because the page has one.")]
         private ClassmateStatusLabel _statusLabel;
+        [SerializeField, Tooltip("The name page that comes before this one. While it is up, nothing may draw over the screen either.")]
+        private ClassmateNameScreen _nameScreen;
 
         private readonly StartScreenModel _model = new StartScreenModel();
         private IClassmateJoiner _service;
@@ -130,14 +132,15 @@ namespace DIYsect.ClassmateConnection
             bool show = phase != StartScreenPhase.Hidden;
             if (_root.activeSelf != show)
                 _root.SetActive(show);
+            // This page and the name page before it are plain full-screen backgrounds. Nothing else may draw over them.
+            bool covered = show || (_nameScreen != null && _nameScreen.IsShowing);
             if (_statusLabel != null)
             {
-                _statusLabel.ShowCodeEntry = !show;
-                _statusLabel.ShowStatusLine = !show;
+                _statusLabel.ShowCodeEntry = !covered;
+                _statusLabel.ShowStatusLine = !covered;
             }
-            // The page is a plain full-screen background. Nothing else may draw over it.
             // The checklist is about the dissection in the room, so it only shows once the classmate is in the room.
-            DIYsect.Learning.ChecklistHud.Suppressed = show || !_service.Connected;
+            DIYsect.Learning.ChecklistHud.Suppressed = covered || !_service.Connected;
             if (!show)
                 return;
 

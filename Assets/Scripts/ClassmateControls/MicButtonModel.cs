@@ -13,6 +13,8 @@ namespace DIYsect.ClassmateControls
         public const string MuteLabel = "Mute";
         public const string AskingLabel = "Allow mic…";
         public const string DeniedText = "Microphone is blocked. Allow it in Settings to talk.";
+        public const string AskLabel = "Ask to speak";
+        public const string AskedText = "Asked. Waiting for the professor to let you speak.";
 
         private readonly IVoiceService _voice;
 
@@ -25,7 +27,7 @@ namespace DIYsect.ClassmateControls
         public event Action Changed;
 
         /// <summary>True when others can hear this classmate.</summary>
-        public bool IsLive => !_voice.IsMuted && _voice.HasMicPermission;
+        public bool IsLive => !_voice.IsMuted && _voice.HasMicPermission && _voice.MayUnmute;
 
         /// <summary>True while the permission dialog is open.</summary>
         public bool Asking { get; private set; }
@@ -33,7 +35,7 @@ namespace DIYsect.ClassmateControls
         /// <summary>A short note for the classmate, or empty.</summary>
         public string Message { get; private set; } = string.Empty;
 
-        public string Label => Asking ? AskingLabel : IsLive ? MuteLabel : UnmuteLabel;
+        public string Label => Asking ? AskingLabel : IsLive ? MuteLabel : _voice.MayUnmute ? UnmuteLabel : AskLabel;
 
         /// <summary>The button was pressed.</summary>
         public void Press()
@@ -44,6 +46,13 @@ namespace DIYsect.ClassmateControls
             if (IsLive)
             {
                 _voice.SetMuted(true);
+            }
+            else if (!_voice.MayUnmute)
+            {
+                // Nobody speaks without the professor's permission: the button asks for it instead.
+                _voice.SetMuted(true);
+                _voice.RequestToSpeak();
+                Message = AskedText;
             }
             else if (_voice.HasMicPermission)
             {
@@ -60,13 +69,16 @@ namespace DIYsect.ClassmateControls
         /// <summary>Tells the model the voice service changed on its own (for example a mute from elsewhere).</summary>
         public void Notify()
         {
+            // The professor took the permission away while the microphone was open: close it.
+            if (!_voice.MayUnmute && !_voice.IsMuted)
+                _voice.SetMuted(true);
             Changed?.Invoke();
         }
 
         private void OnPermission(bool granted)
         {
             Asking = false;
-            if (granted)
+            if (granted && _voice.MayUnmute)
                 _voice.SetMuted(false);
             else
                 Message = DeniedText;

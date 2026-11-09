@@ -26,6 +26,24 @@ namespace DIYsect.ClassmateControls
 
         public bool IsMuted => _voice.selfMuted.Value;
 
+        private DIYsect.Classroom.SpeakBoard _speak;
+        private DIYsect.Classroom.HandBoard _hands;
+
+        // The boards live on the body, which only spawns once the classmate is in the room, so they are looked up when needed.
+        private DIYsect.Classroom.SpeakBoard Speak => _speak != null ? _speak : _speak = UnityEngine.Object.FindFirstObjectByType<DIYsect.Classroom.SpeakBoard>(UnityEngine.FindObjectsInactive.Include);
+
+        private DIYsect.Classroom.HandBoard Hands => _hands != null ? _hands : _hands = UnityEngine.Object.FindFirstObjectByType<DIYsect.Classroom.HandBoard>(UnityEngine.FindObjectsInactive.Include);
+
+        /// <summary>True once the professor has allowed this classmate to speak. False before they are in the room.</summary>
+        public bool MayUnmute => Speak != null && Speak.IsLocalAllowed;
+
+        /// <summary>Raises this classmate's hand, which is how they ask the professor for permission.</summary>
+        public void RequestToSpeak()
+        {
+            if (Hands != null)
+                Hands.RequestSet(true);
+        }
+
         // The same check the manager makes in ToggleSelfMute, so the button and the manager never disagree.
         public bool HasMicPermission => Permission.HasUserAuthorizedPermission(Permission.Microphone);
 

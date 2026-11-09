@@ -33,8 +33,11 @@ namespace DIYsect.Editor
                     throw new InvalidOperationException("The body has no SharedBody. Run Tools > DIYsect > Add Body Networking first.");
                 if (!root.TryGetComponent(out HandBoard _))
                     root.AddComponent<HandBoard>();
+                // Who may unmute goes with the raised hands: a hand is how a classmate asks, the professor's answer opens the mic.
+                if (!root.TryGetComponent(out SpeakBoard _))
+                    root.AddComponent<SpeakBoard>();
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
-                Debug.Log($"Added the hand board to {PrefabPath}.");
+                Debug.Log($"Added the hand board and the speak board to {PrefabPath}.");
             }
             finally
             {
