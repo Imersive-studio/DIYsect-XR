@@ -1,7 +1,9 @@
 // Authority: none. The professor's controls only ask the server through QuizRound; the server decides.
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using DIYsect.Interaction;
+using DIYsect.Presentation;
 
 namespace DIYsect.Learning
 {
@@ -15,7 +17,13 @@ namespace DIYsect.Learning
     public class QuizPanel : MonoBehaviour
     {
         [SerializeField] private QuizRound _quiz;
-        [SerializeField] private TextMesh _status;
+        [SerializeField, Tooltip("The status line, for example \"Asking: 7 answers\".")] private TMP_Text _status;
+        [SerializeField, Tooltip("The large question line. Optional.")] private TMP_Text _question;
+        [SerializeField, Tooltip("Counts and wrong taps, small text under the status. Optional.")] private TMP_Text _detail;
+        [SerializeField, Tooltip("Shown only when a new round can start (nothing asked yet, or a round is over). Optional.")] private GameObject _startButton;
+        [SerializeField, Tooltip("Shown only while a round is asking. Optional.")] private GameObject _endButton;
+        [SerializeField, Tooltip("Shown only once a round is over. Optional.")] private GameObject _clearButton;
+        [SerializeField, Tooltip("Previous and next question; hidden while a round is asking. Optional.")] private GameObject[] _stepButtons;
         [SerializeField, Tooltip("The questions to ask. Swap this asset to change the quiz; no code changes.")]
         private QuizQuestionSet _questions;
         [SerializeField, Min(0), Tooltip("Wrong organs listed at most, most taps first.")]
@@ -46,7 +54,7 @@ namespace DIYsect.Learning
                 _source = _questions;
             if (_quiz == null || _status == null || _source == null || _source.Count == 0)
             {
-                Debug.LogError($"{name}: QuizPanel needs a QuizRound, a status TextMesh and a quiz question set with at least one question. Run Tools > DIYsect > Add Quiz.", this);
+                Debug.LogError($"{name}: QuizPanel needs a QuizRound, a status text and a quiz question set with at least one question. Run Tools > DIYsect > Add Quiz.", this);
                 enabled = false;
             }
         }
@@ -144,8 +152,73 @@ namespace DIYsect.Learning
                 foreach (int organ in QuizSummary.TopWrong(_quiz.OrganCount, _quiz.TapsFor, shown, _maxWrongLines))
                     wrongPicks.Add((NameOf(organ), _quiz.TapsFor(organ)));
 
-            string text = QuizMessages.ForProfessor(phase, NameOf(shown), _quiz.RightCount, _quiz.WrongCount, wrongPicks, prompt);
-            _status.text = string.IsNullOrEmpty(_notice) ? text : $"{text}\n{_notice}";
+            ShowText(phase, NameOf(shown), prompt, wrongPicks);
+            ShowButtons(phase);
+        }
+
+        private void ShowText(QuizPhase phase, string target, string prompt, List<(string name, int taps)> wrongPicks)
+        {
+            string question = string.IsNullOrWhiteSpace(prompt) ? $"Tap the {target}" : prompt.Trim();
+            string mint = ColorUtility.ToHtmlStringRGB(GuidePalette.Mint);
+            int answers = _quiz.RightCount + _quiz.WrongCount;
+            string status;
+            switch (phase)
+            {
+                case QuizPhase.Asking:
+                    status = $"Round {_quiz.Round}  Asking: <color=#{mint}>{answers} {(answers == 1 ? "answer" : "answers")}</color>";
+                    break;
+                case QuizPhase.Revealed:
+                    status = $"Round {_quiz.Round}  Revealed: {target}";
+                    break;
+                default:
+                    status = "Ready. Press Start";
+                    break;
+            }
+
+            string detail = string.Empty;
+            if (phase != QuizPhase.Idle)
+            {
+                detail = $"{_quiz.RightCount} right, {_quiz.WrongCount} wrong";
+                if (wrongPicks.Count > 0)
+                {
+                    var picks = new List<string>();
+                    foreach ((string name, int taps) in wrongPicks)
+                        picks.Add($"{name} {taps}");
+                    detail += $"\nTapped instead: {string.Join(", ", picks)}";
+                }
+            }
+            if (!string.IsNullOrEmpty(_notice))
+                detail = string.IsNullOrEmpty(detail) ? _notice : $"{detail}\n{_notice}";
+
+            if (_question != null)
+            {
+                _question.text = question;
+                _status.text = status;
+            }
+            else
+            {
+                // No separate question line: keep the question in the status text.
+                _status.text = $"{question}\n{status}";
+            }
+            if (_detail != null)
+                _detail.text = detail;
+        }
+
+        // Only the buttons that make sense in this phase are shown.
+        private void ShowButtons(QuizPhase phase)
+        {
+            SetShown(_startButton, phase != QuizPhase.Asking);
+            SetShown(_endButton, phase == QuizPhase.Asking);
+            SetShown(_clearButton, phase == QuizPhase.Revealed);
+            if (_stepButtons != null)
+                foreach (GameObject step in _stepButtons)
+                    SetShown(step, phase != QuizPhase.Asking);
+        }
+
+        private static void SetShown(GameObject button, bool shown)
+        {
+            if (button != null && button.activeSelf != shown)
+                button.SetActive(shown);
         }
 
         private void EnsureSelection()

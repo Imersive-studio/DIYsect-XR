@@ -4,6 +4,8 @@ using System.IO;
 using DIYsect.Classroom;
 using DIYsect.Learning;
 using DIYsect.Networking;
+using DIYsect.Presentation;
+using TMPro;
 using UnityEditor;
 using UnityEditor.Events;
 using UnityEditor.SceneManagement;
@@ -19,7 +21,7 @@ namespace DIYsect.Editor
     /// Sets up the "Tap the ..." quiz in three places. Safe to run more than once.
     /// 1. Adds QuizRound to Assets/Prefabs/AnatomyBody.prefab, so every scene's body has it.
     /// 2. Builds the professor's quiz panel in Professor_MR, beside the table on the professor's right (the student
-    ///    view window is on the left): status text and ray-selectable &lt; &gt; Start End Clear buttons. The panel is
+    ///    view window is on the left): a designed card (ProfessorPanelKit) with the question, a status line and ray-selectable &lt; &gt; Start Reveal Clear buttons. The panel is
     ///    given the default question set (DefaultQuizQuestions.asset).
     /// 3. Gives the classmate camera in Classmate_Desktop a QuizAnswerInput and a quiz line at the top of the screen, and lists the answer input as a tap claimer on its PinPlacementInput.
     /// </summary>
@@ -35,11 +37,13 @@ namespace DIYsect.Editor
         private const string ClassmateRigName = "ClassmateCamera";
         private const string CanvasName = "QuizCanvas";
         private const string ScreenLayerName = "CloseUpScreen";
-        private const string PanelMaterialPath = "Assets/Models/Environment/QuizPanel.mat";
-        private const string ButtonMaterialPath = "Assets/Models/Environment/StudentViewFrame.mat";
-        private static readonly Vector2 PanelSize = new Vector2(0.5f, 0.3f);
-        private static readonly Vector3 SmallButton = new Vector3(0.06f, 0.06f, 0.02f);
-        private static readonly Vector3 WideButton = new Vector3(0.12f, 0.06f, 0.02f);
+        private static readonly Vector2 PanelSize = new Vector2(0.7f, 0.48f);
+        // The kit's content area: a little narrower than the card. Y runs down from the top left corner.
+        private const float ContentWidth = 0.64f;
+        private const float RowY = -0.31f;
+        private static readonly Vector3 SmallButton = new Vector3(0.07f, 0.06f, 0.02f);
+        private static readonly Vector3 WideButton = new Vector3(0.22f, 0.06f, 0.02f);
+        private static readonly Vector3 ClearButton = new Vector3(0.12f, 0.06f, 0.02f);
         // From the table centre: further to the professor's right than the class roster (0.95 m), at eye height, so the two do not overlap.
         private static readonly Vector3 OffsetFromTable = new Vector3(1.75f, 0f, -0.1f);
         private const float Height = 1.45f;
@@ -96,35 +100,33 @@ namespace DIYsect.Editor
             Transform old = root.Find(PanelName);
             if (old != null)
                 UnityEngine.Object.DestroyImmediate(old.gameObject);
-            var panelObject = new GameObject(PanelName);
-            panelObject.transform.SetParent(root, false);
+            // The card is the QuizPanel object: same name and parent as before, so the arc step still finds it.
+            Transform card = ProfessorPanelKit.BuildCard(root, PanelName, PanelSize, "QUIZ");
+            GameObject panelObject = card.gameObject;
             Bounds table = FindTableTop(root, ProfessorScenePath);
             Vector3 position = new Vector3(table.center.x, Height, table.center.z) + OffsetFromTable;
             Vector3 professorHead = new Vector3(0f, Height, 0f);
-            // A quad's visible side faces -Z, so +Z points away from the professor.
+            // The card face is -Z, so +Z points away from the professor.
             panelObject.transform.SetPositionAndRotation(position, Quaternion.LookRotation(position - professorHead, Vector3.up));
+            // Pole from the card bottom to the floor (the DIYsect root's height).
+            ProfessorPanelKit.AddStand(card, position.y - PanelSize.y / 2f, root.position.y);
 
-            Material background = LoadOrCreateMaterial(PanelMaterialPath, "Universal Render Pipeline/Unlit", new Color(0.08f, 0.1f, 0.14f));
-            Material buttons = LoadOrCreateMaterial(ButtonMaterialPath, "Universal Render Pipeline/Lit", new Color(0.12f, 0.12f, 0.14f));
-
-            GameObject board = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            board.name = "Background";
-            board.transform.SetParent(panelObject.transform, false);
-            board.transform.localPosition = new Vector3(0f, 0f, 0.004f);
-            board.transform.localScale = new Vector3(PanelSize.x, PanelSize.y, 1f);
-            board.GetComponent<Renderer>().sharedMaterial = background;
-            UnityEngine.Object.DestroyImmediate(board.GetComponent<Collider>());
-
-            AddText(panelObject.transform, "Title", new Vector3(0f, PanelSize.y / 2f + 0.03f, -0.002f), "Quiz", 0.007f);
-            TextMesh status = AddText(panelObject.transform, "Status", new Vector3(0f, 0.04f, -0.002f), "", 0.0045f);
+            Transform content = card.Find("Content");
+            TextMeshPro question = ProfessorPanelKit.AddText(content, "Question", "", 0.04f, GuidePalette.TextPrimary,
+                TextAlignmentOptions.TopLeft, new Vector2(0f, 0f), new Vector2(ContentWidth, 0.12f), FontStyles.Bold);
+            TextMeshPro status = ProfessorPanelKit.AddText(content, "Status", "", 0.026f, GuidePalette.TextMuted,
+                TextAlignmentOptions.TopLeft, new Vector2(0f, -0.125f), new Vector2(ContentWidth, 0.035f));
+            TextMeshPro detail = ProfessorPanelKit.AddText(content, "Detail", "", 0.02f, GuidePalette.TextMuted,
+                TextAlignmentOptions.TopLeft, new Vector2(0f, -0.17f), new Vector2(ContentWidth, 0.08f));
 
             var panel = panelObject.AddComponent<QuizPanel>();
-            float row = -PanelSize.y / 2f - 0.05f;
-            AddButton(panelObject.transform, "PreviousQuestion", "<", new Vector3(-0.245f, row, 0f), SmallButton, buttons, panel.PreviousQuestion);
-            AddButton(panelObject.transform, "Start", "Start", new Vector3(-0.135f, row, 0f), WideButton, buttons, panel.StartRound);
-            AddButton(panelObject.transform, "End", "End", new Vector3(0f, row, 0f), WideButton, buttons, panel.EndRound);
-            AddButton(panelObject.transform, "Clear", "Clear", new Vector3(0.135f, row, 0f), WideButton, buttons, panel.ClearRound);
-            AddButton(panelObject.transform, "NextQuestion", ">", new Vector3(0.245f, row, 0f), SmallButton, buttons, panel.NextQuestion);
+            // Control row, left to right: previous and next question (small), then the main action (Start or Reveal,
+            // wide, in the same place) and Clear. The panel script shows only the buttons that fit the phase.
+            GameObject previous = AddButton(content, "PreviousQuestion", "<", new Vector2(0.035f, RowY), SmallButton, panel.PreviousQuestion);
+            GameObject next = AddButton(content, "NextQuestion", ">", new Vector2(0.125f, RowY), SmallButton, panel.NextQuestion);
+            GameObject start = AddButton(content, "Start", "Start", new Vector2(0.39f, RowY), WideButton, panel.StartRound);
+            GameObject end = AddButton(content, "End", "Reveal", new Vector2(0.39f, RowY), WideButton, panel.EndRound);
+            GameObject clear = AddButton(content, "Clear", "Clear", new Vector2(0.58f, RowY), ClearButton, panel.ClearRound);
 
             // Same layer as the student view window, so neither the close-up camera nor the window camera films the panel.
             foreach (Transform part in panelObject.GetComponentsInChildren<Transform>(true))
@@ -133,7 +135,16 @@ namespace DIYsect.Editor
             var serialized = new SerializedObject(panel);
             serialized.FindProperty("_quiz").objectReferenceValue = quiz;
             serialized.FindProperty("_status").objectReferenceValue = status;
+            serialized.FindProperty("_question").objectReferenceValue = question;
+            serialized.FindProperty("_detail").objectReferenceValue = detail;
             serialized.FindProperty("_questions").objectReferenceValue = questions;
+            serialized.FindProperty("_startButton").objectReferenceValue = start;
+            serialized.FindProperty("_endButton").objectReferenceValue = end;
+            serialized.FindProperty("_clearButton").objectReferenceValue = clear;
+            SerializedProperty steps = serialized.FindProperty("_stepButtons");
+            steps.arraySize = 2;
+            steps.GetArrayElementAtIndex(0).objectReferenceValue = previous;
+            steps.GetArrayElementAtIndex(1).objectReferenceValue = next;
             serialized.ApplyModifiedPropertiesWithoutUndo();
 
             Save(scene, ProfessorScenePath);
@@ -234,51 +245,28 @@ namespace DIYsect.Editor
             return label;
         }
 
-        // A cube button with an XRSimpleInteractable that calls the action when selected, and a label on its front.
-        // The label is scaled back to square, so a wide button does not stretch its text.
-        private static void AddButton(Transform parent, string name, string label, Vector3 position, Vector3 scale, Material material, UnityAction action)
+        // A cube button with an XRSimpleInteractable that calls the action when selected. The kit styles it and adds the label.
+        // The old TextMesh label is added first because the kit hides it; Content's origin is its top left corner.
+        private static GameObject AddButton(Transform content, string name, string label, Vector2 centre, Vector3 scale, UnityAction action)
         {
             GameObject button = GameObject.CreatePrimitive(PrimitiveType.Cube);
             button.name = name;
-            button.transform.SetParent(parent, false);
-            button.transform.localPosition = position;
+            button.transform.SetParent(content, false);
+            button.transform.localPosition = new Vector3(centre.x, centre.y, -scale.z / 2f);
             button.transform.localScale = scale;
-            button.GetComponent<Renderer>().sharedMaterial = material;
             var interactable = button.AddComponent<XRSimpleInteractable>();
             UnityEventTools.AddVoidPersistentListener(interactable.selectEntered, action);
-            TextMesh text = AddText(button.transform, "Label", new Vector3(0f, 0f, -0.6f), label, 0.08f);
-            text.transform.localScale = new Vector3(scale.y / scale.x, 1f, 1f);
-        }
-
-        // White, centred world-space text.
-        private static TextMesh AddText(Transform parent, string name, Vector3 position, string text, float size)
-        {
-            var textObject = new GameObject(name);
-            textObject.transform.SetParent(parent, false);
-            textObject.transform.localPosition = position;
+            var textObject = new GameObject("Label");
+            textObject.transform.SetParent(button.transform, false);
+            textObject.transform.localPosition = new Vector3(0f, 0f, -0.6f);
             var mesh = textObject.AddComponent<TextMesh>();
-            mesh.text = text;
+            mesh.text = label;
             mesh.anchor = TextAnchor.MiddleCenter;
             mesh.alignment = TextAlignment.Center;
-            mesh.characterSize = size;
+            mesh.characterSize = 0.08f;
             mesh.fontSize = 64;
-            mesh.color = Color.white;
-            return mesh;
-        }
-
-        // Loads the material at the path, or creates it with the shader and colour and saves it there.
-        private static Material LoadOrCreateMaterial(string path, string shaderName, Color color)
-        {
-            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
-            if (material != null)
-                return material;
-            Shader shader = Shader.Find(shaderName);
-            if (shader == null)
-                throw new InvalidOperationException($"{shaderName} shader not found.");
-            material = new Material(shader) { name = Path.GetFileNameWithoutExtension(path) };
-            material.SetColor("_BaseColor", color);
-            AssetDatabase.CreateAsset(material, path);
-            return material;
+            ProfessorPanelKit.StyleButton(button, label);
+            return button;
         }
 
         private static Transform FindRoot(Scene scene, string rootName)
