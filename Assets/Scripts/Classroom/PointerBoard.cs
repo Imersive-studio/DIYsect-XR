@@ -147,6 +147,7 @@ namespace DIYsect.Classroom
         private void PointAsClassmateRpc(int organIndex, RpcParams rpcParams = default)
         {
             ulong sender = rpcParams.Receive.SenderClientId;
+            Debug.Log($"[PhoneTouch] Room received a classmate point at organ {organIndex} from client {sender}.");
             if (!_limiter.TryAccept(sender, Time.realtimeSinceStartup))
             {
                 RequestRejected?.Invoke(sender, PointerRejection.TooFast);

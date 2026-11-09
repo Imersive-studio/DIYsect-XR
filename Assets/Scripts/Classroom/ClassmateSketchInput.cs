@@ -138,6 +138,7 @@ namespace DIYsect.Classroom
             if (!_requestedThisPress)
             {
                 _requestedThisPress = true;
+                Debug.Log($"[PhoneTouch] Sketch starts on {hit.collider.name}. Sketch line in the room: {_line.IsSpawned}.");
                 Apply(_request.Handle(GrabRequest.Event.Select));
             }
             if (_request.Phase == GrabPhase.Granted)
@@ -164,6 +165,7 @@ namespace DIYsect.Classroom
 
         private void HandleStrokeResolved(bool granted)
         {
+            Debug.Log($"[PhoneTouch] The room {(granted ? "accepted" : "refused")} the sketch.");
             Apply(_request.HandleAnswer(granted));
         }
 

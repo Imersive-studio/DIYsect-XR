@@ -47,6 +47,32 @@ namespace DIYsect.ClassmateControls.Tests
         }
 
         [Test]
+        public void AClassmateWhoAsked_GoesLiveTheMomentTheProfessorAllows()
+        {
+            _model.Press();
+            Assert.IsFalse(_model.IsLive);
+
+            _voice.MayUnmute = true;
+            _model.Notify();
+
+            Assert.IsTrue(_model.IsLive, "Raise hand, professor says yes, speak: no second tap.");
+            Assert.AreEqual(MicButtonModel.LiveText, _model.Message);
+            _model.Notify();
+            Assert.IsTrue(_model.IsLive, "A later notice must not toggle the microphone again.");
+        }
+
+        [Test]
+        public void AClassmateWhoAsked_WithoutTheMicrophone_IsAskedForItWhenAllowed()
+        {
+            _voice.HasMicPermission = false;
+            _model.Press();
+            _voice.MayUnmute = true;
+            _model.Notify();
+
+            Assert.AreEqual(1, _voice.PermissionRequests, "Allowed to speak, so the phone asks for the microphone once.");
+        }
+
+        [Test]
         public void WhenTheProfessorTakesPermissionAway_AnOpenMicrophoneClosesAtOnce()
         {
             _voice.MayUnmute = true;

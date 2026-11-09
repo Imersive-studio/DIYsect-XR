@@ -351,9 +351,19 @@ namespace XRMultiplayer
 #if VIVOX_SUPPORTED
             if (NetworkManager.Singleton.IsConnectedClient & !m_ConnectedToRoom)
             {
-                Channel3DProperties properties = new(AudibleDistance, ConversationalDistance, AudioFadeIntensity, AudioFadeModel);
-                Utils.Log($"{k_DebugPrepend}Joining Voice Channel: {m_CurrentLobbyId}, properties: {properties}");
-                await VivoxService.Instance.JoinPositionalChannelAsync(m_CurrentLobbyId, m_ChatCapability, properties);
+                if (XRINetworkGameManager.Instance != null && XRINetworkGameManager.Instance.positionalVoiceChat)
+                {
+                    Channel3DProperties properties = new(AudibleDistance, ConversationalDistance, AudioFadeIntensity, AudioFadeModel);
+                    Utils.Log($"{k_DebugPrepend}Joining Voice Channel: {m_CurrentLobbyId}, properties: {properties}");
+                    await VivoxService.Instance.JoinPositionalChannelAsync(m_CurrentLobbyId, m_ChatCapability, properties);
+                }
+                else
+                {
+                    // A classroom: everyone hears everyone, wherever they are. A positional channel only connects people who each
+                    // report a 3D position, and a phone has none, so the phone and the headset never heard each other.
+                    Utils.Log($"{k_DebugPrepend}Joining Voice Channel: {m_CurrentLobbyId}, as a group channel (not positional)");
+                    await VivoxService.Instance.JoinGroupChannelAsync(m_CurrentLobbyId, m_ChatCapability);
+                }
 
                 // Once connecting, make sure we are still in the game session, if not, disconnect from the voice chat.
                 if (!NetworkManager.Singleton.IsConnectedClient)

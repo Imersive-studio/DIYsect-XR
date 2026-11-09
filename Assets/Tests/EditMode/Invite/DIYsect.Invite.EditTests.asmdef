@@ -5,6 +5,7 @@
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner",
     "XRMP",
+    "Unity.Netcode.Runtime",
     "DIYsect.Classroom",
     "Unity.Services.Multiplayer"
   ],
