@@ -213,8 +213,15 @@ namespace DIYsect.Networking.Tests
             while (!hands.IsSpawned && Time.realtimeSinceStartup < end)
                 yield return null;
             Assert.IsTrue(hands.IsSpawned, "The scene's body never spawned.");
-            for (int i = 0; i < 20; i++)
-                yield return null; // the bottom bar looks at the connection a few times a second
+            // The bottom bar looks at the connection a few times a second, by the clock, not by frame count: wait for it, however fast the frames run.
+            var bar = InScene<ClassmateBottomBar>();
+            if (bar.gameObject.activeInHierarchy)
+            {
+                end = Time.realtimeSinceStartup + 8f;
+                while (!bar.IsShowing && Time.realtimeSinceStartup < end)
+                    yield return null;
+            }
+            yield return null;
         }
 
         private static Button ButtonNamed(string name)
