@@ -54,9 +54,48 @@ namespace XRMultiplayer
             Debug.Log($"[{_tag}] Joining room {lobby.Name}.");
             manager.JoinLobbySpecific(lobby);
 
-            // The lobby join is quick; the network connection to the host takes a few seconds more. The state reads
-            // Connected as soon as the lobby is joined, so success is the network being connected, not the state.
-            // A join that fails puts the state back at Authenticated, after the short moment the join needs to start.
+            yield return WaitForNetwork(manager);
+
+            if (!Connected)
+            {
+                Debug.LogWarning($"[{_tag}] Could not join {lobby.Name} ({lobby.Id}); skipping it for {SkipSeconds:0} s.");
+                _skipUntil[lobby.Id] = Time.unscaledTime + SkipSeconds;
+                yield return LeaveHalfJoinedRoom(manager);
+            }
+        }
+
+        /// <summary>True when the last <see cref="TryJoinByCode"/> found no room it could join with that code.</summary>
+        public bool LastCodeRejected { get; private set; }
+
+        /// <summary>
+        /// Joins the room with this code, the way a classmate does from an invite link or a typed code. Works for private rooms,
+        /// which are not in the room list. Ends when the attempt is over; check <see cref="Connected"/> and
+        /// <see cref="LastCodeRejected"/>.
+        /// </summary>
+        public IEnumerator TryJoinByCode(string code)
+        {
+            LastCodeRejected = false;
+            XRINetworkGameManager manager = XRINetworkGameManager.Instance;
+            if (manager == null || XRINetworkGameManager.CurrentConnectionState.Value != XRINetworkGameManager.ConnectionState.Authenticated)
+                yield break;
+
+            Debug.Log($"[{_tag}] Joining the room with code {code}.");
+            manager.JoinLobbyByCode(code);
+            yield return WaitForNetwork(manager);
+
+            if (!Connected)
+            {
+                LastCodeRejected = true;
+                Debug.LogWarning($"[{_tag}] No room joined with code {code}.");
+                yield return LeaveHalfJoinedRoom(manager);
+            }
+        }
+
+        // The lobby join is quick; the network connection to the host takes a few seconds more. The state reads Connected as soon
+        // as the lobby is joined, so success is the network being connected, not the state. A join that fails puts the state back
+        // at Authenticated, after the short moment the join needs to start.
+        private static IEnumerator WaitForNetwork(XRINetworkGameManager manager)
+        {
             float started = Time.unscaledTime;
             float deadline = started + JoinTimeoutSeconds;
             yield return null;
@@ -68,18 +107,16 @@ namespace XRMultiplayer
                     break;
                 yield return null;
             }
+        }
 
-            if (!Connected)
+        // Leave the lobby, so the next room can be tried: a half-joined client would not look again.
+        private static IEnumerator LeaveHalfJoinedRoom(XRINetworkGameManager manager)
+        {
+            if (XRINetworkGameManager.CurrentConnectionState.Value != XRINetworkGameManager.ConnectionState.Authenticated)
             {
-                Debug.LogWarning($"[{_tag}] Could not join {lobby.Name} ({lobby.Id}); skipping it for {SkipSeconds:0} s.");
-                _skipUntil[lobby.Id] = Time.unscaledTime + SkipSeconds;
-                // Leave the lobby, so the next room can be tried: a half-joined client would not look again.
-                if (XRINetworkGameManager.CurrentConnectionState.Value != XRINetworkGameManager.ConnectionState.Authenticated)
-                {
-                    Task<bool> left = manager.DisconnectAsync();
-                    while (!left.IsCompleted)
-                        yield return null;
-                }
+                Task<bool> left = manager.DisconnectAsync();
+                while (!left.IsCompleted)
+                    yield return null;
             }
         }
 

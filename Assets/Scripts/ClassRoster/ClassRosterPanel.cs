@@ -64,7 +64,9 @@ namespace DIYsect.ClassRoster
                 entries.Add(new RosterEntry(player.OwnerClientId, player.playerName, kind, CountQuestions(player.OwnerClientId)));
             }
 
-            string text = ClassRosterText.Format(entries);
+            // The invite is shown once a room exists, so the professor always has the code to read out.
+            string code = XRINetworkGameManager.Connected.Value ? XRINetworkGameManager.ConnectedRoomCode : null;
+            string text = ClassRosterText.Format(entries, code, RoomInvite.BuildLink(code));
             if (text == _shown)
                 return;
             _shown = text;

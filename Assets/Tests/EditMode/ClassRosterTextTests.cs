@@ -80,5 +80,31 @@ namespace DIYsect.Classroom.Tests
             Assert.AreEqual("+3 more", lines[lines.Length - 1]);
             Assert.AreEqual($"Class: {ClassRosterText.MaxLines + 3} students", lines[0]);
         }
+
+        [Test]
+        public void TheInvite_IsShownAboveTheRoster_WhenThereIsACode()
+        {
+            string text = ClassRosterText.Format(new[] { Student(1, "Maya") }, "KHC8QH", "diysect://join?code=KHC8QH");
+
+            string[] lines = text.Split('\n');
+            Assert.AreEqual("Join code: KHC8QH", lines[0]);
+            Assert.AreEqual("diysect://join?code=KHC8QH", lines[1]);
+            Assert.AreEqual("Class: 1 student", lines[2]);
+        }
+
+        [Test]
+        public void NoCode_LeavesTheInviteOut()
+        {
+            Assert.AreEqual("Class: no students yet", ClassRosterText.Format(new List<RosterEntry>(), null, null));
+            Assert.AreEqual("Class: no students yet", ClassRosterText.Format(new List<RosterEntry>(), "", ""));
+        }
+
+        [Test]
+        public void AMarkupCode_CannotInjectTags()
+        {
+            string text = ClassRosterText.Format(new List<RosterEntry>(), "<b>X</b>", null);
+
+            StringAssert.DoesNotContain("<", text);
+        }
     }
 }

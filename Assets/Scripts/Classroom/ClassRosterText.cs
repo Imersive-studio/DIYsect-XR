@@ -43,6 +43,34 @@ namespace DIYsect.Classroom
 
         public static string Format(IReadOnlyList<RosterEntry> entries)
         {
+            return Format(entries, null, null);
+        }
+
+        /// <summary>
+        /// The roster with the room's invite above it, so the professor can read the code out or put the link on a slide.
+        /// An empty code or link leaves that line out.
+        /// </summary>
+        public static string Format(IReadOnlyList<RosterEntry> entries, string joinCode, string joinLink)
+        {
+            string invite = InviteLines(joinCode, joinLink);
+            string roster = FormatRoster(entries);
+            return invite.Length == 0 ? roster : invite + "\n" + roster;
+        }
+
+        private static string InviteLines(string joinCode, string joinLink)
+        {
+            string code = Clean(joinCode);
+            string link = Clean(joinLink);
+            var lines = new StringBuilder();
+            if (code.Length > 0)
+                lines.Append("Join code: ").Append(code);
+            if (link.Length > 0)
+                lines.Append(lines.Length > 0 ? "\n" : string.Empty).Append(link);
+            return lines.ToString();
+        }
+
+        private static string FormatRoster(IReadOnlyList<RosterEntry> entries)
+        {
             int count = entries?.Count ?? 0;
             var text = new StringBuilder();
             text.Append(count == 0 ? "Class: no students yet" : count == 1 ? "Class: 1 student" : $"Class: {count} students");

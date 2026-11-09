@@ -1,0 +1,18 @@
+apply plugin: 'com.android.library'
+
+android {
+    namespace "com.diysect.deeplink"
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 29
+        targetSdk 34
+    }
+
+    sourceSets {
+        main {
+            // Without this Gradle looks for src/main/AndroidManifest.xml, finds nothing and merges an empty manifest.
+            manifest.srcFile 'AndroidManifest.xml'
+        }
+    }
+}
