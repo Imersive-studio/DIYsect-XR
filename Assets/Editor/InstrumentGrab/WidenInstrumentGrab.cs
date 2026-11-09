@@ -51,6 +51,14 @@ namespace DIYsect.Editor
             }
         }
 
+        private static int OrganLayerMask()
+        {
+            int mask = LayerMask.GetMask("SeatedOrgan", "LooseOrgan");
+            if (mask == 0)
+                throw new InvalidOperationException("The SeatedOrgan and LooseOrgan layers are missing. Check ProjectSettings/TagManager.asset.");
+            return mask;
+        }
+
         private static void WidenScene(string scenePath)
         {
             var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
@@ -68,6 +76,8 @@ namespace DIYsect.Editor
             foreach (SphereInteractionCaster caster in UnityEngine.Object.FindObjectsByType<SphereInteractionCaster>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 caster.physicsTriggerInteraction = QueryTriggerInteraction.Collide;
+                // Organs live on their own physics layers, which the template's casters do not look at.
+                caster.physicsLayerMask |= OrganLayerMask();
                 EditorUtility.SetDirty(caster);
                 PrefabUtility.RecordPrefabInstancePropertyModifications(caster);
                 casters++;

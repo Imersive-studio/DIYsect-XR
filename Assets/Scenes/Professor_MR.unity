@@ -31836,6 +31836,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 49264961353865464, guid: 7d554cf076fc46143bcaf9a54fc2204d,
         type: 3}
+      propertyPath: m_PhysicsLayerMask.m_Bits
+      value: 3073
+      objectReference: {fileID: 0}
+    - target: {fileID: 49264961353865464, guid: 7d554cf076fc46143bcaf9a54fc2204d,
+        type: 3}
       propertyPath: m_PhysicsTriggerInteraction
       value: 2
       objectReference: {fileID: 0}
@@ -31893,6 +31898,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_RestingVisualLineLength
       value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 4271663393746210669, guid: 7d554cf076fc46143bcaf9a54fc2204d,
+        type: 3}
+      propertyPath: m_PhysicsLayerMask.m_Bits
+      value: 3073
       objectReference: {fileID: 0}
     - target: {fileID: 4271663393746210669, guid: 7d554cf076fc46143bcaf9a54fc2204d,
         type: 3}
@@ -31981,6 +31991,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6481759311775942787, guid: 7d554cf076fc46143bcaf9a54fc2204d,
         type: 3}
+      propertyPath: m_PhysicsLayerMask.m_Bits
+      value: 3073
+      objectReference: {fileID: 0}
+    - target: {fileID: 6481759311775942787, guid: 7d554cf076fc46143bcaf9a54fc2204d,
+        type: 3}
       propertyPath: m_PhysicsTriggerInteraction
       value: 2
       objectReference: {fileID: 0}
@@ -31988,6 +32003,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_CullingMask.m_Bits
       value: 8119
+      objectReference: {fileID: 0}
+    - target: {fileID: 7043497332038288999, guid: 7d554cf076fc46143bcaf9a54fc2204d,
+        type: 3}
+      propertyPath: m_PhysicsLayerMask.m_Bits
+      value: 3073
       objectReference: {fileID: 0}
     - target: {fileID: 7043497332038288999, guid: 7d554cf076fc46143bcaf9a54fc2204d,
         type: 3}
