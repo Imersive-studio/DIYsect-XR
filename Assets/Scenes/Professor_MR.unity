@@ -3059,7 +3059,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: XRMP::XRMultiplayer.ProfessorAutoHost
   _roomName: DIYsect class
-  _maxAttempts: 3
+  _maxAttempts: 1
   _retrySeconds: 8
 --- !u!1001 &1431532387
 PrefabInstance:

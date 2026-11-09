@@ -16,7 +16,7 @@ namespace XRMultiplayer
         private string _roomName = "DIYsect class";
         [SerializeField, Min(0f), Tooltip("Seconds to look for an existing room before creating one.")]
         private float _lookForRoomSeconds = 10f;
-        [SerializeField, Min(0)] private int _maxAttempts = 2;
+        [SerializeField, Min(0)] private int _maxAttempts = 1;
         [SerializeField, Min(6f), Tooltip("Seconds between attempts. The lobby service allows two creates per six seconds.")]
         private float _retrySeconds = 8f;
 

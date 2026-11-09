@@ -14,10 +14,18 @@ namespace XRMultiplayer
         [SerializeField, Min(2f), Tooltip("Seconds between looks for a lobby. The lobby service allows about one query a second.")]
         private float _retrySeconds = 5f;
 
+        [SerializeField, Tooltip("Also join on its own in the Unity editor. Off by default, so the editor can host a test room instead of joining a leftover one.")]
+        private bool _runInEditor;
+
         private Coroutine _loop;
 
         private void OnEnable()
         {
+            if (Application.isEditor && !_runInEditor)
+            {
+                enabled = false;
+                return;
+            }
             XRINetworkGameManager.CurrentConnectionState.Subscribe(OnConnectionState);
         }
 

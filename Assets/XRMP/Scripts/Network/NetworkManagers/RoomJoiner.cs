@@ -54,17 +54,32 @@ namespace XRMultiplayer
             Debug.Log($"[{_tag}] Joining room {lobby.Name}.");
             manager.JoinLobbySpecific(lobby);
 
-            float deadline = Time.unscaledTime + JoinTimeoutSeconds;
-            // The join is under way while the state is Connecting; it ends Connected, or back at Authenticated if it failed.
+            // The lobby join is quick; the network connection to the host takes a few seconds more. The state reads
+            // Connected as soon as the lobby is joined, so success is the network being connected, not the state.
+            // A join that fails puts the state back at Authenticated, after the short moment the join needs to start.
+            float started = Time.unscaledTime;
+            float deadline = started + JoinTimeoutSeconds;
             yield return null;
-            while (!Connected && Time.unscaledTime < deadline
-                && XRINetworkGameManager.CurrentConnectionState.Value == XRINetworkGameManager.ConnectionState.Connecting)
+            while (!Connected && Time.unscaledTime < deadline)
+            {
+                bool failedFast = Time.unscaledTime - started > 2f
+                    && XRINetworkGameManager.CurrentConnectionState.Value == XRINetworkGameManager.ConnectionState.Authenticated;
+                if (failedFast)
+                    break;
                 yield return null;
+            }
 
             if (!Connected)
             {
                 Debug.LogWarning($"[{_tag}] Could not join {lobby.Name} ({lobby.Id}); skipping it for {SkipSeconds:0} s.");
                 _skipUntil[lobby.Id] = Time.unscaledTime + SkipSeconds;
+                // Leave the lobby, so the next room can be tried: a half-joined client would not look again.
+                if (XRINetworkGameManager.CurrentConnectionState.Value != XRINetworkGameManager.ConnectionState.Authenticated)
+                {
+                    Task<bool> left = manager.DisconnectAsync();
+                    while (!left.IsCompleted)
+                        yield return null;
+                }
             }
         }
 
