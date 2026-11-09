@@ -2,6 +2,7 @@ using DIYsect.Editor;
 using DIYsect.Interaction;
 using DIYsect.Menu;
 using DIYsect.MixedReality;
+using DIYsect.Networking;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -93,6 +94,26 @@ namespace DIYsect.StudentRig.Tests
                     drapes = t;
             Assert.IsNotNull(drapes, "The body has no Drapes group.");
             Assert.IsFalse(drapes.gameObject.activeSelf, "The drapes tent over the half body and a loose piece floats in the air, so they stay off.");
+        }
+
+        [TestCase(14f, 14f, false, true)]
+        [TestCase(20f, 14f, false, true)]
+        [TestCase(5f, 14f, false, false)]
+        [TestCase(30f, 14f, true, false)]
+        public void PracticeStartsOnlyWhenNoRoomWasJoinedInTime(float elapsed, float wait, bool networkRunning, bool expected)
+        {
+            Assert.AreEqual(expected, PracticeRules.ShouldStart(elapsed, wait, networkRunning));
+        }
+
+        [Test]
+        public void StudentSceneCanPractiseAloneAndStopsLookingForARoomWhenItDoes()
+        {
+            EditorSceneManager.OpenScene(StudentScene, OpenSceneMode.Single);
+            var practice = Object.FindFirstObjectByType<PracticeSession>(FindObjectsInactive.Include);
+            Assert.IsNotNull(practice, "Without it nothing can be dissected alone. Run Tools > DIYsect > Add Practice Session.");
+            var list = new SerializedObject(practice).FindProperty("_disableOnStart");
+            Assert.AreEqual(1, list.arraySize);
+            Assert.IsInstanceOf<XRMultiplayer.ClassmateAutoJoin>(list.GetArrayElementAtIndex(0).objectReferenceValue);
         }
 
         [Test]
