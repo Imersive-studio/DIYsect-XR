@@ -9,6 +9,7 @@
     "DIYsect.Classroom",
     "DIYsect.MixedReality",
     "DIYsect.ClassmateConnection",
+    "DIYsect.ClassmateControls",
     "Unity.Collections",
     "Unity.Netcode.Runtime",
     "Unity.InputSystem",
