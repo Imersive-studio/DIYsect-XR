@@ -43,7 +43,8 @@ namespace DIYsect.Classroom
         public event Action<PinRejection> LocalRequestRejected;
 
         public SharedBody Body => _body;
-        public int Count => _pins.Count;
+        // A script that reads the board in its OnEnable can run before this Awake has made the list, so the board reads as empty.
+        public int Count => _pins != null ? _pins.Count : 0;
         public QuestionPin this[int index] => _pins[index];
 
         private void Awake()

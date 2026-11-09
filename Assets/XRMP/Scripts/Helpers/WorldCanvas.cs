@@ -27,7 +27,9 @@ namespace XRMultiplayer
             {
                 foreach (var kvp in playerDictionary)
                 {
-                    Destroy(kvp.Key.gameObject);
+                    // A name tag whose player already left is destroyed already.
+                    if (kvp.Key != null)
+                        Destroy(kvp.Key.gameObject);
                 }
                 playerDictionary.Clear();
             }
@@ -75,13 +77,28 @@ namespace XRMultiplayer
             }
         }
 
+        private readonly List<PlayerNameTag> m_StaleNameTags = new List<PlayerNameTag>();
+
         private void Update()
         {
             foreach (var kvp in playerDictionary)
             {
+                // A player that left, or one with no head (a phone or laptop), is destroyed or has nothing to follow. Without
+                // this check the loop threw on every frame for as long as the entry stayed in the dictionary.
+                if (kvp.Key == null || kvp.Value == null || kvp.Value.head == null)
+                {
+                    m_StaleNameTags.Add(kvp.Key);
+                    continue;
+                }
                 kvp.Key.transform.position = kvp.Value.head.position + Vector3.up * m_nameTagOffsetHeight;
                 kvp.Key.UpdateVoice(kvp.Value.playerVoiceAmp);
             }
+
+            if (m_StaleNameTags.Count == 0)
+                return;
+            foreach (PlayerNameTag stale in m_StaleNameTags)
+                playerDictionary.Remove(stale);
+            m_StaleNameTags.Clear();
         }
     }
 }
