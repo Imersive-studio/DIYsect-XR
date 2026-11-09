@@ -130,14 +130,16 @@ namespace DIYsect.MixedReality.Tests
 
             Assert.AreEqual(ClassroomRoleKind.Professor, ClassroomRole.Current);
             Assert.IsFalse(FindObject("ClassmateCamera").activeInHierarchy, "The classmate camera must be off for the professor.");
-            foreach (string headsetOnly in new[] { "XR Origin (XR Rig)", "DepthHandle", "GuidePen", "StudentViewWindow", "ClassRoster", "TableAlignmentHandle", "TableAlignment", "QuizPanel" })
+            foreach (string headsetOnly in new[] { "XR Origin (XR Rig)", "DepthHandle", "GuidePen", "StudentViewWindow", "ClassRoster", "QuizPanel", "ProfessorViewToggle" })
                 Assert.IsTrue(FindObject(headsetOnly).activeInHierarchy, $"{headsetOnly} must be on for the professor.");
             Assert.IsTrue(Object.FindFirstObjectByType<ProfessorAutoHost>(FindObjectsInactive.Include).enabled, "The professor creates the room.");
             Assert.IsFalse(Object.FindFirstObjectByType<ClassmateStatusLabel>(FindObjectsInactive.Include).enabled);
             Assert.IsFalse(FindObject("ResetViewButton").activeInHierarchy, "The Reset view button must be off for the professor.");
-            Assert.IsFalse(FindObject("LectureHall").activeInHierarchy, "The professor sees the real room, not the lecture hall.");
+            Assert.IsTrue(FindObject("LectureHall").activeInHierarchy, "The professor starts in the classroom the students are in.");
+            foreach (string mixedRealityOnly in new[] { "TableAlignmentHandle", "TableAlignment" })
+                Assert.IsFalse(FindObject(mixedRealityOnly).activeInHierarchy, $"{mixedRealityOnly} places the table on a real table, so it is for mixed reality only.");
             Assert.IsFalse(Object.FindFirstObjectByType<DIYsect.Networking.PracticeSession>(FindObjectsInactive.Include).enabled, "The professor creates the room and never starts a practice session.");
-            Assert.IsNull(FindObject("XR Origin (XR Rig)").GetComponent<DIYsect.MixedReality.EyeHeightCalibration>(), "Eye height calibration is for the student only.");
+            Assert.IsNotNull(FindObject("XR Origin (XR Rig)").GetComponent<DIYsect.MixedReality.EyeHeightCalibration>(), "In the classroom the professor stands at the student's fixed eye height.");
             foreach (UnityEngine.EventSystems.EventSystem events in Object.FindObjectsByType<UnityEngine.EventSystems.EventSystem>(FindObjectsSortMode.None))
                 Assert.IsFalse(events.transform.IsChildOf(FindObject("ClassmateCamera").transform), "The classmate's EventSystem must be off for the professor.");
 
@@ -225,13 +227,85 @@ namespace DIYsect.MixedReality.Tests
         }
 
         [TearDown]
-        public void ResetRoleOverride() => ClassroomRole.OverrideForTests = null;
+        public void ResetRoleOverride()
+        {
+            ClassroomRole.OverrideForTests = null;
+            ClassroomRole.ProfessorViewOverrideForTests = null;
+        }
+
+        [UnityTest]
+        public IEnumerator TheProfessorSwitchesBetweenTheClassroomAndMixedReality_AndOnlyTheProfessorCan()
+        {
+            LogAssert.ignoreFailingMessages = true;
+            ClassroomRole.OverrideForTests = ClassroomRoleKind.Professor;
+            ClassroomRole.ProfessorViewOverrideForTests = ProfessorViewMode.Classroom;
+#if UNITY_EDITOR
+            yield return EditorSceneManager.LoadSceneAsyncInPlayMode(ScenePath, new LoadSceneParameters(LoadSceneMode.Single));
+#else
+            yield break;
+#endif
+            yield return null;
+            yield return null;
+
+            var role = Object.FindFirstObjectByType<ClassroomRole>(FindObjectsInactive.Include);
+            var passthrough = (Behaviour)typeof(ClassroomRole).GetField("_passthrough", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(role);
+            GameObject rig = FindObject("XR Origin (XR Rig)");
+            var origin = rig.GetComponent<Unity.XR.CoreUtils.XROrigin>();
+
+            Assert.AreEqual(ProfessorViewMode.Classroom, role.ProfessorView);
+            Assert.IsTrue(FindObject("LectureHall").activeInHierarchy, "The classroom view shows the hall the students are in.");
+            Assert.IsFalse(passthrough.enabled, "No passthrough in the classroom.");
+            Assert.IsFalse(FindObject("TableAlignment").activeInHierarchy);
+            Assert.AreEqual(Unity.XR.CoreUtils.XROrigin.TrackingOriginMode.Device, origin.RequestedTrackingOriginMode, "A fixed eye height, like the student.");
+            Assert.AreEqual(1.6f, origin.CameraYOffset, 0.001f);
+            Assert.AreEqual(CameraClearFlags.Skybox, origin.Camera.clearFlags);
+            Assert.IsNotNull(rig.GetComponent<DIYsect.MixedReality.EyeHeightCalibration>());
+
+            role.SetProfessorView(ProfessorViewMode.MixedReality);
+            Assert.AreEqual(ProfessorViewMode.MixedReality, role.ProfessorView);
+            Assert.IsFalse(FindObject("LectureHall").activeInHierarchy, "Mixed reality shows the real room, not the hall.");
+            Assert.IsTrue(passthrough.enabled, "Mixed reality draws the real room behind the body.");
+            Assert.IsTrue(FindObject("TableAlignment").activeInHierarchy, "Table placing is back.");
+            Assert.IsTrue(FindObject("TableAlignmentHandle").activeInHierarchy);
+            Assert.AreEqual(0f, origin.CameraYOffset, 0.001f, "The rig goes back to the real headset height, not the fixed 1.6 m.");
+            Assert.AreEqual(CameraClearFlags.SolidColor, origin.Camera.clearFlags);
+            Assert.IsFalse(rig.GetComponent<DIYsect.MixedReality.EyeHeightCalibration>().enabled, "The calibration is for the hall only.");
+
+            role.SetProfessorView(ProfessorViewMode.Classroom);
+            Assert.IsTrue(FindObject("LectureHall").activeInHierarchy, "Back in the classroom.");
+            Assert.IsFalse(passthrough.enabled);
+            Assert.IsFalse(FindObject("TableAlignment").activeInHierarchy);
+            Assert.AreEqual(1.6f, origin.CameraYOffset, 0.001f);
+            Assert.AreEqual(ProfessorViewMode.MixedReality, ProfessorViewRule.Other(ProfessorViewMode.Classroom));
+        }
+
+        [UnityTest]
+        public IEnumerator AStudentCannotSwitchTheProfessorsView()
+        {
+            LogAssert.ignoreFailingMessages = true;
+            ClassroomRole.OverrideForTests = ClassroomRoleKind.Student;
+#if UNITY_EDITOR
+            yield return EditorSceneManager.LoadSceneAsyncInPlayMode(ScenePath, new LoadSceneParameters(LoadSceneMode.Single));
+#else
+            yield break;
+#endif
+            yield return null;
+            yield return null;
+
+            var role = Object.FindFirstObjectByType<ClassroomRole>(FindObjectsInactive.Include);
+            role.SetProfessorView(ProfessorViewMode.MixedReality);
+
+            Assert.IsTrue(FindObject("LectureHall").activeInHierarchy, "The student stays in the hall whatever the professor chose.");
+            Assert.IsFalse(FindObject("TableAlignment").activeInHierarchy);
+        }
 
         [UnityTest]
         public IEnumerator TheProfessorCanWalkAndSnapTurn_AndBringTheTableBackWithAButton()
         {
             LogAssert.ignoreFailingMessages = true;
             ClassroomRole.OverrideForTests = ClassroomRoleKind.Professor;
+            // Placing the table on a real table belongs to the mixed reality view.
+            ClassroomRole.ProfessorViewOverrideForTests = ProfessorViewMode.MixedReality;
 #if UNITY_EDITOR
             yield return EditorSceneManager.LoadSceneAsyncInPlayMode(ScenePath, new LoadSceneParameters(LoadSceneMode.Single));
 #else
