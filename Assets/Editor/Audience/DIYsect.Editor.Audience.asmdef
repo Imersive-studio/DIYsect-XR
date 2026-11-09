@@ -1,0 +1,1 @@
+{"name":"DIYsect.Editor.Audience","rootNamespace":"DIYsect.Editor","references":["DIYsect.Audience","Unity.Collections","Unity.XR.CoreUtils"],"includePlatforms":["Editor"]}

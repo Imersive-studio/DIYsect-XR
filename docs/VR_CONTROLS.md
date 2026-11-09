@@ -17,3 +17,9 @@ Press the left menu button, the right secondary button (B), or Escape in the edi
 
 ## If something looks wrong
 Say what you see (no rays, no hands, tool will not grab) and which hand or controller you used, and write it in epic #124 on GitHub.
+
+## Seated audience
+
+In Unity, choose **Tools > DIYsect > Add Seated Audience** to place 25 classmates in the front rows of `LectureHall_VR`. Run the menu step after rebuilding or repositioning the hall, and save and commit the scene and `Assets/Materials/Audience.mat` with its metadata. Running the step again on the same layout leaves the scene alone. The figures are local scenery and have no network identities.
+
+For the demo check, start the student scene, stand at the table, and turn toward the front rows. Capture this view in Play Mode so the shirt colors and motion are visible. Walk away from the table to check that a few heads follow. On Quest, check frame timing and walk past the front rows to confirm they stay clear of the table and aisles.

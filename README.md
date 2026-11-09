@@ -71,6 +71,8 @@ The Unity scene previews show `LectureHall_VR` from where the student stands: in
 ![Lecture hall seen from behind the student](docs/previews/scene_hall.png)
 ![Scalpel and forceps on the instrument stand](docs/previews/scene_instruments.png)
 
+See the [student controls and seated audience setup](docs/VR_CONTROLS.md) for the lecture hall.
+
 ## Performance
 
 Keep the whole visible scene below approximately **750,000 triangles**. Individual limits are ceilings, not allocations: organs 20k, heart chambers/lung lobes 30k, body-wall pieces 20k, skin flaps 15k each, room 300k, instruments 10k each. The extraction script allocates at most **330k across anatomy surfaces**, leaving room for skin, tools, avatars and props. Inspect transparent and double-sided materials, draw calls and frame timing on Quest as well as triangle counts.
