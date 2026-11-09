@@ -28,7 +28,8 @@ namespace DIYsect.Editor
         private const string PrefabPath = "Assets/Prefabs/AnatomyBody.prefab";
         private const string QuestionsPath = "Assets/Scripts/Learning/Quiz/DefaultQuizQuestions.asset";
         private const string ProfessorScenePath = "Assets/Scenes/Professor_MR.unity";
-        private const string ClassmateScenePath = "Assets/Scenes/Classmate_Desktop.unity";
+        // Professor_MR is the shared scene: the classmate camera lives there next to the headset rig (see BuildSharedScene).
+        private const string ClassmateScenePath = "Assets/Scenes/Professor_MR.unity";
         private const string RootName = "DIYsect";
         private const string PanelName = "QuizPanel";
         private const string ClassmateRigName = "ClassmateCamera";
@@ -39,8 +40,8 @@ namespace DIYsect.Editor
         private static readonly Vector2 PanelSize = new Vector2(0.5f, 0.3f);
         private static readonly Vector3 SmallButton = new Vector3(0.06f, 0.06f, 0.02f);
         private static readonly Vector3 WideButton = new Vector3(0.12f, 0.06f, 0.02f);
-        // From the table centre: to the professor's right, a little nearer, at eye height. Mirrors the student view window.
-        private static readonly Vector3 OffsetFromTable = new Vector3(0.95f, 0f, -0.25f);
+        // From the table centre: further to the professor's right than the class roster (0.95 m), at eye height, so the two do not overlap.
+        private static readonly Vector3 OffsetFromTable = new Vector3(1.75f, 0f, -0.1f);
         private const float Height = 1.45f;
 
         [MenuItem("Tools/DIYsect/Add Quiz")]

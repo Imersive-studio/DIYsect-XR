@@ -27,6 +27,9 @@ namespace DIYsect.Editor
             "XR Origin (XR Rig)", "DepthHandle", "GuidePen", "StudentViewWindow", "ClassRoster", "TableAlignmentHandle", "TableAlignment",
         };
 
+        // Professor-only objects other tools add later (Add Quiz). Included when they exist.
+        private static readonly string[] OptionalProfessorObjectNames = { "QuizPanel" };
+
         [MenuItem("Tools/DIYsect/Build Shared Scene")]
         public static void Apply()
         {
@@ -51,6 +54,13 @@ namespace DIYsect.Editor
                 if (found == null)
                     throw new InvalidOperationException($"{ScenePath} has no {name}.");
                 professorObjects.Add(found);
+            }
+
+            foreach (string optional in OptionalProfessorObjectNames)
+            {
+                GameObject found = FindByName(scene, optional);
+                if (found != null)
+                    professorObjects.Add(found);
             }
 
             // The professor can walk with the left thumbstick and snap-turn with the right, and press A or X to bring the table back.

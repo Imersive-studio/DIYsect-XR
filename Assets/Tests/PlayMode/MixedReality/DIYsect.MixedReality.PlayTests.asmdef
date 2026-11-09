@@ -10,7 +10,8 @@
     "Unity.XR.CoreUtils",
     "XRMP",
     "DIYsect.Classroom",
-    "Unity.Collections"
+    "Unity.Collections",
+    "DIYsect.Learning"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
