@@ -75,6 +75,7 @@ namespace DIYsect.Editor
             foreach (Transform t in board.GetComponentsInChildren<Transform>(true))
                 t.gameObject.layer = 0;
 
+            ArrangeProfessorPanels.ArrangeIn(scene);
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))
                 throw new IOException($"Could not save {ScenePath}.");
