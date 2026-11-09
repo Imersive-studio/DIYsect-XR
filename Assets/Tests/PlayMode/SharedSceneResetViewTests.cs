@@ -181,6 +181,22 @@ namespace DIYsect.Networking.Tests
         }
 
         [UnityTest]
+        public IEnumerator EveryClassmateCanvasInTheSharedSceneSitsUnderASafeAreaPanel()
+        {
+            yield return LoadAsClassmate();
+            var rig = InScene<ClassmateViewReset>().transform;
+            var canvases = rig.GetComponentsInChildren<Canvas>(true);
+            Assert.IsNotEmpty(canvases);
+            foreach (Canvas canvas in canvases)
+            {
+                Assert.IsNotNull(canvas.GetComponent<CanvasOrientationScaler>(), $"{canvas.name} needs the orientation scaler.");
+                var panel = canvas.transform.Find(ClassmateCanvasLayout.PanelName);
+                Assert.IsNotNull(panel?.GetComponent<SafeAreaFitter>(), $"{canvas.name} needs a SafeArea panel.");
+                Assert.AreEqual(1, canvas.transform.childCount, $"{canvas.name}: everything belongs under the SafeArea panel.");
+            }
+        }
+
+        [UnityTest]
         public IEnumerator ClickingResetViewInTheSharedSceneReturnsTheClassmateCameraAndPlacesNoPin()
         {
             yield return LoadAsClassmate();

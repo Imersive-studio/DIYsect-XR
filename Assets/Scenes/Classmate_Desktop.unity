@@ -527,7 +527,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2072110476}
+  m_Father: {fileID: 1414684675}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.1, y: 0.08}
   m_AnchorMax: {x: 0.9, y: 0.18}
@@ -645,6 +645,55 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 658222412}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &713498169
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 713498170}
+  - component: {fileID: 713498171}
+  m_Layer: 0
+  m_Name: SafeArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &713498170
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 713498169}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 731212105}
+  m_Father: {fileID: 1121888456}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &713498171
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 713498169}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a01fc3b36a794f21b0f90b7760cf49a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Classroom::DIYsect.Classroom.SafeAreaFitter
 --- !u!1 &720705636
 GameObject:
   m_ObjectHideFlags: 0
@@ -799,7 +848,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1280501496}
-  m_Father: {fileID: 1121888456}
+  m_Father: {fileID: 713498170}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
@@ -1337,6 +1386,7 @@ GameObject:
   - component: {fileID: 1121888459}
   - component: {fileID: 1121888458}
   - component: {fileID: 1121888457}
+  - component: {fileID: 1121888460}
   m_Layer: 0
   m_Name: ViewResetCanvas
   m_TagString: Untagged
@@ -1356,7 +1406,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 731212105}
+  - {fileID: 713498170}
   m_Father: {fileID: 1559466040}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1427,6 +1477,18 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &1121888460
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1121888455}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94546994f90094f7c9825d760e533b7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Classroom::DIYsect.Classroom.CanvasOrientationScaler
 --- !u!1 &1200802508
 GameObject:
   m_ObjectHideFlags: 0
@@ -2020,6 +2082,55 @@ Transform:
   - {fileID: 1200802509}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1414684674
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1414684675}
+  - component: {fileID: 1414684676}
+  m_Layer: 0
+  m_Name: SafeArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1414684675
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1414684674}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 449413255}
+  m_Father: {fileID: 2072110476}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1414684676
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1414684674}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a01fc3b36a794f21b0f90b7760cf49a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Classroom::DIYsect.Classroom.SafeAreaFitter
 --- !u!1 &1417728294
 GameObject:
   m_ObjectHideFlags: 0
@@ -2183,6 +2294,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: XRMP::XRMultiplayer.ClassmateAutoJoin
   _retrySeconds: 5
   _runInEditor: 0
+  _autoJoinAnyRoom: 1
 --- !u!114 &1421188175
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3327,6 +3439,7 @@ GameObject:
   - component: {fileID: 2072110476}
   - component: {fileID: 2072110478}
   - component: {fileID: 2072110477}
+  - component: {fileID: 2072110479}
   m_Layer: 0
   m_Name: PinRejectionCanvas
   m_TagString: Untagged
@@ -3346,7 +3459,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 449413255}
+  - {fileID: 1414684675}
   m_Father: {fileID: 1559466040}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -3400,6 +3513,18 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &2072110479
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2072110475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94546994f90094f7c9825d760e533b7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Classroom::DIYsect.Classroom.CanvasOrientationScaler
 --- !u!1001 &981317231541604500
 PrefabInstance:
   m_ObjectHideFlags: 0
