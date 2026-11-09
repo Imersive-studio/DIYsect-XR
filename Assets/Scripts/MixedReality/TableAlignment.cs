@@ -42,6 +42,10 @@ namespace DIYsect.MixedReality
         [SerializeField, Range(0f, 45f), Tooltip("Largest tilt of a surface that still counts as a table top, in degrees.")] private float _maxTiltDegrees = 10f;
         [SerializeField, Range(1f, 90f), Tooltip("A handle twist larger than this keeps the heading the professor chose, in degrees.")] private float _deliberateTurnDegrees = 15f;
 
+        // A real table top is between 0.2 m and 1.6 m below a person's eyes, whether they stand or sit.
+        private const float TableTopBelowEyesMin = 0.2f;
+        private const float TableTopBelowEyesMax = 1.6f;
+
         [Header("When no table is near")]
         [SerializeField, Tooltip("Put the table in front of the professor when no detected table is within reach, so nobody has to walk to a far table.")] private bool _placeInFrontWhenNoNearbyTable = true;
         [SerializeField, Min(0.5f), Tooltip("A detected table farther than this from the viewer, in metres, is ignored.")] private float _maxDetectedTableDistance = 2.5f;
@@ -187,9 +191,14 @@ namespace DIYsect.MixedReality
             {
                 Vector3 flat = plane.center - _viewer.position;
                 flat.y = 0f;
+                // A table top is below the eyes. A "table" above them is a shelf, a ledge or the ceiling, and placing the
+                // body there leaves it out of sight.
+                bool belowEyes = !_placeInFrontWhenNoNearbyTable
+                    || (plane.center.y <= _viewer.position.y - TableTopBelowEyesMin && plane.center.y >= _viewer.position.y - TableTopBelowEyesMax);
                 if ((plane.classifications & PlaneClassifications.Table) != 0
                     && TableAlignmentMath.IsLevel(plane.normal, _maxTiltDegrees)
-                    && flat.magnitude <= reach)
+                    && flat.magnitude <= reach
+                    && belowEyes)
                     _tableCentres.Add(plane.center);
             }
             int nearest = TableAlignmentMath.NearestIndex(_tableCentres, _viewer.position);

@@ -53,6 +53,12 @@ namespace DIYsect.Editor
                 professorObjects.Add(found);
             }
 
+            // The professor can walk with the left thumbstick and snap-turn with the right, and press A or X to bring the table back.
+            EnableProfessorLocomotion(scene);
+            var alignment = UnityEngine.Object.FindFirstObjectByType<DIYsect.MixedReality.TableAlignment>(FindObjectsInactive.Include);
+            if (alignment != null && alignment.GetComponent<DIYsect.MixedReality.TableRecenterInput>() == null)
+                alignment.gameObject.AddComponent<DIYsect.MixedReality.TableRecenterInput>();
+
             var role = GetOrAdd<ClassroomRole>(manager.gameObject);
             var serialized = new SerializedObject(role);
             SetArray(serialized.FindProperty("_professorObjects"), professorObjects.ToArray());
@@ -79,6 +85,32 @@ namespace DIYsect.Editor
             {
                 Debug.LogError(e);
                 EditorApplication.Exit(1);
+            }
+        }
+
+        // The template is a tabletop game, so its move and turn providers ship switched off. They are the standard XR Interaction
+        // Toolkit ones: this turns on moving, and snap turning only (continuous turning makes many people sick).
+        private static void EnableProfessorLocomotion(Scene scene)
+        {
+            var origin = UnityEngine.Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>(FindObjectsInactive.Include);
+            if (origin == null)
+                throw new InvalidOperationException($"{ScenePath} has no XR Origin.");
+            Transform locomotion = origin.transform.Find("Locomotion") ?? throw new InvalidOperationException("The rig has no Locomotion object.");
+            Switch(locomotion.Find("Move"), name => true);
+            Switch(locomotion.Find("Turn"), name => name == "SnapTurnProvider");
+        }
+
+        private static void Switch(Transform target, Func<string, bool> enabledFor)
+        {
+            if (target == null)
+                throw new InvalidOperationException("A locomotion object is missing from the rig.");
+            target.gameObject.SetActive(true);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(target.gameObject);
+            foreach (Behaviour provider in target.GetComponents<Behaviour>())
+            {
+                provider.enabled = enabledFor(provider.GetType().Name);
+                EditorUtility.SetDirty(provider);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(provider);
             }
         }
 

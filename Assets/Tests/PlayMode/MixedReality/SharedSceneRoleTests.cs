@@ -1,6 +1,7 @@
 // The professor and the classmates run one scene. These tests check that the role switch turns on the right half of it.
 using System.Collections;
 using System.Reflection;
+using DIYsect.MixedReality;
 using NUnit.Framework;
 using Unity.Netcode;
 using UnityEngine;
@@ -126,6 +127,59 @@ namespace DIYsect.MixedReality.Tests
             }
             Scene scene = SceneManager.GetSceneByPath(ScenePath);
             Scene empty = SceneManager.CreateScene("AfterSharedSceneProfessor");
+            SceneManager.SetActiveScene(empty);
+            if (scene.IsValid() && scene.isLoaded)
+                yield return SceneManager.UnloadSceneAsync(scene);
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator TheProfessorCanWalkAndSnapTurn_AndBringTheTableBackWithAButton()
+        {
+            LogAssert.ignoreFailingMessages = true;
+            ClassroomRole.OverrideForTests = ClassroomRoleKind.Professor;
+#if UNITY_EDITOR
+            yield return EditorSceneManager.LoadSceneAsyncInPlayMode(ScenePath, new LoadSceneParameters(LoadSceneMode.Single));
+#else
+            yield break;
+#endif
+            yield return null;
+            yield return null;
+
+            GameObject rig = FindObject("XR Origin (XR Rig)");
+            Transform move = rig.transform.Find("Locomotion/Move");
+            Transform turn = rig.transform.Find("Locomotion/Turn");
+            Assert.IsNotNull(move, "The rig has no Locomotion/Move.");
+            Assert.IsNotNull(turn, "The rig has no Locomotion/Turn.");
+            Assert.IsTrue(move.gameObject.activeInHierarchy);
+            foreach (Behaviour provider in move.GetComponents<Behaviour>())
+                Assert.IsTrue(provider.enabled, $"{provider.GetType().Name} on Move must be on so the left thumbstick walks.");
+            Assert.IsTrue(turn.gameObject.activeInHierarchy);
+            foreach (Behaviour provider in turn.GetComponents<Behaviour>())
+                Assert.AreEqual(provider.GetType().Name == "SnapTurnProvider", provider.enabled, $"{provider.GetType().Name} on Turn");
+
+            TableAlignment alignment = Object.FindFirstObjectByType<TableAlignment>();
+            TableRecenterInput recenter = alignment.GetComponent<TableRecenterInput>();
+            Assert.IsNotNull(recenter, "TableAlignment needs the recenter button.");
+            recenter.Recenter();
+            Assert.AreEqual(TableAlignment.Source.InFrontOfViewer, alignment.LastSource);
+            Assert.AreEqual(AlignmentPhase.Placed, alignment.Phase);
+
+            Transform head = Camera.main != null ? Camera.main.transform : Object.FindFirstObjectByType<Camera>().transform;
+            Vector3 top = alignment.RootPose.position + alignment.RootPose.rotation * alignment.TableTopLocal;
+            Vector3 toTop = top - head.position;
+            Assert.AreEqual(-0.7f, toTop.y, 0.05f, "The table top must be 0.7 m below the eyes.");
+            Vector3 flat = new Vector3(toTop.x, 0f, toTop.z);
+            Assert.AreEqual(0.9f, flat.magnitude, 0.05f, "The table top must be 0.9 m ahead.");
+
+            ClassroomRole.OverrideForTests = null;
+            foreach (NetworkManager manager in Object.FindObjectsByType<NetworkManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                manager.Shutdown();
+                Object.DestroyImmediate(manager.gameObject);
+            }
+            Scene scene = SceneManager.GetSceneByPath(ScenePath);
+            Scene empty = SceneManager.CreateScene("AfterProfessorMove");
             SceneManager.SetActiveScene(empty);
             if (scene.IsValid() && scene.isLoaded)
                 yield return SceneManager.UnloadSceneAsync(scene);
