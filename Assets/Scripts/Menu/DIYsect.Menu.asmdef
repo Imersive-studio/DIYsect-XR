@@ -1,0 +1,9 @@
+{
+  "name": "DIYsect.Menu",
+  "rootNamespace": "DIYsect.Menu",
+  "references": [
+    "Unity.InputSystem",
+    "Unity.XR.Interaction.Toolkit",
+    "Unity.TextMeshPro"
+  ]
+}

@@ -65,6 +65,7 @@ GameObject:
   - component: {fileID: 5497079777773474171}
   - component: {fileID: 4394310534460841482}
   - component: {fileID: 2874784137506190719}
+  - component: {fileID: 3675078693299174340}
   m_Layer: 0
   m_Name: ForcepsPlaceholder
   m_TagString: Untagged
@@ -89,6 +90,7 @@ Transform:
   - {fileID: 8021668262069992801}
   - {fileID: 3968017349764665622}
   - {fileID: 6714920152009083569}
+  - {fileID: 7619979603249568595}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &5497079777773474171
@@ -131,7 +133,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable
   m_InteractionManager: {fileID: 0}
-  m_Colliders: []
+  m_Colliders:
+  - {fileID: 4971706930849417241}
+  - {fileID: 2505114507132865275}
   m_InteractionLayers:
     m_Bits: 1
   m_DistanceCalculationMode: 1
@@ -262,6 +266,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: DIYsect.Interaction::DIYsect.Interaction.ForcepsTool
   _toolName: Forceps
   _tip: {fileID: 3968017349764665622}
+--- !u!114 &3675078693299174340
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4951755910463535638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c8f243151fe04b9084f23c5be146c4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DIYsect.Interaction::DIYsect.Interaction.ToolHoverFeedback
+  _hoverColor: {r: 1, g: 0.92, b: 0.45, a: 1}
+  _hoverPulse:
+    _amplitude: 0.15
+    _durationSeconds: 0.05
+  _grabPulse:
+    _amplitude: 0.5
+    _durationSeconds: 0.1
 --- !u!1 &6942679630821844485
 GameObject:
   m_ObjectHideFlags: 0
@@ -352,6 +375,59 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &8524887714626152765
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7619979603249568595}
+  - component: {fileID: 2505114507132865275}
+  m_Layer: 0
+  m_Name: GrabZone
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7619979603249568595
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8524887714626152765}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.000000014901161, y: -0.000000037252903, z: -0.01139313}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8580873668226863163}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &2505114507132865275
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8524887714626152765}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.06
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &8660517657259293742
 GameObject:
   m_ObjectHideFlags: 0

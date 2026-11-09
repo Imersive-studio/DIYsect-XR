@@ -102,8 +102,10 @@ namespace DIYsect.Networking.Tests
             yield return WaitForBody(late, body => lateProgress = body.GetComponent<DissectionProgress>());
             yield return WaitFor(() => lateProgress.Stage == DissectionStage.SkinOpen, "the late client to see SkinOpen");
             Assert.AreEqual(1f, lateProgress.IncisionProgress, 0.0001f);
-            // Joined state is applied at once, without waiting for a swing animation.
+            // Joined state is applied at once, without waiting for a swing animation. The hinges can lag the stage by a
+            // frame, so wait for them instead of reading them the moment the stage arrives.
             SkinFlapHinge[] hinges = lateProgress.GetComponentsInChildren<SkinFlapHinge>();
+            yield return WaitFor(() => FlapsAre(hinges, open: true), "the late client's flaps to be open");
             AssertFlaps(hinges, open: true);
         }
 

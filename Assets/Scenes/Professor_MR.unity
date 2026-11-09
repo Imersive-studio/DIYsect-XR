@@ -234,6 +234,59 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!1 &48052196
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 48052197}
+  - component: {fileID: 48052198}
+  m_Layer: 0
+  m_Name: GrabZone
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &48052197
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 48052196}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1136453382}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &48052198
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 48052196}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 1.1999999
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &137251922
 GameObject:
   m_ObjectHideFlags: 0
@@ -1864,7 +1917,8 @@ Transform:
   m_LocalPosition: {x: 0.58, y: 1.0309999, z: 1.2}
   m_LocalScale: {x: 0.05, y: 0.05, z: 0.05}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 48052197}
   m_Father: {fileID: 908823472}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1136453383
@@ -1895,7 +1949,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable
   m_InteractionManager: {fileID: 0}
-  m_Colliders: []
+  m_Colliders:
+  - {fileID: 1136453387}
+  - {fileID: 48052198}
   m_InteractionLayers:
     m_Bits: 1
   m_DistanceCalculationMode: 1
@@ -4676,6 +4732,11 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 49264961353865464, guid: 7d554cf076fc46143bcaf9a54fc2204d,
+        type: 3}
+      propertyPath: m_PhysicsTriggerInteraction
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 873651699814717867, guid: 7d554cf076fc46143bcaf9a54fc2204d,
         type: 3}
       propertyPath: m_SizeDelta.x
@@ -4695,6 +4756,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4271663393746210669, guid: 7d554cf076fc46143bcaf9a54fc2204d,
+        type: 3}
+      propertyPath: m_PhysicsTriggerInteraction
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6391579207171690961, guid: 7d554cf076fc46143bcaf9a54fc2204d,
         type: 3}
@@ -4750,6 +4816,16 @@ PrefabInstance:
         type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6481759311775942787, guid: 7d554cf076fc46143bcaf9a54fc2204d,
+        type: 3}
+      propertyPath: m_PhysicsTriggerInteraction
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7043497332038288999, guid: 7d554cf076fc46143bcaf9a54fc2204d,
+        type: 3}
+      propertyPath: m_PhysicsTriggerInteraction
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7101621870033203765, guid: 7d554cf076fc46143bcaf9a54fc2204d,
         type: 3}

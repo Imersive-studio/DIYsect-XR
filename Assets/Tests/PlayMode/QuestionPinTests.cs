@@ -239,7 +239,7 @@ namespace DIYsect.Networking.Tests
             for (int i = 0; i < _serverBody.Organs.Count; i++)
                 if (expectedHit.collider.transform.IsChildOf(_serverBody.Organs[i].transform))
                     expectedOrgan = i;
-            Assert.GreaterOrEqual(expectedOrgan, 0);
+            Assert.GreaterOrEqual(expectedOrgan, 0, $"The test ray first hit {expectedHit.collider.name} (layer {expectedHit.collider.gameObject.layer}), which is not an organ.");
 
             var holder = new GameObject("PinInput");
             holder.SetActive(false);
