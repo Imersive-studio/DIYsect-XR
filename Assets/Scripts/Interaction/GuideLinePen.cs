@@ -12,8 +12,8 @@ namespace DIYsect.Interaction
     /// release the trigger to finish. Every new stroke replaces the previous line, so a quick tap clears it.
     /// The stroke follows <see cref="GrabRequest"/>: pressing the trigger asks the server for the stroke, and the tip
     /// is sampled only once the server says yes (if someone else is drawing, nothing happens). Sampling runs on a
-    /// short timer and sends only when the tip moved, so there is no per-frame code. Releasing the trigger, putting the
-    /// pen down or disabling it ends the stroke; the host clearing the line stops it.
+    /// short timer and sends only when the tip moved, so there is no per-frame code. Moving the table under the pen ends the
+    /// stroke. Releasing the trigger, putting the pen down or disabling it ends the stroke; the host clearing the line stops it.
     /// </summary>
     [RequireComponent(typeof(XRGrabInteractable))]
     public class GuideLinePen : MonoBehaviour
@@ -23,8 +23,12 @@ namespace DIYsect.Interaction
         [SerializeField, Min(0.01f)] private float _sampleSeconds = 0.03f;
         [SerializeField, Min(0.001f)] private float _minMove = 0.005f;
 
+        private const float BodyMovedMeters = 0.001f;
+        private const float BodyMovedDegrees = 0.1f;
+
         private XRGrabInteractable _grab;
         private Coroutine _drawing;
+        private bool _endedByTableMove;
         private readonly GrabRequest _request = new GrabRequest();
 
         /// <summary>This pen's stroke phase: Granted while it is drawing.</summary>
@@ -91,7 +95,9 @@ namespace DIYsect.Interaction
                 StopDrawing();
             if ((actions & GrabRequest.Actions.SendRelease) != 0)
             {
-                _line.AddPoint(_tip.position);
+                // A table move leaves the tip far from the line, so the closing point is left out.
+                if (!_endedByTableMove)
+                    _line.AddPoint(_tip.position);
                 _line.EndStroke();
             }
             if ((actions & GrabRequest.Actions.StartStreaming) != 0)
@@ -102,15 +108,31 @@ namespace DIYsect.Interaction
         {
             var wait = new WaitForSeconds(_sampleSeconds);
             Vector3 last = _tip.position;
+            Pose body = new Pose(_line.transform.position, _line.transform.rotation);
             _line.AddPoint(last);
             while (true)
             {
                 yield return wait;
+                // The table was moved (A or X, or its handle): the pen did not move with it, so the next point would
+                // jump across the body. End the stroke instead.
+                if (BodyMoved(body))
+                {
+                    _endedByTableMove = true;
+                    FinishStroke();
+                    _endedByTableMove = false;
+                    yield break;
+                }
                 if (Vector3.Distance(_tip.position, last) < _minMove)
                     continue;
                 last = _tip.position;
                 _line.AddPoint(last);
             }
+        }
+
+        private bool BodyMoved(Pose since)
+        {
+            return Vector3.Distance(_line.transform.position, since.position) > BodyMovedMeters
+                || Quaternion.Angle(_line.transform.rotation, since.rotation) > BodyMovedDegrees;
         }
 
         private void StopDrawing()
