@@ -26,3 +26,22 @@ Prove a state bug with a failing test before fixing it. Old public properties st
 Later, lower risk: an explicit "cutting" dissection stage, scalpel zone reporting, one organ presentation phase for hover, label, ghost and haptics.
 
 If you are adding a feature with phases, follow the house pattern and add it to this table.
+
+## Professor tools together
+
+The professor has three tools in `Professor_MR`: the guide pen, the depth handle (guiding hand) and the student view window. They are independent on purpose: each has its own state and its own server-side owner, so none of them needs to know about the others.
+
+| Tool | Input | What it touches | State and owner |
+|---|---|---|---|
+| Guide pen (`GuideLinePen`) | Grab the pen (grip), hold the trigger to draw | Samples its own tip position. It does not raycast and has no trigger that the scalpel or forceps react to | `GrabRequest` phase on the pen; the server (`GuideLine`) holds the drawer and the points |
+| Depth handle (`DepthControlInput`) | Grab the handle (grip), lower or raise it | Streams the handle height as the cut depth | `GrabRequest` phase on the handle; the server (`GuidingHand`) holds the controller and the depth |
+| Student view window (`StudentViewWindow`) | Ray-select the previous and next buttons; it opens by itself when a question has a view | Moves its own camera; the panel and the buttons are on the `CloseUpScreen` layer and the screen and frame have no collider | `StudentViewMode`, local to the professor's client; derived from the question board |
+
+What blocks what:
+
+- Each tool is a separate grab interactable, and a hand holds one at a time. Taking the handle with the hand that holds the pen lets go of the pen, which ends the stroke through the pen's own release path. Drawing with one hand while the other holds the handle is allowed and works: the line and the depth are separate server objects.
+- The pen is blocked only by another drawer (the server answers no), the handle only when nobody can be guided (`CanRequestControl`). Neither looks at the other.
+- The window never blocks a tool and no tool blocks it. A question with a view opening the window, or stepping through it, changes no pen or handle state.
+- The pen and the handle exist only in `Professor_MR`, so the student cannot grab them.
+
+`ProfessorToolsTogetherTests` uses the tools together and checks that each still works alone afterwards. Not verified on a headset: which button of a real controller or hand pose each action maps to comes from the XR Interaction Toolkit rig, not from DIYsect code.
