@@ -2,7 +2,7 @@
 
 How to get the project running, build it for Quest 3 and install it. Written for teammates who are new to Unity and for contest judges. Every fact comes from a file in this repository. Where the repository says nothing, this page says "unverified" or "usual method" so nobody mistakes a guess for a tested step.
 
-Last checked against the repository on 7 November 2026.
+Last checked against the repository on 9 November 2026 (commit 7e4caac).
 
 ## 1. What you need
 
@@ -66,6 +66,27 @@ From the editor:
 3. Wait. The setup machine needed about 8 minutes, including the switch to the Android platform (`docs/SETUP_STATUS.md`).
 
 The menu item builds every scene that is ticked in the build list (currently five scenes), as an ARM64, IL2CPP **development** build.
+
+### Build one role (the way to build for the demo)
+
+Each role is its own app with its own application id, so the professor and the student can both be installed on different headsets, and the app opens straight into that role's scene:
+
+| Menu item | Scene | Output | Size on 9 November 2026 |
+|---|---|---|---|
+| **Tools > DIYsect > Build Professor APK** | `Professor_MR` | `Builds/Android-Professor/DIYsect-Professor.apk` | 75 MB |
+| **Tools > DIYsect > Build Student APK** | `LectureHall_VR` | `Builds/Android-Student/DIYsect-Student.apk` | 136 MB |
+| **Tools > DIYsect > Build Classmate Phone APK** | `Classmate_Desktop` | `Builds/Android-Classmate/DIYsect-Classmate.apk` | 71 MB (8 November build) |
+
+The role builds are not development builds. Netcode's logging helper only runs in development builds and made hosting and joining throw on the headset. Build from the menu, or from a terminal **without** `-nographics` (the build renders a camera and needs a graphics device; both role builds passed this way on 9 November):
+
+```bash
+<path to Unity 6000.3.28f1>/Unity -batchmode -quit -projectPath . -executeMethod DIYsect.Editor.BuildAndroidRole.BuildStudentBatch
+<path to Unity 6000.3.28f1>/Unity -batchmode -quit -projectPath . -executeMethod DIYsect.Editor.BuildAndroidRole.BuildProfessorBatch
+```
+
+The Student build took about 6 minutes on a Mac the first time, and the Professor build about 1 minute after it. Install with `adb install -r <apk>`. Wear the headset when you launch: a headset that is not worn shows the lock screen and the app will not start, and a USB cable in a Quest can bring up the Meta Link prompt instead of your app.
+
+### All scenes in one app (older flow)
 
 From a terminal, with the editor closed (batch method in `Assets/Editor/BuildAndroid.cs`):
 
@@ -169,15 +190,15 @@ Package versions in use (`Packages/manifest.json`, with the lock file checked):
 
 | Check | Status | Evidence |
 |---|---|---|
-| Editor batch tests | Passed | EditMode 113 of 113 and PlayMode 93 of 93 passed in batch mode on Unity 6000.3.28f1 on 8 November 2026. Run EditMode and then PlayMode back to back; a PlayMode run on its own sometimes aborts with "Playmode tests were aborted because the player was stopped" (Unity's tutorial window stops play mode) and passes when run again. No test report file is stored in the repository. |
+| Editor batch tests | Passed | EditMode 296 of 296 and PlayMode 128 of 129 passed in batch mode on Unity 6000.3.28f1 on 9 November 2026 (commit 7e4caac). The one PlayMode failure, `HolderKeepsItsLocalPoseWhileGrabbedAndConvergesAfterRelease`, fails about one run in three and is believed to be a test artifact, not a game bug. Run EditMode and then PlayMode back to back; a PlayMode run on its own sometimes aborts with "Playmode tests were aborted because the player was stopped" (Unity's tutorial window stops play mode) and passes when run again. No test report file is stored in the repository. |
 | XR validation (editor) | Passed | 0 OpenXR Project Validation issues and 0 XR Core Utils issues for Android and desktop, from **Tools > DIYsect > Report XR Validation** (`docs/SETUP_STATUS.md`). |
-| Quest APK build | Built, not installed | ARM64 IL2CPP development build, 158 MB on the evening of 7 November 2026 (90 MB earlier that day), built in batch mode (`docs/SETUP_STATUS.md`). A rebuild on 8 November failed in batch mode (see section 4); rebuild from the editor menu. Never installed on a headset. |
+| Quest APK build | Built; an earlier build ran on a Quest 3 | The Student app (136 MB) and the Professor app (75 MB) built from commit 7e4caac on 9 November 2026, as ARM64 IL2CPP release builds, from a batch run with graphics. An earlier Student build was installed and run on a Quest 3 on 8 November. |
 | Meta XR Simulator | Not run | Not installed on the setup machine; no run and no screenshot (`docs/SETUP_STATUS.md`). |
-| Quest 3 hardware | Not tested | No hardware test yet. The device test in `docs/MR_TABLE_ALIGNMENT.md` is written but not done; the acceptance gate in `docs/ARCHITECTURE.md` is still open. |
+| Quest 3 hardware | Partly tested | The Student app was installed with `adb` and ran on a Quest 3 on 8 November 2026: the headset tracked, the student walked, and a tool could be grabbed. The later changes (fixed 1.6 m eye height, visible rays, wider grab zones, hover tint, quit menu) are built and tested in the editor but have not been tried on the headset yet. The Professor app has not been run on a headset. The device test in `docs/MR_TABLE_ALIGNMENT.md` is written but not done; the acceptance gate in `docs/ARCHITECTURE.md` is still open. |
 | Two-device multiplayer | Partly tested | 8 November 2026: the Mac editor hosted a lobby and an Android phone joined it over Relay (both logs agree: `Pending Client-1 connection approved!` on the host, `Connected to game session` on the phone). Authentication, Lobby, Relay and Vivox worked. A pin from the phone and any headset in the room are not tested. |
 | Android phone classmate | Partly tested | `Tools > DIYsect > Build Classmate Phone APK` (71 MB, minimum Android 10) installed and ran on an LG LM-G900TM with Android 12 on 8 November 2026: it signs in, joins the room and joins the voice channel. Touch orbit and the status line were added afterwards and have not been run on the phone. Pins from a finger: unchecked. |
 
-Read this table as: the code compiles, builds and passes its automated tests; nothing has yet been seen running on a headset or across two devices.
+Read this table as: the code compiles, builds and passes its automated tests; the Student app has run on one Quest 3, and a phone has joined a room hosted from the editor, but two headsets have not yet been in one room together.
 
 ## Open questions for the team
 
