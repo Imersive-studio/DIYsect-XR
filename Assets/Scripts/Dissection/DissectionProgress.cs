@@ -9,8 +9,9 @@ namespace DIYsect.Dissection
     /// <summary>
     /// Server-authoritative state of the midline incision on the shared body.
     /// The midline is a segment from <c>_lineStart</c> (xiphoid) to <c>_lineEnd</c> (pubis) in the body
-    /// root's local space. A scalpel sample counts when it is within <c>_toleranceMeters</c> of the segment
-    /// and ahead of the current progress by no more than <c>_maxStepFraction</c> of its length.
+    /// root's local space, with the curved skin above it in <c>_surface</c>. A scalpel sample counts when
+    /// <see cref="IncisionRule.IsOnLine"/> accepts it (on the skin or pressed in, within <c>_toleranceMeters</c>)
+    /// and it is ahead of the current progress by no more than <c>_maxStepFraction</c> of its length.
     /// Reaching the end sets <see cref="DissectionStage.Incised"/>. Opening the skin is a separate request
     /// (<see cref="RequestOpen"/>) that the server accepts only in the Incised stage. Both values are read
     /// by every peer, so late joiners get the current state when the body spawns.
@@ -20,8 +21,10 @@ namespace DIYsect.Dissection
     {
         [SerializeField] private Vector3 _lineStart;
         [SerializeField] private Vector3 _lineEnd;
+        [SerializeField, Tooltip("The skin along the midline, evenly spaced from the start to the end, body-local. The glowing guide follows it.")]
+        private Vector3[] _surface = new Vector3[0];
         [SerializeField, Min(0.001f)] private float _toleranceMeters = 0.04f;
-        [SerializeField, Range(0.01f, 1f)] private float _maxStepFraction = 0.2f;
+        [SerializeField, Range(0.01f, 1f)] private float _maxStepFraction = 0.3f;
         [SerializeField, Range(0.5f, 1f)] private float _completeAtFraction = 0.98f;
 
         private readonly NetworkVariable<float> _progress = new NetworkVariable<float>(0f);
@@ -100,10 +103,7 @@ namespace DIYsect.Dissection
             if (_stage.Value != DissectionStage.Intact)
                 return SampleResult.WrongStage;
 
-            Vector3 line = _lineEnd - _lineStart;
-            float along = Mathf.Clamp01(Vector3.Dot(localPoint - _lineStart, line) / line.sqrMagnitude);
-            Vector3 closest = _lineStart + line * along;
-            if (Vector3.Distance(localPoint, closest) > _toleranceMeters)
+            if (!IncisionRule.IsOnLine(localPoint, _lineStart, _lineEnd, _surface, _toleranceMeters, out float along))
                 return SampleResult.OffLine;
 
             float current = _progress.Value;

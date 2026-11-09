@@ -25,6 +25,7 @@ namespace DIYsect.Editor
         private const float MidlineBand = 0.01f;     // vertices this close to x = 0 count as the cut edge
         private const float EndInset = 0.03f;        // the cut starts and ends this far inside the flap ends
         private const float ToleranceMeters = 0.04f;
+        private const float MaxStepFraction = 0.3f;  // a short dropout of the blade must not block the next sample
         private const float EdgeBand = 0.01f;        // vertices this close to the outer extreme count as the outer edge
 
         [MenuItem("Tools/DIYsect/Add Body Dissection")]
@@ -53,14 +54,18 @@ namespace DIYsect.Editor
                 List<Vector3> rightPoints = RootLocalVertices(root.transform, right);
 
                 (Vector3 start, Vector3 end) = MeasureMidline(leftPoints, rightPoints);
-                SetMidline(progress, start, end);
-                AddTrigger(root.transform, progress, start, end);
+                var skinPoints = new List<Vector3>(leftPoints);
+                skinPoints.AddRange(rightPoints);
+                // The skin along the midline: the glowing guide, the drawn cut and the cut rule all use these points.
+                Vector3[] surface = AnatomyBodyIncisionLine.MeasurePath(skinPoints, start, end);
+                SetMidline(progress, start, end, surface);
+                AddTrigger(root.transform, progress, start, end, surface);
 
                 AddHinge(root.transform, skin, left, leftPoints, progress);
                 AddHinge(root.transform, skin, right, rightPoints, progress);
 
                 AnatomyBodyWall.Apply(root, progress);
-                AnatomyBodyIncisionLine.Apply(root, progress, new[] { left, right });
+                AnatomyBodyIncisionLine.Apply(root, progress, surface);
 
                 PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
                 Debug.Log($"Added dissection components to {PrefabPath}. Midline (body-local): {start} to {end}.");
@@ -139,16 +144,22 @@ namespace DIYsect.Editor
             return best;
         }
 
-        private static void SetMidline(DissectionProgress progress, Vector3 start, Vector3 end)
+        private static void SetMidline(DissectionProgress progress, Vector3 start, Vector3 end, Vector3[] surface)
         {
             var serialized = new SerializedObject(progress);
             serialized.FindProperty("_lineStart").vector3Value = start;
             serialized.FindProperty("_lineEnd").vector3Value = end;
             serialized.FindProperty("_toleranceMeters").floatValue = ToleranceMeters;
+            serialized.FindProperty("_maxStepFraction").floatValue = MaxStepFraction;
+            SerializedProperty points = serialized.FindProperty("_surface");
+            points.arraySize = surface.Length;
+            for (int i = 0; i < surface.Length; i++)
+                points.GetArrayElementAtIndex(i).vector3Value = surface[i];
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static void AddTrigger(Transform root, DissectionProgress progress, Vector3 start, Vector3 end)
+        // The box covers the whole cutting band: from just below the straight midline to just above the highest skin.
+        private static void AddTrigger(Transform root, DissectionProgress progress, Vector3 start, Vector3 end, Vector3[] surface)
         {
             Transform zone = root.Find(TriggerName);
             if (zone == null)
@@ -161,8 +172,9 @@ namespace DIYsect.Editor
 
             var box = GetOrAdd<BoxCollider>(zone.gameObject);
             box.isTrigger = true;
-            box.center = Vector3.zero;
-            box.size = new Vector3(ToleranceMeters * 2f, ToleranceMeters * 2f, line.magnitude);
+            float rise = IncisionRule.HighestRise(surface, start, end);
+            box.center = new Vector3(0f, rise * 0.5f, 0f);
+            box.size = new Vector3(ToleranceMeters * 2f, ToleranceMeters * 2f + rise, line.magnitude);
 
             var trigger = GetOrAdd<IncisionTrigger>(zone.gameObject);
             var serialized = new SerializedObject(trigger);
