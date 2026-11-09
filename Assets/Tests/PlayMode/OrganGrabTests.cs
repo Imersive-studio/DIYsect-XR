@@ -121,6 +121,12 @@ namespace DIYsect.Networking.Tests
             Quaternion localRotation = Quaternion.Euler(0f, 60f, 0f);
             organ.SetLocalPositionAndRotation(localPosition, localRotation);
 
+            // A reliable teleport/state reset can arrive after the claim. Unlike interpolation, NGO applies it
+            // during message receipt, so exercise that path deterministically instead of relying on spawn timing.
+            var serverTransform = _serverBody.Organs[OrganIndex];
+            serverTransform.Teleport(serverTransform.transform.localPosition, serverTransform.transform.localRotation,
+                serverTransform.transform.localScale);
+
             yield return new WaitForSeconds(0.7f);
             Assert.IsTrue(Near(_bodyA, localPosition, localRotation),
                 $"The holder's organ snapped back toward the stale server pose. Wanted {localPosition}, is {organ.localPosition}; paused: {organ.GetComponent<HoldableNetworkTransform>().IsPaused}.");

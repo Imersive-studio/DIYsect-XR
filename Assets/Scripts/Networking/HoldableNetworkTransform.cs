@@ -19,6 +19,8 @@ namespace DIYsect.Networking
         private Vector3 _targetEuler;
         private bool _hasTarget;
         private float _lastStateTime;
+        private Pose _pausedLocalPose;
+        private bool _preserveLocalPose;
 
         /// <summary>True while the local client holds this organ and moves it itself.</summary>
         public bool IsPaused { get; private set; }
@@ -45,12 +47,20 @@ namespace DIYsect.Networking
         public override void OnUpdate()
         {
             // NGO's docs say a non-authority instance should always call base. We deliberately skip it while paused.
-            // That is safe here: incoming states are still buffered (TransformStateUpdate does not go through
-            // OnUpdate), so when the pause ends, interpolation resumes and moves the organ to the current server pose.
+            // Incoming states are still buffered, so interpolation can resume on release. Teleport states also write
+            // the transform during message receipt; the before/after state hooks below preserve the holder's pose.
             if (IsPaused)
                 return;
             base.OnUpdate();
             SettleOnServerPose();
+        }
+
+        protected override void OnBeforeUpdateTransformState()
+        {
+            base.OnBeforeUpdateTransformState();
+            _preserveLocalPose = IsPaused;
+            if (_preserveLocalPose)
+                _pausedLocalPose = new Pose(transform.localPosition, transform.localRotation);
         }
 
         // Remembers the newest pose the server sent. A state only carries the axes that changed, so we merge it into
@@ -58,6 +68,13 @@ namespace DIYsect.Networking
         protected override void OnNetworkTransformStateUpdated(ref NetworkTransformState oldState, ref NetworkTransformState newState)
         {
             base.OnNetworkTransformStateUpdated(ref oldState, ref newState);
+            // NGO applies teleport states before this callback, independently of OnUpdate. Keep their buffered
+            // target for release, but do not let a delayed server state move the object out of the holder's hand.
+            if (_preserveLocalPose)
+            {
+                transform.SetLocalPositionAndRotation(_pausedLocalPose.position, _pausedLocalPose.rotation);
+                _preserveLocalPose = false;
+            }
             // The rotation merge below reads per-axis Euler flags, which NGO only sets when quaternion sync is off.
             if (UseQuaternionSynchronization)
             {
