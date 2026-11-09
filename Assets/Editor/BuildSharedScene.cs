@@ -38,6 +38,7 @@ namespace DIYsect.Editor
 
             Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             ConfigureRoles(scene);
+            HideTemplateClutter.HideIn(scene);
             // Last, so every panel the steps above built ends up on one even arc around the professor.
             ArrangeProfessorPanels.ArrangeIn(scene);
 
@@ -54,6 +55,7 @@ namespace DIYsect.Editor
             {
                 Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
                 ConfigureRoles(scene);
+                HideTemplateClutter.HideIn(scene);
                 ArrangeProfessorPanels.ArrangeIn(scene);
                 EditorSceneManager.MarkSceneDirty(scene);
                 if (!EditorSceneManager.SaveScene(scene))

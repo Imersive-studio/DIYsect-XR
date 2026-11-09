@@ -133,6 +133,22 @@ namespace DIYsect.StudentRig.Tests
         }
 
         [Test]
+        public void TheTemplatesLobbyMenuAndGridSlabAreOff()
+        {
+            var scene = EditorSceneManager.OpenScene(ProfessorScene, OpenSceneMode.Single);
+            Transform ui = null, table = null;
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                if (root.name == "UI") ui = root.transform;
+                if (root.name == "Virtual Table") table = root.transform;
+            }
+            Transform menu = ui != null ? ui.Find("World Space Canvas") : null;
+            Assert.IsTrue(menu == null || !menu.gameObject.activeSelf, "The template lobby menu clutters the professor's view. Run Tools > DIYsect > Hide Template Clutter.");
+            Transform grid = table != null ? table.Find("TableSystem/TableTop/Plane") : null;
+            Assert.IsTrue(grid == null || !grid.GetComponent<Renderer>().enabled, "The template grid slab clutters the professor's view. Run Tools > DIYsect > Hide Template Clutter.");
+        }
+
+        [Test]
         public void OnlyTheStudentSeesTheChecklistCard()
         {
             EditorSceneManager.OpenScene(ProfessorScene, OpenSceneMode.Single);
