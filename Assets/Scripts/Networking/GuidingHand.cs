@@ -41,6 +41,13 @@ namespace DIYsect.Networking
         public bool HasController => Controller != NoController;
         public bool IsControlledByLocalClient => IsSpawned && NetworkManager != null && _controller.Value == NetworkManager.LocalClientId;
 
+        /// <summary>
+        /// True when the server would grant this client control of the depth right now: somebody else steers the
+        /// scalpel and nobody else guides. A handle that asks while this is false is only refused, so it should not be grabbable.
+        /// </summary>
+        public bool CanRequestControl => IsSpawned && _steering.HasSteerer && !_steering.IsSteeredByLocalClient
+            && (!HasController || IsControlledByLocalClient);
+
         /// <summary>Depth in 0..1, meaningful while <see cref="HasController"/>.</summary>
         public float Depth => IsSpawned ? _depth.Value : 0f;
 

@@ -81,10 +81,11 @@ namespace DIYsect.Interaction
             StopStreaming();
         }
 
-        // Block the grab when it cannot succeed: someone else already guides.
+        // Block the grab when it cannot succeed: nobody holds the scalpel, or someone else already guides. Without this
+        // a hand that keeps squeezing would grab, be refused and cancelled, and grab again every frame.
         bool IXRSelectFilter.Process(IXRSelectInteractor interactor, IXRSelectInteractable interactable)
         {
-            return !_hand.IsSpawned || !_hand.HasController || _hand.IsControlledByLocalClient;
+            return !_hand.IsSpawned || _hand.CanRequestControl;
         }
 
         private void OnSelectEntered(SelectEnterEventArgs args)
