@@ -43,7 +43,9 @@ namespace XRMultiplayer
         private GameObject[] _headsetObjects;
         [SerializeField, Tooltip("Behaviours used by both headset roles, including the XR UI module.")]
         private Behaviour[] _headsetBehaviours;
-        [SerializeField, Tooltip("Objects only the student in VR uses, for example the lecture hall around the table.")]
+        [SerializeField, Tooltip("Objects the student in VR and the classmate on a phone both see, for example the lecture hall around the table. The professor sees the real room instead.")]
+        private GameObject[] _classroomObjects;
+        [SerializeField, Tooltip("Objects only the student in VR uses.")]
         private GameObject[] _studentObjects;
         [SerializeField, Tooltip("Scripts only the student in VR runs, for example the eye height calibration.")]
         private Behaviour[] _studentBehaviours;
@@ -86,6 +88,7 @@ namespace XRMultiplayer
             SetEnabled(_classmateBehaviours, classmate);
             SetEnabled(_headsetBehaviours, !classmate);
             bool student = Current == ClassroomRoleKind.Student;
+            SetActive(_classroomObjects, student || classmate);
             SetActive(_studentObjects, student);
             SetEnabled(_studentBehaviours, student);
             SetEnabled(_joiningBehaviours, !professor);

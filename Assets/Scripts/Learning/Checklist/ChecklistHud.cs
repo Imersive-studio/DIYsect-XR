@@ -15,6 +15,12 @@ namespace DIYsect.Learning
     [RequireComponent(typeof(ChecklistTracker))]
     public class ChecklistHud : MonoBehaviour
     {
+        /// <summary>
+        /// Set while a full-screen page (the phone's Join page) covers the scene, so nothing is drawn on top of it. Nothing to do
+        /// with the checklist's own state.
+        /// </summary>
+        public static bool Suppressed { get; set; }
+
         // Sizes below are in pixels at scale 1 (a 540 pixel short side) and are multiplied by the screen scale.
         private const float PillHeight = 40f;
         private const float ChipHeight = 22f;
@@ -61,7 +67,7 @@ namespace DIYsect.Learning
 
         private void OnGUI()
         {
-            if (Event.current.type != EventType.Repaint || XRSettings.isDeviceActive)
+            if (Event.current.type != EventType.Repaint || XRSettings.isDeviceActive || Suppressed)
                 return;
 
             // Snap the scale to quarter steps so dragging a window edge does not repaint the textures every frame.
@@ -136,7 +142,8 @@ namespace DIYsect.Learning
             // Screen.safeArea starts at the bottom left; the GUI starts at the top left.
             Rect safe = Screen.safeArea;
             float left = safe.xMin + EdgeMargin * scale;
-            float top = Screen.height - safe.yMax + EdgeMargin * scale;
+            // The connection status line sits in the same top left corner (ClassmateStatusLabel), so the pill goes just below it.
+            float top = Screen.height - safe.yMax + 0.075f * Mathf.Min(Screen.width, Screen.height);
             float available = safe.width - EdgeMargin * 2f * scale;
 
             // On a narrow phone the headline gives way first; it is clipped rather than wrapped.

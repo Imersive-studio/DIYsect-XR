@@ -24698,8 +24698,9 @@ MonoBehaviour:
   - {fileID: 1996598800}
   _headsetBehaviours:
   - {fileID: 1765627312}
-  _studentObjects:
+  _classroomObjects:
   - {fileID: 1895830391}
+  _studentObjects: []
   _studentBehaviours:
   - {fileID: 1996598803}
   - {fileID: 1421188178}

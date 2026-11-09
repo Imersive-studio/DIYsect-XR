@@ -3,6 +3,7 @@
   "rootNamespace": "DIYsect.ClassmateConnection",
   "references": [
     "XRMP",
+    "DIYsect.Learning",
     "Unity.XR.CoreUtils",
     "Unity.Netcode.Runtime",
     "UnityEngine.UI"

@@ -83,7 +83,7 @@ namespace DIYsect.MixedReality.Tests
             Assert.IsFalse(Object.FindFirstObjectByType<ProfessorAutoHost>(FindObjectsInactive.Include).enabled, "A classmate must not host.");
             Assert.IsTrue(Object.FindFirstObjectByType<ClassmateStatusLabel>(FindObjectsInactive.Include).enabled);
             Assert.IsTrue(FindObject("ResetViewButton").activeInHierarchy, "A classmate needs the Reset view button.");
-            Assert.IsFalse(FindObject("LectureHall").activeInHierarchy, "A classmate sees the body, not the lecture hall around it.");
+            Assert.IsTrue(FindObject("LectureHall").activeInHierarchy, "A classmate sits in the same lecture hall as the student, so everyone sees one classroom.");
             Assert.IsFalse(Object.FindFirstObjectByType<DIYsect.Networking.PracticeSession>(FindObjectsInactive.Include).enabled, "A phone must never host a practice session.");
 
             int mainCameras = 0;
