@@ -5,10 +5,10 @@ Issue #166 coordinates the current classroom integration. The old `epic/unity-se
 ## Current delivery
 
 - Start from freshly fetched main and use an isolated checkout for each writable branch. Never reset, stash, clean or switch another person's checkout. Each Unity project owns its own Library directory.
-- Prajwal coordinates `integ/demo-reliability-166`, initially based on main `65ab921`. This parent is an integration boundary, not a claim that tests or devices have passed.
+- The historical coordination parent `integ/demo-reliability-166` was based on main `65ab921`; it is not the current main baseline or a claim that tests or devices passed. See the ledger for the checked main SHA and remaining gates.
 - Publish one coherent change at a time. Independent fixes can target main. A change requiring an open PR targets its prerequisite branch and names that dependency explicitly.
-- Shared-scene follow-up work targets `integ/shared-scene-combined` while #158 remains open. Preserve newer main phone controls, checklist and audience when reconciling that candidate.
-- Reuse work already on main. Build orchestration (#148), phone controls (#164), media (#154), audience (#163) and checklist (#165) are already present at this snapshot. Squash merges mean an old branch head need not be an ancestor of main; inspect actual files and main commits before replaying work.
+- PR #158, including the #169 hand-reach fix, has merged to main. The earlier candidate is historical; verify the merged scene against any remaining work rather than targeting that closed prerequisite branch.
+- Reuse work already on main. At the checked baseline `58a2817`, main includes build orchestration (#148), phone controls (#164), media (#154), audience (#163), checklist (#165), shared-scene composition (#158, including #169), and the eye-height guard restoration (#174). Squash merges mean an old branch head need not be an ancestor of main; inspect actual files and main commits before replaying work.
 - Review each task PR before integration. Publish the next task separately so teammates can review incrementally. Do not merge an incomplete shared scene or declare device acceptance from source-only checks.
 - One integration owner saves the shared scene through the editor steps. Resolve scene conflicts by retaining the latest main scene and rerunning setup, never by merging scene text or copying a second network body.
 
