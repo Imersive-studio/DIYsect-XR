@@ -25,6 +25,7 @@ namespace DIYsect.Interaction
 
         private XRGrabInteractable _interactable;
         private Coroutine _streaming;
+        // Kept relative to the parent, so the handle rests on the tray even after the table has been moved.
         private Vector3 _restPosition;
         private Quaternion _restRotation;
         private readonly GrabRequest _request = new GrabRequest();
@@ -54,8 +55,8 @@ namespace DIYsect.Interaction
                 enabled = false;
                 return;
             }
-            _restPosition = transform.position;
-            _restRotation = transform.rotation;
+            _restPosition = transform.localPosition;
+            _restRotation = transform.localRotation;
         }
 
         private void OnEnable()
@@ -97,7 +98,7 @@ namespace DIYsect.Interaction
         private void OnSelectExited(SelectExitEventArgs args)
         {
             Apply(_request.Handle(GrabRequest.Event.Exit));
-            transform.SetPositionAndRotation(_restPosition, _restRotation);
+            transform.SetLocalPositionAndRotation(_restPosition, _restRotation);
         }
 
         private void OnControlResolved(bool granted)
