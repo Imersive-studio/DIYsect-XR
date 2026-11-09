@@ -55,9 +55,9 @@ namespace DIYsect.Editor
             rejoinSerialized.ApplyModifiedPropertiesWithoutUndo();
 
             var banner = rig.GetComponent<ReconnectBanner>();
-            if (banner == null)
+            if (ClassmateUiBuilder.NeedsUi(banner, "_label"))
             {
-                banner = rig.AddComponent<ReconnectBanner>();
+                banner = banner != null ? banner : rig.AddComponent<ReconnectBanner>();
                 BuildCanvas(rig, banner);
             }
             var bannerSerialized = new SerializedObject(banner);
@@ -65,47 +65,22 @@ namespace DIYsect.Editor
             bannerSerialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        // An amber glass card above the organ card's place (both can show during a reconnect), clear of the status chip and the view pills. Hidden while connected.
         private static void BuildCanvas(GameObject rig, ReconnectBanner banner)
         {
-            var canvasObject = new GameObject(CanvasName);
-            canvasObject.transform.SetParent(rig.transform, false);
-            var canvas = canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            var scaler = canvasObject.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1280f, 720f);
-
-            // Upper middle: left of the Reset view button, below the status line and its code box, above the pin message.
-            var panel = new GameObject("Banner");
-            panel.transform.SetParent(canvasObject.transform, false);
-            var background = panel.AddComponent<Image>();
-            background.color = new Color(0.75f, 0.35f, 0.05f, 0.9f);
-            background.raycastTarget = false;
-            var rect = background.rectTransform;
-            rect.anchorMin = new Vector2(0.15f, 0.62f);
-            rect.anchorMax = new Vector2(0.7f, 0.76f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-
-            var labelObject = new GameObject("Message");
-            labelObject.transform.SetParent(panel.transform, false);
-            var label = labelObject.AddComponent<Text>();
-            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            label.fontSize = 32;
-            label.alignment = TextAnchor.MiddleCenter;
-            label.color = Color.white;
-            label.raycastTarget = false;
-            label.resizeTextForBestFit = true;
-            label.resizeTextMinSize = 18;
-            label.resizeTextMaxSize = 32;
-            var labelRect = label.rectTransform;
-            labelRect.anchorMin = Vector2.zero;
-            labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = new Vector2(16f, 8f);
-            labelRect.offsetMax = new Vector2(-16f, -8f);
+            Canvas canvas = ClassmateUiBuilder.NewCanvas(rig.transform, CanvasName, clickable: false, sortingOrder: 20);
+            Image panel = ClassmateUiBuilder.AddPanel(canvas.transform, "Banner", ClassmateUiBuilder.GlassStrong, 22f);
+            var rect = panel.rectTransform;
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, AddClassmateBottomBar.CardLine + 116f);
+            rect.sizeDelta = new Vector2(520f, 88f);
+            TMPro.TextMeshProUGUI label = ClassmateUiBuilder.AddText(panel.transform, "Message", string.Empty, ClassmateUiBuilder.BodySize, ClassmateUiBuilder.Warning,
+                TMPro.TextAlignmentOptions.Center, Vector2.zero, Vector2.one);
+            label.rectTransform.offsetMin = new Vector2(24f, 10f);
+            label.rectTransform.offsetMax = new Vector2(-24f, -10f);
 
             var serialized = new SerializedObject(banner);
-            serialized.FindProperty("_panel").objectReferenceValue = panel;
+            serialized.FindProperty("_panel").objectReferenceValue = panel.gameObject;
             serialized.FindProperty("_label").objectReferenceValue = label;
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }

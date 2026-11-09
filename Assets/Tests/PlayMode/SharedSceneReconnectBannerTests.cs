@@ -4,6 +4,7 @@ using System.Collections;
 using System.Reflection;
 using DIYsect.Classroom;
 using DIYsect.ClassmateConnection;
+using TMPro;
 using NUnit.Framework;
 using Unity.Netcode;
 using UnityEngine;
@@ -125,7 +126,7 @@ namespace DIYsect.Networking.Tests
                 yield return null;
                 Rect banner = ScreenRect((RectTransform)panel.transform);
                 Rect reset = ScreenRect((RectTransform)InScene<ClassmateViewReset>().GetComponentInChildren<Button>().transform);
-                var toastLabel = (Text)typeof(PinRejectionToast).GetField("_label", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(InScene<PinRejectionToast>());
+                var toastLabel = (TMP_Text)typeof(PinRejectionToast).GetField("_label", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(InScene<PinRejectionToast>());
                 Rect toast = ScreenRect(toastLabel.rectTransform);
                 Assert.IsFalse(banner.Overlaps(reset), $"{path}: the banner covers the Reset view button. Banner {banner}, button {reset}.");
                 Assert.IsFalse(banner.Overlaps(toast), $"{path}: the banner covers the pin message. Banner {banner}, message {toast}.");

@@ -1,5 +1,6 @@
 // Authority: none. Local UI only; it asks the server's HandBoard to raise or lower this classmate's hand, and the server decides.
 using DIYsect.Classroom;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,7 +14,7 @@ namespace DIYsect.ClassmateControls
     {
         [SerializeField] private HandBoard _hands;
         [SerializeField] private Button _button;
-        [SerializeField] private Text _label;
+        [SerializeField] private TMP_Text _label;
 
         /// <summary>The text on the button.</summary>
         public string Label => _label.text;

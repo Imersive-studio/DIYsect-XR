@@ -88,7 +88,9 @@ namespace DIYsect.Editor
                     root = candidate.transform;
             if (root == null)
                 throw new InvalidOperationException($"{ScenePath} has no {RootName} root. Run Tools > DIYsect > Create Scenes.");
-            GuideLine line = root.GetComponentInChildren<GuideLine>(true);
+            // The body's own GuideLine (on its root), never the classmate sketch line on a child.
+            SharedBody body = root.GetComponentInChildren<SharedBody>(true);
+            GuideLine line = body != null ? body.GetComponent<GuideLine>() : null;
             if (line == null)
                 throw new InvalidOperationException($"{ScenePath} has no body with a GuideLine. Run the prefab step first.");
             Transform tray = null;
@@ -155,7 +157,7 @@ namespace DIYsect.Editor
             return AssetDatabase.LoadAssetAtPath<GameObject>(PenPath);
         }
 
-        private static Material LoadOrCreate(string path, string shaderName, Color color)
+        internal static Material LoadOrCreate(string path, string shaderName, Color color)
         {
             var material = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (material != null)

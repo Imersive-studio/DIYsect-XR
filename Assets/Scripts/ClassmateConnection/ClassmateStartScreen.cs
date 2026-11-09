@@ -1,4 +1,5 @@
 // Authority: none. Local UI only; it asks the joiner to join and changes no shared state.
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using XRMultiplayer;
@@ -21,11 +22,11 @@ namespace DIYsect.ClassmateConnection
         [SerializeField, Tooltip("The page that is shown and hidden.")]
         private GameObject _root;
         [SerializeField] private Button _joinButton;
-        [SerializeField] private Text _joinLabel;
-        [SerializeField] private InputField _codeField;
+        [SerializeField] private TMP_Text _joinLabel;
+        [SerializeField] private TMP_InputField _codeField;
         [SerializeField] private Button _codeButton;
         [SerializeField, Tooltip("Says what went wrong with a typed code.")]
-        private Text _message;
+        private TMP_Text _message;
         [SerializeField, Tooltip("Provides the joiner. Leave a ClassmateJoinAdapter here.")]
         private MonoBehaviour _joiner;
         [SerializeField, Tooltip("The corner status line. Its own code box is switched off while this page is up, because the page has one.")]

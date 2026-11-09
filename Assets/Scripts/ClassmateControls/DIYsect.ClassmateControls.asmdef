@@ -6,6 +6,7 @@
     "XRMP",
     "Unity.Netcode.Runtime",
     "Unity.XR.CoreUtils",
-    "UnityEngine.UI"
+    "UnityEngine.UI",
+    "Unity.TextMeshPro"
   ]
 }

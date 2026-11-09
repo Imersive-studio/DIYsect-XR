@@ -1,4 +1,5 @@
 // Authority: none. Local UI only; it asks the ClassmateFollowCamera, which moves nothing but the classmate's own camera.
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,9 +15,9 @@ namespace DIYsect.Classroom
     {
         [SerializeField] private ClassmateFollowCamera _follow;
         [SerializeField] private Button _professorButton;
-        [SerializeField] private Text _professorLabel;
+        [SerializeField] private TMP_Text _professorLabel;
         [SerializeField] private Button _studentButton;
-        [SerializeField] private Text _studentLabel;
+        [SerializeField] private TMP_Text _studentLabel;
         [SerializeField] private Button _backButton;
         [SerializeField, Min(0.1f), Tooltip("Seconds the 'person left' message stays on the button.")]
         private float _messageSeconds = 3f;
@@ -87,7 +88,7 @@ namespace DIYsect.Classroom
             _backButton.gameObject.SetActive(_follow.IsFollowing);
         }
 
-        private void Set(Button button, Text label, FollowTarget target, string word)
+        private void Set(Button button, TMP_Text label, FollowTarget target, string word)
         {
             bool following = _follow.Target == target;
             bool available = _follow.IsAvailable(target);

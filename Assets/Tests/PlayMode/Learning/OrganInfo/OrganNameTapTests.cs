@@ -6,6 +6,7 @@ using System.Reflection;
 using DIYsect.Classroom;
 using DIYsect.Networking;
 using DIYsect.Networking.Tests;
+using TMPro;
 using NUnit.Framework;
 using Unity.Netcode;
 using UnityEngine;
@@ -76,7 +77,7 @@ namespace DIYsect.Learning.Tests
             Physics.SyncTransforms();
 
             _card = new GameObject("Card", typeof(CanvasGroup));
-            var label = new GameObject("Name", typeof(Text)).GetComponent<Text>();
+            var label = new GameObject("Name", typeof(TextMeshProUGUI)).GetComponent<TMP_Text>();
             label.transform.SetParent(_card.transform, false);
 
             _holder = new GameObject("TapRig");

@@ -6,6 +6,7 @@
     "DIYsect.Learning",
     "Unity.XR.CoreUtils",
     "Unity.Netcode.Runtime",
-    "UnityEngine.UI"
+    "UnityEngine.UI",
+    "Unity.TextMeshPro"
   ]
 }

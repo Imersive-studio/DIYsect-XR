@@ -10,6 +10,7 @@ using DIYsect.Classroom;
 using DIYsect.ClassmateConnection;
 using DIYsect.ClassmateControls;
 using DIYsect.ClassRoster;
+using TMPro;
 using NUnit.Framework;
 using Unity.Netcode;
 using UnityEngine;
@@ -263,13 +264,13 @@ namespace DIYsect.Networking.Tests
                 "The connection status line must not draw over the Join page.");
             Assert.AreEqual(0, joiner.Presses, "Nothing joins before the press.");
             Button join = FindUi("JoinTheRoomButton").GetComponent<Button>();
-            Assert.AreEqual(ClassmateStartScreen.JoinLabel, join.GetComponentInChildren<Text>().text);
+            Assert.AreEqual(ClassmateStartScreen.JoinLabel, join.GetComponentInChildren<TMP_Text>().text);
 
             yield return Click(join);
 
             Assert.AreEqual(1, joiner.Presses, "The press asks the joiner to join the room.");
             Assert.AreEqual(StartScreenPhase.Joining, screen.Phase);
-            Assert.AreEqual(ClassmateStartScreen.JoiningLabel, join.GetComponentInChildren<Text>().text);
+            Assert.AreEqual(ClassmateStartScreen.JoiningLabel, join.GetComponentInChildren<TMP_Text>().text);
             Assert.IsFalse(join.interactable, "A second press while joining does nothing.");
 
             joiner.Connected = true;
@@ -315,13 +316,13 @@ namespace DIYsect.Networking.Tests
             var joiner = new FakeJoiner { WaitingForPress = true };
             screen.SetJoiner(joiner);
             yield return null;
-            var field = FindUi("CodeField").GetComponent<InputField>();
+            var field = FindUi("CodeField").GetComponent<TMP_InputField>();
             Button codeButton = FindUi("JoinWithCodeButton").GetComponent<Button>();
 
             field.text = "abc";
             yield return Click(codeButton);
             Assert.IsNull(joiner.LastCode);
-            Assert.AreEqual(ClassmateStartScreen.BadCodeText, FindUi("StartMessage").GetComponent<Text>().text);
+            Assert.AreEqual(ClassmateStartScreen.BadCodeText, FindUi("StartMessage").GetComponent<TMP_Text>().text);
             Assert.IsTrue(screen.IsShowing);
 
             field.text = "khc 8qh";
@@ -477,9 +478,9 @@ namespace DIYsect.Networking.Tests
             // Show everything that is normally hidden, so the whole layout is measured at once.
             GameObject bannerPanel = (GameObject)typeof(ReconnectBanner).GetField("_panel", Private).GetValue(InScene<ReconnectBanner>());
             bannerPanel.SetActive(true);
-            var toastLabel = (Text)typeof(PinRejectionToast).GetField("_label", Private).GetValue(InScene<PinRejectionToast>());
+            var toastLabel = (TMP_Text)typeof(PinRejectionToast).GetField("_label", Private).GetValue(InScene<PinRejectionToast>());
             toastLabel.gameObject.SetActive(true);
-            var micMessage = (Text)typeof(ClassmateMicButton).GetField("_message", Private).GetValue(InScene<ClassmateMicButton>());
+            var micMessage = (TMP_Text)typeof(ClassmateMicButton).GetField("_message", Private).GetValue(InScene<ClassmateMicButton>());
             micMessage.gameObject.SetActive(true);
             RectTransform card = FindUi("Card");
             card.gameObject.SetActive(true);
@@ -571,12 +572,12 @@ namespace DIYsect.Networking.Tests
             yield return null;
 
             Assert.IsTrue(names.IsShowing, "The classmate is asked for a name first.");
-            var field = FindUi("NameField").GetComponent<InputField>();
+            var field = FindUi("NameField").GetComponent<TMP_InputField>();
             Button next = ButtonNamed("ContinueButton");
 
             yield return Click(next);
             Assert.IsTrue(names.IsShowing, "An empty name does not go on.");
-            Assert.AreEqual(NameRules.EmptyText, FindUi("NameMessage").GetComponent<Text>().text);
+            Assert.AreEqual(NameRules.EmptyText, FindUi("NameMessage").GetComponent<TMP_Text>().text);
 
             field.text = "  Maya   Rao ";
             yield return Click(next);

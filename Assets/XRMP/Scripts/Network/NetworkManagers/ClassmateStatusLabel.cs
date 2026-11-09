@@ -1,4 +1,5 @@
 // Authority: none. Reads the connection state for display only.
+using TMPro;
 using UnityEngine;
 
 namespace XRMultiplayer
@@ -12,6 +13,9 @@ namespace XRMultiplayer
     {
         [SerializeField, Range(0.015f, 0.06f), Tooltip("Text height as a fraction of the screen's short side.")]
         private float _textSize = 0.032f;
+
+        [SerializeField, Tooltip("Optional: the phone's status chip. When set, the line is written here instead of drawn in the corner.")]
+        private TMP_Text _chipLabel;
 
         /// <summary>Whether the room code box is drawn while not in a room. The start screen turns it off, because it has its own.</summary>
         public bool ShowCodeEntry { get; set; } = true;
@@ -36,6 +40,21 @@ namespace XRMultiplayer
                 return;
             _nextRefresh = Time.unscaledTime + 0.5f;
             _text = BuildText(out _connected);
+            if (_chipLabel == null)
+                return;
+            if (_chipLabel.gameObject.activeSelf != ShowStatusLine)
+                _chipLabel.gameObject.SetActive(ShowStatusLine);
+            string chip = _connected ? ChipText(_text) : _text;
+            if (_chipLabel.text != chip)
+                _chipLabel.text = chip;
+        }
+
+        // "Connected to X · 3 in the room" reads as a sentence; the chip is a glance: a mint "Live" and the room.
+        private static string ChipText(string connectedText)
+        {
+            const string prefix = "Connected to ";
+            string rest = connectedText.StartsWith(prefix) ? connectedText.Substring(prefix.Length) : connectedText;
+            return $"<color=#5EF2C2>Live</color>   {rest}";
         }
 
         private static string BuildText(out bool connected)
@@ -66,7 +85,7 @@ namespace XRMultiplayer
 
         private void OnGUI()
         {
-            if (!ShowStatusLine)
+            if (!ShowStatusLine || _chipLabel != null)
                 return;
             if (_style == null)
             {

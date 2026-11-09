@@ -1,4 +1,5 @@
 // Authority: none. Presentation only; it shows the server-owned quiz state and this client's own result.
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using DIYsect.Interaction;
@@ -14,7 +15,7 @@ namespace DIYsect.Learning
     {
         [SerializeField] private QuizRound _quiz;
         [SerializeField, Tooltip("Text that shows the quiz line. It is hidden when no quiz is on.")]
-        private Text _label;
+        private TMP_Text _label;
 
         // The feedback belongs to one round; a new round shows the prompt again.
         private int _feedbackRound = -1;

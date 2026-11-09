@@ -27,9 +27,9 @@ namespace DIYsect.Editor
                 ?? throw new InvalidOperationException("The classmate camera has no PointerGestureTracker. Run Tools > DIYsect > Add Classmate Desktop Camera.");
 
             var input = rig.GetComponent<OrganNameTapInput>();
-            if (input == null)
+            if (ClassmateUiBuilder.NeedsUi(input, "_label"))
             {
-                input = rig.AddComponent<OrganNameTapInput>();
+                input = input != null ? input : rig.AddComponent<OrganNameTapInput>();
                 BuildCard(rig, input);
             }
             var serialized = new SerializedObject(input);
@@ -55,26 +55,28 @@ namespace DIYsect.Editor
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        // A glass card above the dock that grows with the name and what the organ does, like the labels in the headsets.
         private static void BuildCard(GameObject rig, OrganNameTapInput input)
         {
             Canvas canvas = ClassmateUiBuilder.NewCanvas(rig.transform, CanvasName, clickable: false);
-            var cardObject = new GameObject("Card", typeof(RectTransform), typeof(CanvasGroup), typeof(Image));
-            cardObject.transform.SetParent(canvas.transform, false);
-            var group = cardObject.GetComponent<CanvasGroup>();
+            Image card = ClassmateUiBuilder.AddPanel(canvas.transform, "Card", ClassmateUiBuilder.GlassStrong, 22f);
+            var group = card.gameObject.AddComponent<CanvasGroup>();
             group.blocksRaycasts = false;
             group.interactable = false;
-            var background = cardObject.GetComponent<Image>();
-            background.color = new Color(0f, 0f, 0f, 0.7f);
-            background.raycastTarget = false;
-            var rect = (RectTransform)cardObject.transform;
-            rect.anchorMin = new Vector2(0.2f, 0.39f);
-            rect.anchorMax = new Vector2(0.62f, 0.53f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            var rect = card.rectTransform;
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, AddClassmateBottomBar.CardLine);
+            var layout = card.gameObject.AddComponent<HorizontalLayoutGroup>();
+            layout.padding = new RectOffset(28, 28, 16, 16);
+            layout.childControlWidth = layout.childControlHeight = true;
+            layout.childForceExpandWidth = layout.childForceExpandHeight = false;
+            var fitter = card.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.horizontalFit = fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-            Text label = ClassmateUiBuilder.AddText(cardObject.transform, "Name", string.Empty, 34, Color.white, TextAnchor.MiddleCenter, Vector2.zero, Vector2.one);
-            label.rectTransform.offsetMin = new Vector2(16f, 8f);
-            label.rectTransform.offsetMax = new Vector2(-16f, -8f);
+            TMPro.TextMeshProUGUI label = ClassmateUiBuilder.AddText(card.transform, "Name", string.Empty, ClassmateUiBuilder.BodySize, DIYsect.Presentation.GuidePalette.TextPrimary,
+                TMPro.TextAlignmentOptions.Center, Vector2.zero, Vector2.one);
+            label.enableAutoSizing = false;
+            label.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
 
             var serialized = new SerializedObject(input);
             serialized.FindProperty("_card").objectReferenceValue = group;

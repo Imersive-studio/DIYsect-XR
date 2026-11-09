@@ -103,6 +103,7 @@ namespace DIYsect.Editor
             AnatomyBodyPhysics.ApplyToBody();
             AnatomyHoverFeedback.Apply();
             AddGuideLine.ApplyToPrefab();
+            AddClassmateSketch.ApplyToPrefab();
             AddOrganPointer.ApplyToPrefab();
             AddHeadPose.ApplyToPrefab();
             AnatomyBodyHands.ApplyToPrefab();

@@ -1,6 +1,7 @@
 // Authority: none. Local presentation only; it reads the organ the classmate tapped and shows its name on their own screen.
 using DIYsect.Classroom;
 using DIYsect.Networking;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -23,7 +24,7 @@ namespace DIYsect.Learning
         [SerializeField] private OrganInfoLibrary _library;
         [SerializeField, Tooltip("The card that fades. It needs a CanvasGroup.")]
         private CanvasGroup _card;
-        [SerializeField] private Text _label;
+        [SerializeField] private TMP_Text _label;
         [SerializeField, Min(0.1f)] private float _maxDistance = 20f;
         [SerializeField] private LayerMask _hitLayers = ~0;
         [SerializeField, Min(0f), Tooltip("Seconds the card stays fully visible.")]

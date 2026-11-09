@@ -1,4 +1,5 @@
 // Authority: none. Presentation only; it reads the connection state and shows text, and changes no shared state.
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using XRMultiplayer;
@@ -14,7 +15,7 @@ namespace DIYsect.ClassmateConnection
     {
         [SerializeField, Tooltip("The panel that is shown and hidden.")]
         private GameObject _panel;
-        [SerializeField] private Text _label;
+        [SerializeField] private TMP_Text _label;
         [SerializeField] private ClassmateRejoin _rejoin;
 
         private readonly ReconnectBannerModel _model = new ReconnectBannerModel();
