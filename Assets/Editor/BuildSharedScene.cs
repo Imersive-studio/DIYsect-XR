@@ -47,6 +47,7 @@ namespace DIYsect.Editor
             AddClassmateAutoJoin.HideWelcomePanel(scene);
 
             GameObject classmateRig = FindByName(scene, ClassmateRigName) ?? throw new InvalidOperationException($"{ClassmateRigName} was not created.");
+            AddReconnectBanner.AddTo(classmateRig, autoJoin);
             var professorObjects = new List<GameObject>();
             foreach (string name in ProfessorObjectNames)
             {

@@ -61,11 +61,20 @@ namespace DIYsect.Editor
             AddRejectionToast(existingRig, board);
             AddOrbitControls(existingRig, board);
             AddViewReset(existingRig);
+            AddReconnectBannerIfJoinExists(existingRig);
 
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))
                 throw new IOException($"Could not save {scenePath}.");
             Debug.Log($"Set up the {RigName} in {scenePath}.");
+        }
+
+        // The banner needs the scene's auto join. BuildSharedScene adds the auto join after this step, so it adds the banner itself the first time.
+        private static void AddReconnectBannerIfJoinExists(GameObject rig)
+        {
+            var join = UnityEngine.Object.FindFirstObjectByType<XRMultiplayer.ClassmateAutoJoin>(FindObjectsInactive.Include);
+            if (join != null)
+                AddReconnectBanner.AddTo(rig, join);
         }
 
         private static GameObject CreateRig(QuestionBoard board)
