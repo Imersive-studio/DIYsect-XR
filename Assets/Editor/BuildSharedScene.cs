@@ -154,7 +154,10 @@ namespace DIYsect.Editor
             practiceSerialized.ApplyModifiedPropertiesWithoutUndo();
             practice.enabled = false;
             EditorUtility.SetDirty(practice);
-            SetArray(serialized.FindProperty("_studentObjects"), new[] { hall });
+            // The student and the phone both stand in the lecture hall, so everyone in the room sees the same classroom. Only the
+            // professor, in mixed reality, sees the real room instead.
+            SetArray(serialized.FindProperty("_classroomObjects"), new[] { hall });
+            SetArray(serialized.FindProperty("_studentObjects"), System.Array.Empty<GameObject>());
             SetArray(serialized.FindProperty("_studentBehaviours"), new Behaviour[] { calibration, practice });
 
             // The professor's quiz panel needs its question set saved in the scene (Add Quiz does this too, but a scene taken

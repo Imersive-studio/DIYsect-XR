@@ -16,7 +16,8 @@
     "Unity.Netcode.Runtime",
     "Unity.InputSystem",
     "Unity.InputSystem.TestFramework",
-    "XRMP"
+    "XRMP",
+    "DIYsect.Learning"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -59,6 +59,16 @@ namespace DIYsect.ClassmateConnection.Tests
         }
 
         [Test]
+        public void ARejectedCodeFromAnInviteLink_BringsThePageBackWithItsMessage()
+        {
+            // The link started the join without the page being pressed, so nothing was waiting and nothing was pressed.
+            Assert.AreEqual(StartScreenPhase.Hidden, _model.Update(false, false, false));
+            Assert.AreEqual(StartScreenPhase.Joining, _model.Update(false, false, true));
+            Assert.IsTrue(_model.CodeRejected);
+            Assert.AreEqual(StartScreenPhase.Hidden, _model.Update(false, true, false), "Once in the room the page goes away for good.");
+        }
+
+        [Test]
         public void ARejectedCode_IsReportedWhileTheScreenIsUp()
         {
             _model.Press();

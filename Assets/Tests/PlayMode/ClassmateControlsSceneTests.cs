@@ -255,6 +255,9 @@ namespace DIYsect.Networking.Tests
             yield return null;
 
             Assert.IsTrue(screen.IsShowing, "The classmate starts on the start screen.");
+            Assert.IsTrue(DIYsect.Learning.ChecklistHud.Suppressed, "The checklist line must not draw over the Join page.");
+            Assert.IsFalse(UnityEngine.Object.FindFirstObjectByType<XRMultiplayer.ClassmateStatusLabel>(FindObjectsInactive.Include).ShowStatusLine,
+                "The connection status line must not draw over the Join page.");
             Assert.AreEqual(0, joiner.Presses, "Nothing joins before the press.");
             Button join = FindUi("JoinTheRoomButton").GetComponent<Button>();
             Assert.AreEqual(ClassmateStartScreen.JoinLabel, join.GetComponentInChildren<Text>().text);
@@ -270,6 +273,9 @@ namespace DIYsect.Networking.Tests
             yield return null;
             yield return null;
             Assert.IsFalse(screen.IsShowing, "The start screen closes once the classmate is in the room.");
+            Assert.IsFalse(DIYsect.Learning.ChecklistHud.Suppressed, "The checklist line shows again once the classmate is in the room.");
+            Assert.IsTrue(UnityEngine.Object.FindFirstObjectByType<XRMultiplayer.ClassmateStatusLabel>(FindObjectsInactive.Include).ShowStatusLine,
+                "The connection status line shows again once the classmate is in the room.");
         }
 
         [UnityTest]

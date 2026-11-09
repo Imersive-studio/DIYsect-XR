@@ -61,8 +61,13 @@ namespace XRMultiplayer
             }
         }
 
+        /// <summary>False while a full-screen page (the phone's Join page) covers the scene, so the status line is not drawn over it.</summary>
+        public bool ShowStatusLine { get; set; } = true;
+
         private void OnGUI()
         {
+            if (!ShowStatusLine)
+                return;
             if (_style == null)
             {
                 _background = new Texture2D(1, 1);

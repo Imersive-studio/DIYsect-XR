@@ -88,7 +88,11 @@ namespace DIYsect.ClassmateConnection
             if (_joinButton != null) _joinButton.onClick.RemoveListener(PressJoin);
             if (_codeButton != null) _codeButton.onClick.RemoveListener(PressCodeJoin);
             if (_statusLabel != null)
+            {
                 _statusLabel.ShowCodeEntry = true;
+                _statusLabel.ShowStatusLine = true;
+            }
+            DIYsect.Learning.ChecklistHud.Suppressed = false;
         }
 
         // Three comparisons per frame; the layout is only touched when the phase or the message changes.
@@ -127,7 +131,13 @@ namespace DIYsect.ClassmateConnection
             if (_root.activeSelf != show)
                 _root.SetActive(show);
             if (_statusLabel != null)
+            {
                 _statusLabel.ShowCodeEntry = !show;
+                _statusLabel.ShowStatusLine = !show;
+            }
+            // The page is a plain full-screen background. Nothing else may draw over it.
+            // The checklist is about the dissection in the room, so it only shows once the classmate is in the room.
+            DIYsect.Learning.ChecklistHud.Suppressed = show || !_service.Connected;
             if (!show)
                 return;
 

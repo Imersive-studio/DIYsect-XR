@@ -34,7 +34,9 @@ namespace DIYsect.ClassmateConnection
             else if (waitingForPress)
                 Phase = StartScreenPhase.Ready;
             else
-                Phase = _pressed ? StartScreenPhase.Joining : StartScreenPhase.Hidden;
+                // A room code that found no room (typed, or from an invite link) brings the page back with its message, so the
+                // classmate can try another code instead of staring at an empty classroom.
+                Phase = _pressed || CodeRejected ? StartScreenPhase.Joining : StartScreenPhase.Hidden;
             return Phase;
         }
     }

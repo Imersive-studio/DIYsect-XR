@@ -12,6 +12,12 @@ namespace DIYsect.Learning
     [RequireComponent(typeof(ChecklistTracker))]
     public class ChecklistHud : MonoBehaviour
     {
+        /// <summary>
+        /// Set while a full-screen page (the phone's Join page) covers the scene, so nothing is drawn on top of it. Nothing to do
+        /// with the checklist's own state.
+        /// </summary>
+        public static bool Suppressed { get; set; }
+
         private ChecklistTracker _tracker;
         private GUIStyle _style;
         private readonly GUIContent _content = new GUIContent();
@@ -23,15 +29,19 @@ namespace DIYsect.Learning
 
         private void OnGUI()
         {
-            if (Event.current.type != EventType.Repaint || XRSettings.isDeviceActive)
+            if (Event.current.type != EventType.Repaint || XRSettings.isDeviceActive || Suppressed)
                 return;
             EnsureStyle();
 
-            float scale = Mathf.Clamp(Mathf.Min(Screen.width, Screen.height) / 540f, 1f, 3f);
+            float shortSide = Mathf.Min(Screen.width, Screen.height);
+            float scale = Mathf.Clamp(shortSide / 540f, 1f, 3f);
             _style.fontSize = Mathf.RoundToInt(18f * scale);
             _content.text = ChecklistLabels.OneLine(_tracker.State);
             Vector2 size = _style.CalcSize(_content);
-            var rect = new Rect(12f * scale, 12f * scale, size.x, size.y);
+            // The connection status line sits in the same top left corner (ClassmateStatusLabel), so this line goes just below it.
+            Rect safe = Screen.safeArea;
+            float top = Screen.height - (safe.y + safe.height) + 0.075f * shortSide;
+            var rect = new Rect(safe.x + 12f * scale, top, size.x, size.y);
             _style.Draw(rect, _content, false, false, false, false);
         }
 
