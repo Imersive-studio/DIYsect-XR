@@ -163,7 +163,8 @@ namespace DIYsect.MixedReality.Tests
             foreach (string professorOnly in new[] { "DepthHandle", "GuidePen", "StudentViewWindow", "ClassRoster", "TableAlignmentHandle", "TableAlignment", "QuizPanel" })
                 Assert.IsFalse(FindObject(professorOnly).activeInHierarchy, professorOnly);
             var host = Object.FindFirstObjectByType<ProfessorAutoHost>(FindObjectsInactive.Include);
-            Assert.IsFalse(host.enabled);
+            Assert.IsTrue(host.enabled, "A student with nobody to join opens the class's room so phones can join with its code.");
+            Assert.IsFalse(host.GetComponent<ClassmateAutoJoin>().enabled, "The host logic does its own joining, so the join-only loop stays off.");
             Assert.IsFalse(Object.FindFirstObjectByType<ClassmateStatusLabel>(FindObjectsInactive.Include).enabled);
             var role = host.GetComponent<ClassroomRole>();
             var joins = (Behaviour[])typeof(ClassroomRole).GetField("_joiningBehaviours", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(role);
@@ -177,7 +178,7 @@ namespace DIYsect.MixedReality.Tests
             Assert.IsTrue(FindObject("LectureHall").activeInHierarchy, "The student must stand in the lecture hall.");
             Assert.IsTrue(origin.GetComponent<DIYsect.MixedReality.EyeHeightCalibration>().enabled, "The student's eye height must be calibrated.");
             Assert.IsFalse(host.GetComponent<ClassmateAutoJoin>().WaitForJoinPress, "The student has no Join button, so it must not wait for one.");
-            Assert.IsTrue(host.GetComponent<DIYsect.Networking.PracticeSession>().enabled, "The student practises alone when there is no room.");
+            Assert.IsTrue(host.GetComponent<DIYsect.Networking.PracticeSession>().enabled, "The student practises alone when no room can be opened.");
             foreach (Behaviour provider in origin.transform.Find("Locomotion/Move").GetComponents<Behaviour>())
                 Assert.IsTrue(provider.enabled);
 

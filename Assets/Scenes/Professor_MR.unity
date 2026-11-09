@@ -22768,7 +22768,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b5f1b4a35f9940b5b1dfcf5738e764f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: DIYsect.Networking::DIYsect.Networking.PracticeSession
-  _waitSeconds: 14
+  _waitSeconds: 45
   _disableOnStart:
   - {fileID: 1421188177}
 --- !u!1001 &1431532387
