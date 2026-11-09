@@ -3,6 +3,7 @@
 using System.Collections;
 using System.Reflection;
 using DIYsect.ClassmateConnection;
+using TMPro;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -83,7 +84,7 @@ namespace DIYsect.Networking.Tests
             canvas.transform.SetParent(_root.transform);
             var panel = new GameObject("Panel");
             panel.transform.SetParent(canvas.transform);
-            var label = new GameObject("Message", typeof(Text)).GetComponent<Text>();
+            var label = new GameObject("Message", typeof(TextMeshProUGUI)).GetComponent<TMP_Text>();
             label.transform.SetParent(panel.transform);
 
             _banner = _root.AddComponent<ReconnectBanner>();

@@ -3,6 +3,7 @@
 using System.Collections;
 using System.Reflection;
 using DIYsect.Classroom;
+using TMPro;
 using NUnit.Framework;
 using Unity.Netcode;
 using UnityEngine;
@@ -33,7 +34,7 @@ namespace DIYsect.Networking.Tests
         private Button _professorButton;
         private Button _studentButton;
         private Button _backButton;
-        private Text _studentLabel;
+        private TMP_Text _studentLabel;
         private Vector3 _startPosition;
         private Quaternion _startRotation;
 
@@ -59,7 +60,7 @@ namespace DIYsect.Networking.Tests
             target.GetType().GetField(field, BindingFlags.NonPublic | BindingFlags.Instance).SetValue(target, value);
         }
 
-        private static Button MakeButton(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax, out Text label)
+        private static Button MakeButton(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax, out TMP_Text label)
         {
             var buttonObject = new GameObject(name, typeof(Image), typeof(Button));
             buttonObject.transform.SetParent(parent, false);
@@ -69,10 +70,9 @@ namespace DIYsect.Networking.Tests
             rect.offsetMin = rect.offsetMax = Vector2.zero;
             var button = buttonObject.GetComponent<Button>();
             button.targetGraphic = buttonObject.GetComponent<Image>();
-            var labelObject = new GameObject("Label", typeof(Text));
+            var labelObject = new GameObject("Label", typeof(TextMeshProUGUI));
             labelObject.transform.SetParent(buttonObject.transform, false);
-            label = labelObject.GetComponent<Text>();
-            label.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            label = labelObject.GetComponent<TMP_Text>();
             return button;
         }
 
@@ -90,7 +90,7 @@ namespace DIYsect.Networking.Tests
             _uiObject.AddComponent<InputSystemUIInputModule>();
             _uiObject.SetActive(false);
             _professorButton = MakeButton(_uiObject.transform, "Professor",
-                professorFillsScreen ? Vector2.zero : new Vector2(0.85f, 0.7f), professorFillsScreen ? Vector2.one : new Vector2(1f, 0.8f), out Text professorLabel);
+                professorFillsScreen ? Vector2.zero : new Vector2(0.85f, 0.7f), professorFillsScreen ? Vector2.one : new Vector2(1f, 0.8f), out TMP_Text professorLabel);
             _studentButton = MakeButton(_uiObject.transform, "Student", new Vector2(0.85f, 0.55f), new Vector2(1f, 0.65f), out _studentLabel);
             _backButton = MakeButton(_uiObject.transform, "Back", new Vector2(0.85f, 0.4f), new Vector2(1f, 0.5f), out _);
 

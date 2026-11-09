@@ -1,4 +1,5 @@
 // Authority: none. Local UI only; the name is this device's own and is sent with the player like any other player name.
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using XRMultiplayer;
@@ -16,9 +17,9 @@ namespace DIYsect.ClassmateConnection
         public const string PrefsKey = "diysect.playerName";
 
         [SerializeField, Tooltip("The page that is shown and hidden.")] private GameObject _root;
-        [SerializeField] private InputField _field;
+        [SerializeField] private TMP_InputField _field;
         [SerializeField] private Button _continue;
-        [SerializeField, Tooltip("Says what is wrong with the typed name.")] private Text _message;
+        [SerializeField, Tooltip("Says what is wrong with the typed name.")] private TMP_Text _message;
         [SerializeField, Tooltip("Provides the joiner. Leave a ClassmateJoinAdapter here.")] private MonoBehaviour _joiner;
 
         private IClassmateJoiner _service;

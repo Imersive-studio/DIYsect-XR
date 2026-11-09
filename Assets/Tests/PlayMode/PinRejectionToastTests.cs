@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Reflection;
 using DIYsect.Classroom;
+using TMPro;
 using NUnit.Framework;
 using Unity.Netcode;
 using UnityEngine;
@@ -21,7 +22,7 @@ namespace DIYsect.Networking.Tests
                 Object.Destroy(_root);
         }
 
-        private PinRejectionToast Build(float seconds, out Text label)
+        private PinRejectionToast Build(float seconds, out TMP_Text label)
         {
             _root = new GameObject("ToastTest");
             _root.SetActive(false);
@@ -37,9 +38,9 @@ namespace DIYsect.Networking.Tests
 
             var canvas = new GameObject("Canvas", typeof(Canvas));
             canvas.transform.SetParent(_root.transform);
-            var labelObject = new GameObject("Message", typeof(Text));
+            var labelObject = new GameObject("Message", typeof(TextMeshProUGUI));
             labelObject.transform.SetParent(canvas.transform);
-            label = labelObject.GetComponent<Text>();
+            label = labelObject.GetComponent<TMP_Text>();
 
             var toast = _root.AddComponent<PinRejectionToast>();
             Set(toast, "_board", board);
@@ -57,7 +58,7 @@ namespace DIYsect.Networking.Tests
         [UnityTest]
         public IEnumerator ShowsTheMappedTextThenHidesAfterItsDuration()
         {
-            PinRejectionToast toast = Build(0.3f, out Text label);
+            PinRejectionToast toast = Build(0.3f, out TMP_Text label);
             Assert.IsFalse(toast.IsShowing, "Nothing to say yet.");
 
             toast.Show(PinRejection.RateLimited);
@@ -71,7 +72,7 @@ namespace DIYsect.Networking.Tests
         [UnityTest]
         public IEnumerator ASecondRefusalReplacesTheTextAndRestartsTheTimer()
         {
-            PinRejectionToast toast = Build(0.5f, out Text label);
+            PinRejectionToast toast = Build(0.5f, out TMP_Text label);
             toast.Show(PinRejection.BadText);
             yield return new WaitForSecondsRealtime(0.3f);
             toast.Show(PinRejection.BadOrgan);

@@ -1,4 +1,5 @@
 // Authority: none. Presentation only; it shows what the server told this client and changes no shared state.
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,7 +13,7 @@ namespace DIYsect.Classroom
     {
         [SerializeField] private QuestionBoard _board;
         [SerializeField, Tooltip("Text that shows the message. It is hidden when there is nothing to say.")]
-        private Text _label;
+        private TMP_Text _label;
         [SerializeField, Min(0.1f), Tooltip("Seconds the message stays visible.")]
         private float _seconds = 2.5f;
 

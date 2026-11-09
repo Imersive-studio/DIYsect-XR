@@ -1,4 +1,5 @@
 // Authority: none. Local UI only; it asks the voice service to switch this classmate's own microphone.
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using XRMultiplayer;
@@ -12,9 +13,9 @@ namespace DIYsect.ClassmateControls
     public class ClassmateMicButton : MonoBehaviour
     {
         [SerializeField] private Button _button;
-        [SerializeField] private Text _label;
+        [SerializeField] private TMP_Text _label;
         [SerializeField, Tooltip("Short note, for example when the microphone is refused. Hidden when empty.")]
-        private Text _message;
+        private TMP_Text _message;
         [SerializeField, Tooltip("The template's voice manager. Leave empty in a test that supplies a service.")]
         private VoiceChatManager _voice;
         [SerializeField, Min(0.5f), Tooltip("Seconds a note stays on screen.")]

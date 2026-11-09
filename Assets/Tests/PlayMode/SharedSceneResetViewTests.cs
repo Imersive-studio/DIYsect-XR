@@ -2,6 +2,7 @@
 // Authority under test: none (local camera only). Input is simulated with the Input System's InputTestFixture, not a real laptop or phone.
 using System.Collections;
 using DIYsect.Classroom;
+using TMPro;
 using NUnit.Framework;
 using Unity.Netcode;
 using UnityEngine;
@@ -262,7 +263,7 @@ namespace DIYsect.Networking.Tests
             yield return LoadAsClassmate();
             var buttons = InScene<ClassmateFollowButtons>();
             Rect reset = ScreenRect((RectTransform)InScene<ClassmateViewReset>().GetComponentInChildren<Button>().transform);
-            Rect toast = ScreenRect((RectTransform)InScene<PinRejectionToast>().GetComponentInChildren<Text>(true).transform);
+            Rect toast = ScreenRect((RectTransform)InScene<PinRejectionToast>().GetComponentInChildren<TMP_Text>(true).transform);
             var screen = new Rect(0f, 0f, Screen.width, Screen.height);
             var centre = new Rect(Screen.width * 0.3f, Screen.height * 0.2f, Screen.width * 0.4f, Screen.height * 0.6f);
             var seen = new System.Collections.Generic.List<Rect>();
