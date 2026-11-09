@@ -67,6 +67,24 @@ namespace DIYsect.Editor
             micSerialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        public static void AddHand(GameObject rig, DIYsect.Classroom.HandBoard hands)
+        {
+            Transform bar = EnsureBar(rig);
+            var hand = rig.GetComponent<ClassmateHandButton>();
+            if (hand == null)
+            {
+                hand = rig.AddComponent<ClassmateHandButton>();
+                Button button = AddBarButton(bar, "RaiseHandButton", HandButtonLabels.Raise, new Vector2(0f, 0f), 12f, out Text label);
+                var created = new SerializedObject(hand);
+                created.FindProperty("_button").objectReferenceValue = button;
+                created.FindProperty("_label").objectReferenceValue = label;
+                created.ApplyModifiedPropertiesWithoutUndo();
+            }
+            var serialized = new SerializedObject(hand);
+            serialized.FindProperty("_hands").objectReferenceValue = hands;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         /// <summary>A thumb-sized button on the bottom edge, hanging off the centre line on the side the pivot's x says.</summary>
         public static Button AddBarButton(Transform bar, string name, string text, Vector2 pivot, float xFromCentre, out Text label)
         {

@@ -105,6 +105,7 @@ namespace DIYsect.Editor
             AddGuideLine.ApplyToPrefab();
             AddOrganPointer.ApplyToPrefab();
             AddHeadPose.ApplyToPrefab();
+            AnatomyBodyHands.ApplyToPrefab();
             AnatomyBodyLook.ApplyToPrefab();
         }
 
