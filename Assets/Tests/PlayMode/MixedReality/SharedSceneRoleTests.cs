@@ -24,6 +24,7 @@ namespace DIYsect.MixedReality.Tests
         {
             Assert.AreEqual(ClassroomRoleKind.Classmate, ClassroomRole.Decide("com.team.diysect.classmate", false, ClassroomRoleKind.Professor));
             Assert.AreEqual(ClassroomRoleKind.Professor, ClassroomRole.Decide("com.team.diysect.professor", false, ClassroomRoleKind.Classmate));
+            Assert.AreEqual(ClassroomRoleKind.Student, ClassroomRole.Decide("com.team.diysect.student", false, ClassroomRoleKind.Classmate));
             Assert.AreEqual(ClassroomRoleKind.Professor, ClassroomRole.Decide("", false, ClassroomRoleKind.Classmate));
             Assert.AreEqual(ClassroomRoleKind.Classmate, ClassroomRole.Decide("com.team.diysect.professor", true, ClassroomRoleKind.Classmate));
             Assert.AreEqual(ClassroomRoleKind.Professor, ClassroomRole.Decide("com.team.diysect.classmate", true, ClassroomRoleKind.Professor));
@@ -32,7 +33,7 @@ namespace DIYsect.MixedReality.Tests
         [Test]
         public void TheRoleSwitch_TurnsOnlyTheMatchingHalfOn_ForEachRole()
         {
-            foreach (ClassroomRoleKind kind in new[] { ClassroomRoleKind.Professor, ClassroomRoleKind.Classmate })
+            foreach (ClassroomRoleKind kind in new[] { ClassroomRoleKind.Professor, ClassroomRoleKind.Classmate, ClassroomRoleKind.Student })
             {
                 var professorObject = new GameObject("professor-only");
                 var classmateObject = new GameObject("classmate-only");
@@ -53,9 +54,9 @@ namespace DIYsect.MixedReality.Tests
                 bool professor = kind == ClassroomRoleKind.Professor;
                 Assert.AreEqual(kind, ClassroomRole.Current);
                 Assert.AreEqual(professor, professorObject.activeSelf, $"{kind}: professor object");
-                Assert.AreEqual(!professor, classmateObject.activeSelf, $"{kind}: classmate object");
+                Assert.AreEqual(kind == ClassroomRoleKind.Classmate, classmateObject.activeSelf, $"{kind}: classmate object");
                 Assert.AreEqual(professor, professorScript.enabled, $"{kind}: professor script");
-                Assert.AreEqual(!professor, classmateScript.enabled, $"{kind}: classmate script");
+                Assert.AreEqual(kind == ClassroomRoleKind.Classmate, classmateScript.enabled, $"{kind}: classmate script");
 
                 foreach (GameObject created in new[] { professorObject, classmateObject, holder, switchObject })
                     Object.DestroyImmediate(created);
@@ -138,6 +139,73 @@ namespace DIYsect.MixedReality.Tests
                 yield return SceneManager.UnloadSceneAsync(scene);
             yield return null;
         }
+
+        [UnityTest]
+        public IEnumerator TheSharedStudentUsesTheVrRigAndJoinsWithoutProfessorOrPhoneControls()
+        {
+            LogAssert.ignoreFailingMessages = true;
+            ClassroomRole.OverrideForTests = ClassroomRoleKind.Student;
+#if UNITY_EDITOR
+            yield return EditorSceneManager.LoadSceneAsyncInPlayMode(ScenePath, new LoadSceneParameters(LoadSceneMode.Single));
+#else
+            yield break;
+#endif
+            yield return null;
+            yield return null;
+            Assert.AreEqual(ClassroomRoleKind.Student, ClassroomRole.Current);
+            Assert.IsTrue(FindObject("XR Origin (XR Rig)").activeInHierarchy);
+            Assert.IsFalse(FindObject("ClassmateCamera").activeInHierarchy);
+            foreach (string professorOnly in new[] { "DepthHandle", "GuidePen", "StudentViewWindow", "ClassRoster", "TableAlignmentHandle", "TableAlignment", "QuizPanel" })
+                Assert.IsFalse(FindObject(professorOnly).activeInHierarchy, professorOnly);
+            var host = Object.FindFirstObjectByType<ProfessorAutoHost>(FindObjectsInactive.Include);
+            Assert.IsFalse(host.enabled);
+            Assert.IsFalse(Object.FindFirstObjectByType<ClassmateStatusLabel>(FindObjectsInactive.Include).enabled);
+            var role = host.GetComponent<ClassroomRole>();
+            var joins = (Behaviour[])typeof(ClassroomRole).GetField("_joiningBehaviours", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(role);
+            CollectionAssert.Contains(joins, host.GetComponent<ClassmateAutoJoin>());
+            // AutoJoin disables itself in the editor; on a device it stays enabled for both joining roles.
+            var origin = FindObject("XR Origin (XR Rig)").GetComponent<Unity.XR.CoreUtils.XROrigin>();
+            Assert.AreEqual(Unity.XR.CoreUtils.XROrigin.TrackingOriginMode.Device, origin.RequestedTrackingOriginMode);
+            Assert.AreEqual(1.6f, origin.CameraYOffset, 0.001f);
+            Assert.AreEqual(CameraClearFlags.Skybox, origin.Camera.clearFlags);
+            Assert.IsNotNull(origin.transform.Find("QuitMenu"), "The shared student must keep the quit menu.");
+            foreach (Behaviour provider in origin.transform.Find("Locomotion/Move").GetComponents<Behaviour>())
+                Assert.IsTrue(provider.enabled);
+
+            ClassroomRole.OverrideForTests = null;
+            foreach (NetworkManager manager in Object.FindObjectsByType<NetworkManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                manager.Shutdown();
+                Object.DestroyImmediate(manager.gameObject);
+            }
+            Scene scene = SceneManager.GetSceneByPath(ScenePath);
+            Scene empty = SceneManager.CreateScene("AfterSharedStudent");
+            SceneManager.SetActiveScene(empty);
+            yield return SceneManager.UnloadSceneAsync(scene);
+        }
+
+        // A failed role assertion must not leave the scene's NetworkManager singleton behind for the next fixture.
+        [UnityTearDown]
+        public IEnumerator CleanUpAfterRoleTest()
+        {
+            ClassroomRole.OverrideForTests = null;
+            foreach (NetworkManager manager in Object.FindObjectsByType<NetworkManager>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                manager.Shutdown();
+                Object.DestroyImmediate(manager.gameObject);
+            }
+            Scene scene = SceneManager.GetSceneByPath(ScenePath);
+            if (scene.IsValid() && scene.isLoaded)
+            {
+                Scene empty = SceneManager.CreateScene("AfterRoleTest");
+                SceneManager.SetActiveScene(empty);
+                yield return SceneManager.UnloadSceneAsync(scene);
+            }
+            yield return null;
+        }
+
+        [TearDown]
+        public void ResetRoleOverride() => ClassroomRole.OverrideForTests = null;
 
         [UnityTest]
         public IEnumerator TheProfessorCanWalkAndSnapTurn_AndBringTheTableBackWithAButton()

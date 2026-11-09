@@ -29,7 +29,7 @@ namespace XRMultiplayer
         public static bool Connected => XRINetworkGameManager.Connected.Value;
 
         /// <summary>Looks once for a room and joins it. Ends when the attempt is over, joined or not; check <see cref="Connected"/>.</summary>
-        public IEnumerator TryJoinOnce()
+        public IEnumerator TryJoinOnce(System.Func<bool> mayJoin = null)
         {
             XRINetworkGameManager manager = XRINetworkGameManager.Instance;
             if (manager == null || XRINetworkGameManager.CurrentConnectionState.Value != XRINetworkGameManager.ConnectionState.Authenticated)
@@ -50,6 +50,9 @@ namespace XRMultiplayer
                 yield break;
             }
 
+            // An invite can arrive while the public-room query is in flight. Its code takes precedence.
+            if (mayJoin != null && !mayJoin())
+                yield break;
             Lobby lobby = search.Result;
             Debug.Log($"[{_tag}] Joining room {lobby.Name}.");
             manager.JoinLobbySpecific(lobby);

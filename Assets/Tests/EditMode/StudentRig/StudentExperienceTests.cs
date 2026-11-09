@@ -33,10 +33,11 @@ namespace DIYsect.StudentRig.Tests
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         }
 
-        [Test]
-        public void StudentSceneHasAQuitMenuTheRaysCanPress()
+        [TestCase(StudentScene)]
+        [TestCase(ProfessorScene)]
+        public void HeadsetSceneHasAQuitMenuTheRaysCanPress(string scenePath)
         {
-            EditorSceneManager.OpenScene(StudentScene, OpenSceneMode.Single);
+            EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
             var menu = Object.FindFirstObjectByType<QuitMenu>(FindObjectsInactive.Include);
             Assert.IsNotNull(menu, "The student scene has no QuitMenu. Run Tools > DIYsect > Add Quit Menu.");
             Assert.AreEqual(QuitMenuState.Closed, menu.State, "The menu must start closed.");

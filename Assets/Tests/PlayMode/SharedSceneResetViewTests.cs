@@ -188,6 +188,8 @@ namespace DIYsect.Networking.Tests
             Assert.IsTrue(button.gameObject.activeInHierarchy);
             ClassmateOrbitCamera orbit = MoveAway(out Vector3 position, out Quaternion rotation);
 
+            int taps = 0;
+            InScene<PointerGestureTracker>().Tapped += _ => taps++;
             yield return Aim(button);
             _input.Press(_mouse.leftButton);
             yield return null;
@@ -196,7 +198,7 @@ namespace DIYsect.Networking.Tests
             yield return new WaitForSeconds(0.5f);
 
             AssertBackAtStart(orbit, position, rotation);
-            Assert.AreEqual(0, InScene<QuestionBoard>().Count, "Clicking Reset view must not place a pin.");
+            Assert.AreEqual(0, taps, "A UI click must not reach the pin-placement gesture, even before the board spawns.");
         }
 
         [UnityTest]
@@ -206,6 +208,8 @@ namespace DIYsect.Networking.Tests
             var button = InScene<ClassmateViewReset>().GetComponentInChildren<Button>();
             ClassmateOrbitCamera orbit = MoveAway(out Vector3 position, out Quaternion rotation);
 
+            int taps = 0;
+            InScene<PointerGestureTracker>().Tapped += _ => taps++;
             yield return Aim(button);
             Vector2 centre = ButtonCentre(button);
             _input.BeginTouch(1, centre);
@@ -216,7 +220,7 @@ namespace DIYsect.Networking.Tests
             yield return new WaitForSeconds(0.5f);
 
             AssertBackAtStart(orbit, position, rotation);
-            Assert.AreEqual(0, InScene<QuestionBoard>().Count, "Tapping Reset view must not place a pin.");
+            Assert.AreEqual(0, taps, "A UI touch must not reach the pin-placement gesture, even before the board spawns.");
         }
     }
 }
