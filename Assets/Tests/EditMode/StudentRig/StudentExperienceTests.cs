@@ -175,6 +175,20 @@ namespace DIYsect.StudentRig.Tests
 
         [TestCase(StudentScene)]
         [TestCase(ProfessorScene)]
+        public void HandsCanReachOrgansOnTheirOwnLayers(string scenePath)
+        {
+            EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+            int organs = LayerMask.GetMask("SeatedOrgan", "LooseOrgan");
+            Assert.AreNotEqual(0, organs, "The organ layers are missing.");
+            var casters = Object.FindObjectsByType<SphereInteractionCaster>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            Assert.IsNotEmpty(casters, $"{scenePath} has no near casters.");
+            foreach (SphereInteractionCaster caster in casters)
+                Assert.AreEqual(organs, caster.physicsLayerMask.value & organs,
+                    $"{caster.transform.parent.name} cannot touch organs, so they cannot be lifted. Run Tools > DIYsect > Widen Instrument Grab Zones.");
+        }
+
+        [TestCase(StudentScene)]
+        [TestCase(ProfessorScene)]
         public void NearCastersCanSeeTriggerGrabZones(string scenePath)
         {
             EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
