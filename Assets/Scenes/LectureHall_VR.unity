@@ -3036,6 +3036,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: XRMP::XRMultiplayer.ClassmateAutoJoin
   _retrySeconds: 5
+  _runInEditor: 0
+  _autoJoinAnyRoom: 1
 --- !u!114 &1466689190 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7703715424354462451, guid: 3c7e97c2ac5aede4c834e98354f624e2,
@@ -4419,6 +4421,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_ClearFlags
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484816944661230508, guid: 7d554cf076fc46143bcaf9a54fc2204d,
+        type: 3}
+      propertyPath: m_CullingMask.m_Bits
+      value: 8119
       objectReference: {fileID: 0}
     - target: {fileID: 7043497332038288999, guid: 7d554cf076fc46143bcaf9a54fc2204d,
         type: 3}

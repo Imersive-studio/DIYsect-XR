@@ -3,6 +3,7 @@
   "rootNamespace": "DIYsect.Editor",
   "references": [
     "Unity.XR.Interaction.Toolkit",
+    "Unity.XR.CoreUtils",
     "DIYsect.Interaction"
   ],
   "includePlatforms": [

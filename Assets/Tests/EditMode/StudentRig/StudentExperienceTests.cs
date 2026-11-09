@@ -73,6 +73,22 @@ namespace DIYsect.StudentRig.Tests
 
         [TestCase(StudentScene)]
         [TestCase(ProfessorScene)]
+        public void TheRigCameraDrawsEveryProjectLayer(string scenePath)
+        {
+            EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
+            var origin = Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>();
+            Assert.IsNotNull(origin, $"{scenePath} has no rig.");
+            foreach (string layerName in ShowAllLayersToRigCamera.LayerNames)
+            {
+                int layer = LayerMask.NameToLayer(layerName);
+                Assert.GreaterOrEqual(layer, 0, $"The layer {layerName} does not exist.");
+                Assert.IsTrue((origin.Camera.cullingMask & (1 << layer)) != 0,
+                    $"{scenePath}: the headset camera does not draw layer {layerName}, so everything on it is invisible. Run Tools > DIYsect > Show All Layers To Rig Camera.");
+            }
+        }
+
+        [TestCase(StudentScene)]
+        [TestCase(ProfessorScene)]
         public void NearCastersCanSeeTriggerGrabZones(string scenePath)
         {
             EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
