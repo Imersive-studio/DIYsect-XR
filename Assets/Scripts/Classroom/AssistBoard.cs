@@ -146,6 +146,9 @@ namespace DIYsect.Classroom
 
         private void TryBind()
         {
+            // During shutdown the network can be gone before this check stops.
+            if (NetworkManager == null || NetworkManager.SpawnManager == null)
+                return;
             foreach (NetworkObject spawned in NetworkManager.SpawnManager.SpawnedObjectsList)
             {
                 if (!spawned.IsSpawned || !spawned.TryGetComponent(out ScalpelSteering steering) || !spawned.TryGetComponent(out GuidingHand hand))
