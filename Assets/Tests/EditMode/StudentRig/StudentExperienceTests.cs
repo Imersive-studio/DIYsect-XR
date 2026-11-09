@@ -96,6 +96,25 @@ namespace DIYsect.StudentRig.Tests
         }
 
         [Test]
+        public void RoomCodeBoardShowsTheCodeOnlyWhenThereIsARoom()
+        {
+            Assert.AreEqual(("KHC8QH", XRMultiplayer.RoomCodeBoardText.PhoneHint), XRMultiplayer.RoomCodeBoardText.For("khc8qh", true));
+            Assert.AreEqual((XRMultiplayer.RoomCodeBoardText.NoCode, XRMultiplayer.RoomCodeBoardText.WaitingHint), XRMultiplayer.RoomCodeBoardText.For(null, false));
+            Assert.AreEqual((XRMultiplayer.RoomCodeBoardText.NoCode, XRMultiplayer.RoomCodeBoardText.PracticeHint), XRMultiplayer.RoomCodeBoardText.For("", true));
+        }
+
+        [Test]
+        public void SharedSceneHasARoomCodeBoardEveryoneCanSee()
+        {
+            EditorSceneManager.OpenScene(ProfessorScene, OpenSceneMode.Single);
+            var board = Object.FindFirstObjectByType<XRMultiplayer.RoomCodeBoard>(FindObjectsInactive.Include);
+            Assert.IsNotNull(board, "Without it nobody can read the room code. Run Tools > DIYsect > Add Room Code Board.");
+            Assert.IsTrue(board.gameObject.activeSelf, "The board must be on for every role.");
+            foreach (Transform t in board.GetComponentsInChildren<Transform>(true))
+                Assert.AreEqual(0, t.gameObject.layer, $"{t.name} is on a layer the headset camera may not draw.");
+        }
+
+        [Test]
         public void TheDrapesAreSwitchedOffOnTheBody()
         {
             GameObject body = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/AnatomyBody.prefab");
