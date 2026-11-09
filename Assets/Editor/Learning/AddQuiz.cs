@@ -1,6 +1,7 @@
 // Run Tools > DIYsect > Add Quiz after Add Question Pins, Add Classmate Desktop Camera and Add Student View Window.
 using System;
 using System.IO;
+using System.Linq;
 using DIYsect.Classroom;
 using DIYsect.Learning;
 using DIYsect.Networking;
@@ -14,6 +15,7 @@ using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors.Casters;
 
 namespace DIYsect.Editor
 {
@@ -24,6 +26,8 @@ namespace DIYsect.Editor
     ///    view window is on the left): a designed card (ProfessorPanelKit) with the question, a status line and ray-selectable &lt; &gt; Start Reveal Clear buttons. The panel is
     ///    given the default question set (DefaultQuizQuestions.asset).
     /// 3. Gives the classmate camera in Classmate_Desktop a QuizAnswerInput and a quiz line at the top of the screen, and lists the answer input as a tap claimer on its PinPlacementInput.
+    /// 4. Lets the student in the headset answer: a QuizHeadsetAnswer on the XR origin (off until the role switch turns it on
+    ///    for the student) and a small question card standing beyond the table, facing the student.
     /// </summary>
     public static class AddQuiz
     {
@@ -47,6 +51,15 @@ namespace DIYsect.Editor
         // From the table centre: further to the professor's right than the class roster (0.95 m), at eye height, so the two do not overlap.
         private static readonly Vector3 OffsetFromTable = new Vector3(1.75f, 0f, -0.1f);
         private const float Height = 1.45f;
+        // The panel is on the CloseUpScreen layer so no camera films it, but the headset rays only hit Default and UI and
+        // the hands only Default and the organ layers. Each button therefore gets a collider-only child on Default.
+        public const string PressAreaName = "PressArea";
+        private const int PressAreaLayer = 0;
+        public const string StudentCardName = "StudentQuizCard";
+        private static readonly Vector2 StudentCardSize = new Vector2(0.62f, 0.26f);
+        private const float StudentCardHeight = 1.5f;
+        // How far past the table's far edge the student's card stands, so it never covers the body.
+        private const float StudentCardBeyondTable = 0.45f;
 
         [MenuItem("Tools/DIYsect/Add Quiz")]
         public static void Apply()
@@ -54,6 +67,7 @@ namespace DIYsect.Editor
             ApplyToPrefab();
             AddProfessorPanel();
             AddClassmateControls();
+            AddStudentControls();
         }
 
         /// <summary>Adds QuizRound to the body prefab. Also usable from Create Anatomy Body, so a rebuilt body keeps it.</summary>
@@ -129,8 +143,9 @@ namespace DIYsect.Editor
             GameObject clear = AddButton(content, "Clear", "Clear", new Vector2(0.58f, RowY), ClearButton, panel.ClearRound);
 
             // Same layer as the student view window, so neither the close-up camera nor the window camera films the panel.
+            // The press areas stay on Default so the professor's rays and hands can reach the buttons.
             foreach (Transform part in panelObject.GetComponentsInChildren<Transform>(true))
-                part.gameObject.layer = layer;
+                part.gameObject.layer = part.name == PressAreaName ? PressAreaLayer : layer;
 
             var serialized = new SerializedObject(panel);
             serialized.FindProperty("_quiz").objectReferenceValue = quiz;
@@ -245,7 +260,118 @@ namespace DIYsect.Editor
             mesh.characterSize = 0.08f;
             mesh.fontSize = 64;
             ProfessorPanelKit.StyleButton(button, label);
+            // The visible cube keeps the panel's layer; the collider moves to a child that the rays can hit. A unit box
+            // under the cube's scale is exactly the button's size. XRSimpleInteractable finds colliders in its children.
+            var cubeCollider = button.GetComponent<Collider>();
+            if (cubeCollider != null)
+                UnityEngine.Object.DestroyImmediate(cubeCollider);
+            var press = new GameObject(PressAreaName);
+            press.transform.SetParent(button.transform, false);
+            press.AddComponent<BoxCollider>();
             return button;
+        }
+
+        /// <summary>
+        /// Lets the student in the headset take a round: a QuizHeadsetAnswer on the XR origin that reads either trigger and
+        /// a question card that stands beyond the table, facing the student. The component is saved switched off and is
+        /// listed in the role's student scripts, so only the student's headset runs it (Build Shared Scene keeps it there
+        /// through <see cref="WithStudentInput"/>).
+        /// </summary>
+        public static void AddStudentControls()
+        {
+            Scene scene = EditorSceneManager.OpenScene(ProfessorScenePath, OpenSceneMode.Single);
+            Transform root = FindRoot(scene, RootName);
+            QuizRound quiz = root.GetComponentInChildren<QuizRound>(true)
+                ?? throw new InvalidOperationException($"{ProfessorScenePath} has no body with a QuizRound. Is the body in the scene an AnatomyBody prefab instance?");
+            var origin = UnityEngine.Object.FindFirstObjectByType<Unity.XR.CoreUtils.XROrigin>(FindObjectsInactive.Include)
+                ?? throw new InvalidOperationException($"{ProfessorScenePath} has no XR Origin.");
+            Transform leftAim = FindAim(origin.transform, "Left Controller");
+            Transform rightAim = FindAim(origin.transform, "Right Controller");
+
+            Transform old = root.Find(StudentCardName);
+            if (old != null)
+                UnityEngine.Object.DestroyImmediate(old.gameObject);
+            // The student stands on the scene origin's side of the table (the room code board and quiz panel face it too).
+            Bounds table = FindTableTop(root, ProfessorScenePath);
+            Vector3 centre = new Vector3(table.center.x, root.position.y + StudentCardHeight, table.center.z);
+            Vector3 away = centre - new Vector3(root.position.x, centre.y, root.position.z);
+            away.y = 0f;
+            if (away.sqrMagnitude < 0.0001f)
+                away = Vector3.forward;
+            away.Normalize();
+            float halfDepth = table.extents.x * Mathf.Abs(away.x) + table.extents.z * Mathf.Abs(away.z);
+            Vector3 position = centre + away * (halfDepth + StudentCardBeyondTable);
+            Transform card = ProfessorPanelKit.BuildCard(root, StudentCardName, StudentCardSize, "Quiz");
+            card.SetPositionAndRotation(position, Quaternion.LookRotation(away, Vector3.up));
+            ProfessorPanelKit.AddStand(card, position.y - StudentCardSize.y / 2f, root.position.y);
+            Transform content = card.Find("Content");
+            Vector2 area = ProfessorPanelKit.ContentSize(StudentCardSize);
+            TextMeshPro question = ProfessorPanelKit.AddText(content, "Question", "", 0.024f, GuidePalette.TextPrimary,
+                TextAlignmentOptions.TopLeft, new Vector2(0.03f, -0.02f), new Vector2(area.x - 0.06f, 0.09f), FontStyles.Bold);
+            TextMeshPro status = ProfessorPanelKit.AddText(content, "Status", "", 0.017f, GuidePalette.TextMuted,
+                TextAlignmentOptions.TopLeft, new Vector2(0.03f, -0.115f), new Vector2(area.x - 0.06f, 0.055f));
+            // Hidden until a round is asking; the component shows it.
+            card.gameObject.SetActive(false);
+
+            var answer = origin.GetComponent<QuizHeadsetAnswer>();
+            if (answer == null)
+                answer = origin.gameObject.AddComponent<QuizHeadsetAnswer>();
+            var serialized = new SerializedObject(answer);
+            serialized.FindProperty("_quiz").objectReferenceValue = quiz;
+            serialized.FindProperty("_leftAim").objectReferenceValue = leftAim;
+            serialized.FindProperty("_rightAim").objectReferenceValue = rightAim;
+            serialized.FindProperty("_card").objectReferenceValue = card.gameObject;
+            serialized.FindProperty("_question").objectReferenceValue = question;
+            serialized.FindProperty("_status").objectReferenceValue = status;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            answer.enabled = false;
+            EditorUtility.SetDirty(answer);
+
+            // List it in the role's student scripts now, so the quiz works even before Build Shared Scene runs again.
+            var role = UnityEngine.Object.FindFirstObjectByType<XRMultiplayer.ClassroomRole>(FindObjectsInactive.Include);
+            if (role != null)
+            {
+                var roleSerialized = new SerializedObject(role);
+                SerializedProperty students = roleSerialized.FindProperty("_studentBehaviours");
+                bool listed = false;
+                for (int i = 0; i < students.arraySize; i++)
+                    if (students.GetArrayElementAtIndex(i).objectReferenceValue == answer)
+                        listed = true;
+                if (!listed)
+                {
+                    students.arraySize++;
+                    students.GetArrayElementAtIndex(students.arraySize - 1).objectReferenceValue = answer;
+                    roleSerialized.ApplyModifiedPropertiesWithoutUndo();
+                }
+            }
+            Save(scene, ProfessorScenePath);
+            Debug.Log($"{ProfessorScenePath}: the student answers the quiz with either trigger; question card at {position}.");
+        }
+
+        /// <summary>
+        /// Adds the rig's QuizHeadsetAnswer, switched off, to the student-only scripts, so Build Shared Scene keeps the
+        /// student able to answer. Returns the list unchanged when the rig has none (Add Quiz not run yet).
+        /// </summary>
+        public static Behaviour[] WithStudentInput(Behaviour[] behaviours, GameObject rig)
+        {
+            if (rig == null || !rig.TryGetComponent(out QuizHeadsetAnswer input))
+                return behaviours;
+            input.enabled = false;
+            EditorUtility.SetDirty(input);
+            return behaviours.Concat(new Behaviour[] { input }).Distinct().ToArray();
+        }
+
+        // Where the controller's visible ray starts: its far caster's origin, or the controller itself.
+        private static Transform FindAim(Transform rig, string controllerName)
+        {
+            foreach (Transform candidate in rig.GetComponentsInChildren<Transform>(true))
+            {
+                if (candidate.name != controllerName)
+                    continue;
+                CurveInteractionCaster caster = candidate.GetComponentInChildren<CurveInteractionCaster>(true);
+                return caster != null && caster.castOrigin != null ? caster.castOrigin : candidate;
+            }
+            throw new InvalidOperationException($"The XR Origin has no {controllerName}.");
         }
 
         private static Transform FindRoot(Scene scene, string rootName)
