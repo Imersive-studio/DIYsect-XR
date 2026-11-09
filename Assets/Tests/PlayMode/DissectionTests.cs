@@ -198,6 +198,32 @@ namespace DIYsect.Networking.Tests
         }
 
         [UnityTest]
+        public IEnumerator CutCarriesOnWhenTheGrabZoneLeavesTheIncisionZoneButTheTipStaysIn()
+        {
+            yield return StartHostAndSpawnBody();
+            _server = _serverBody.GetComponent<DissectionProgress>();
+            _scalpel = Object.Instantiate(LoadScalpelPrefab());
+            var tool = _scalpel.GetComponent<ScalpelTool>();
+            Transform grabZone = tool.transform.Find("GrabZone");
+            Assert.IsNotNull(grabZone, "The scalpel prefab needs its GrabZone.");
+
+            // Tip and grab zone both enter the incision zone.
+            grabZone.position = tool.Tip.position;
+            PlaceTip(tool, _serverBody.transform.TransformPoint(OnLine(0.1f)));
+            yield return new WaitForFixedUpdate();
+            yield return WaitFor(() => _server.IncisionProgress > 0.09f, "the scalpel to start the cut");
+
+            // Only the grab zone leaves, as when the handle tilts away while the tip keeps cutting.
+            grabZone.position += Vector3.up * 0.5f;
+            yield return new WaitForFixedUpdate();
+            yield return new WaitForFixedUpdate();
+
+            PlaceTip(tool, _serverBody.transform.TransformPoint(OnLine(0.2f)));
+            yield return new WaitForFixedUpdate();
+            yield return WaitFor(() => _server.IncisionProgress > 0.19f, "the cut to carry on with the tip still in the zone", () => $"progress {_server.IncisionProgress}");
+        }
+
+        [UnityTest]
         public IEnumerator ScalpelThatLeftTheZoneDoesNotOpenTheSkinForSomeoneElsesCut()
         {
             yield return StartHostAndSpawnBody();
