@@ -58,3 +58,16 @@ Other professor inputs and how they meet the tools:
 A and X grab, as well as the grip (the toolkit's Select action is bound to all three), and no tool reads the thumbsticks or their clicks.
 
 `ProfessorToolsTogetherTests` uses the tools together and checks that each still works alone afterwards. Not verified on a headset: which button of a real controller or hand pose each action maps to comes from the XR Interaction Toolkit rig, not from DIYsect code.
+
+## Help request (student asks, professor guides the depth)
+
+| Part | Where |
+|---|---|
+| Enum | `AssistPhase` (None, Requested, Helping) |
+| Rule table | `AssistRule.Next(phase, AssistEvent)`, tested in `AssistRuleTests` |
+| Writer | the server, `AssistBoard` (body prefab). Events: StudentRequested and StudentCancelled (by Rpc, only from the scalpel's steerer), ProfessorTookControl and ProfessorReleased (from `GuidingHand.ControllerChanged`), SteererLeft (from `ScalpelSteering.SteererChanged` or the requester disconnecting) |
+| Change event | `AssistBoard.PhaseChanged`, also raised once on spawn so a late joiner draws the state |
+| Presentation | `AssistBeacon` (ring and label on every device), `AssistHaptics`, a line in `ClassRosterPanel`; all derived from the phase |
+| Input | `AssistRequestInput`: the Y button (left secondary), student only. B and the left menu button are the quit menu, A and X grab, thumbstick clicks recentre the table |
+
+The student can ask only while holding the scalpel, because the professor can guide the depth only while somebody steers. Putting the scalpel down, leaving, or the professor letting go always closes the request. Set up with Tools > DIYsect > Add Help Request (`AddAssistRequest.ApplyBatch`).
