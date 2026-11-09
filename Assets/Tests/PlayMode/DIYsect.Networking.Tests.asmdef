@@ -11,7 +11,8 @@
     "Unity.Collections",
     "Unity.Netcode.Runtime",
     "Unity.InputSystem",
-    "Unity.InputSystem.TestFramework"
+    "Unity.InputSystem.TestFramework",
+    "XRMP"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
