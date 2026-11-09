@@ -102,6 +102,21 @@ How it works (checked in the code and in a run on 8 November 2026):
 
 Unity Cloud project (linked in `ProjectSettings`, not a secret): project **DIYsect-XR**, organization `arjungyawali001`, id `15cf1a93-d87c-41f9-ba01-1b3c6768a81c`. To use it in the editor, open **Edit > Project Settings > Services** and link that project; if it is missing from the list, the organization owner must add your account as a member. Authentication, Lobby and Relay worked from the editor and from an Android phone on 8 November 2026. Vivox voice chat also logged in and joined its channel from the phone once the project's Vivox settings (server, domain and issuer; the token key is empty) were saved in `ProjectSettings/Packages/com.unity.services.vivox/Settings.json`. Never commit a token key.
 
+### The shared scene and the roles (updated 8 November 2026)
+
+- The professor and the classmates now load **the same scene, `Professor_MR`**. Netcode for GameObjects checks the scene hash and the in-scene object ids when a client joins, so two different scenes broke joining ("Scene Hash does not exist") and made the body vanish. Keep `EnableSceneManagement` on.
+- `ClassroomRole` decides what each device switches on: the professor gets the headset rig, walking and the roster; a classmate gets the screen camera, touch orbit and pins. The Mac editor and the phone build default to the classmate role. `Classmate_Desktop` and `LectureHall_VR` are not used for the shared room.
+- **Professor locomotion:** left thumbstick walks, right thumbstick snap-turns, **A/X** recentres the table in front of you (0.9 m ahead, 0.7 m below the eyes).
+- **Builds must not be development builds** for the Professor, Student and phone roles: a development build throws a NullReferenceException inside Netcode when hosting or joining. `Tools > DIYsect > Build Professor Quest APK` and the phone build are release builds; the professor APK id ends in `.professor`, the phone in `.classmate`, the student in `.student`.
+- **Professor auto-host:** `ProfessorAutoHost` looks for a room for 10 seconds and joins it if one is alive, otherwise creates the lobby "DIYsect class". The classmate only joins, never creates.
+
+### Join code and link (added 8 November 2026)
+
+- While hosting, the professor's roster panel shows a six-letter **join code** and the link `diysect://join?code=ABC123`.
+- A classmate can type the code into the box under the status line and press **Join**, or tap the link on Android. Both go through `RoomJoiner.TryJoinByCode`; a wrong code shows "No room found with that code."
+- The link works through an Android `activity-alias` in `Assets/Plugins/Android/DeepLink.androidlib`. Its `build.gradle` must point at `AndroidManifest.xml` (`sourceSets.main.manifest.srcFile`), otherwise Gradle merges an empty manifest and the alias is missing. Check the built APK with `aapt2 dump xmltree --file AndroidManifest.xml <apk>` (look for `JoinLinkAlias` and the `diysect` scheme). Test on a phone with `adb shell am start -a android.intent.action.VIEW -d "diysect://join?code=ABC123" com.<company>.<app>.classmate`.
+- Not done: a plain `https://` link (needs a website to host the redirect) and a QR code. Without the app installed, the link does nothing.
+
 ### Host a room without a headset (Mac editor)
 
 The headset scenes only offer a VR menu to create a lobby, which the editor cannot click, so use the editor menu instead:
