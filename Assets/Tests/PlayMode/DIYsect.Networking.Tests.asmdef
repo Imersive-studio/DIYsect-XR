@@ -17,7 +17,8 @@
     "Unity.InputSystem",
     "Unity.InputSystem.TestFramework",
     "XRMP",
-    "DIYsect.Learning"
+    "DIYsect.Learning",
+    "Unity.XR.CoreUtils"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

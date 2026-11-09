@@ -63,6 +63,9 @@ namespace DIYsect.Networking.Tests
         {
             public bool IsMuted { get; private set; } = true;
             public bool HasMicPermission { get; set; }
+            public bool MayUnmute { get; set; } = true;
+            public int SpeakRequests { get; private set; }
+            public void RequestToSpeak() => SpeakRequests++;
             public int Requests { get; private set; }
             private Action<bool> _pending;
             public event Action Changed;
@@ -524,6 +527,80 @@ namespace DIYsect.Networking.Tests
             Assert.IsFalse(others["Pin message"].Overlaps(others["Mic message"]));
             Assert.IsFalse(others["Pin message"].Overlaps(others["Name card"]));
             Assert.IsFalse(others["Mic message"].Overlaps(others["Name card"]));
+        }
+
+        [UnityTest]
+        public IEnumerator WithoutThePermissionTheMuteButtonAsksToSpeak_AndOpensOnceTheProfessorAllows()
+        {
+            yield return Load(ClassroomRoleKind.Classmate);
+            yield return StartTestRoom();
+            var mic = InScene<ClassmateMicButton>();
+            var voice = new FakeVoice { MayUnmute = false, HasMicPermission = true };
+            mic.SetService(voice);
+            Button button = ButtonNamed("MuteButton");
+
+            Assert.AreEqual(MicButtonModel.AskLabel, mic.Label, "Without permission the button offers to ask.");
+            yield return Click(button);
+            Assert.AreEqual(1, voice.SpeakRequests, "Pressing it asks the professor.");
+            Assert.IsFalse(mic.IsLive, "Nobody is heard before the professor allows it.");
+
+            voice.MayUnmute = true;
+            for (int i = 0; i < 5; i++)
+                yield return null;
+            Assert.AreEqual(MicButtonModel.UnmuteLabel, mic.Label, "The label changes by itself when permission arrives.");
+            yield return Click(button);
+            Assert.IsTrue(mic.IsLive);
+
+            voice.MayUnmute = false;
+            for (int i = 0; i < 5; i++)
+                yield return null;
+            Assert.IsFalse(mic.IsLive, "The microphone closes when the professor takes permission away.");
+            Assert.IsTrue(voice.IsMuted);
+        }
+
+        [UnityTest]
+        public IEnumerator TheNamePageComesFirstAndSendsTheNameBeforeTheJoinPage()
+        {
+            yield return Load(ClassroomRoleKind.Classmate);
+            PlayerPrefs.DeleteKey(ClassmateNameScreen.PrefsKey);
+            var names = InScene<ClassmateNameScreen>();
+            var joiner = new FakeJoiner { WaitingForPress = true };
+            names.SetJoiner(joiner);
+            InScene<ClassmateStartScreen>().SetJoiner(joiner);
+            yield return null;
+            yield return null;
+
+            Assert.IsTrue(names.IsShowing, "The classmate is asked for a name first.");
+            var field = FindUi("NameField").GetComponent<InputField>();
+            Button next = ButtonNamed("ContinueButton");
+
+            yield return Click(next);
+            Assert.IsTrue(names.IsShowing, "An empty name does not go on.");
+            Assert.AreEqual(NameRules.EmptyText, FindUi("NameMessage").GetComponent<Text>().text);
+
+            field.text = "  Maya   Rao ";
+            yield return Click(next);
+
+            Assert.IsTrue(names.Done);
+            Assert.IsFalse(names.IsShowing, "The name page goes away after Continue.");
+            Assert.AreEqual("Maya Rao", names.SubmittedName);
+            Assert.AreEqual("Maya Rao", XRINetworkGameManager.LocalPlayerName.Value, "The name is what the room shows for this player.");
+            Assert.IsTrue(InScene<ClassmateStartScreen>().IsShowing, "The Join page is next.");
+            PlayerPrefs.DeleteKey(ClassmateNameScreen.PrefsKey);
+        }
+
+        [UnityTest]
+        public IEnumerator TheProfessorHasAParticipantListWithARowAndAnAllowButtonForEachStudent_AndAClassmateDoesNot()
+        {
+            yield return Load(ClassroomRoleKind.Professor);
+            var panel = InScene<SpeakPanel>();
+            Assert.IsTrue(panel.gameObject.activeInHierarchy, "The professor sees who is asking to speak.");
+            Assert.GreaterOrEqual(panel.RowCount, 7, "Rows for every student in a room of eight.");
+            Assert.IsNotNull(InScene<SpeakBoard>(), "The body carries the speak board.");
+
+            yield return Unload();
+            yield return Load(ClassroomRoleKind.Classmate);
+            Assert.IsFalse(InScene<SpeakPanel>().gameObject.activeInHierarchy, "A classmate must never see or press the professor's buttons.");
         }
 
         [UnityTest]

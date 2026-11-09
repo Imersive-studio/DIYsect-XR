@@ -6,6 +6,7 @@
     "XRMP",
     "Unity.Netcode.Runtime",
     "Unity.Collections",
-    "Unity.XR.CoreUtils"
+    "Unity.XR.CoreUtils",
+    "Unity.XR.Interaction.Toolkit"
   ]
 }

@@ -16,8 +16,8 @@ namespace DIYsect.Learning
     public class ChecklistHud : MonoBehaviour
     {
         /// <summary>
-        /// Set while a full-screen page (the phone's Join page) covers the scene, so nothing is drawn on top of it. Nothing to do
-        /// with the checklist's own state.
+        /// Set while a full-screen page (the phone's name or Join page) covers the scene, or the classmate is not in the room yet, so
+        /// nothing is drawn on top of it. Nothing to do with the checklist's own state.
         /// </summary>
         public static bool Suppressed { get; set; }
 
@@ -142,7 +142,7 @@ namespace DIYsect.Learning
             // Screen.safeArea starts at the bottom left; the GUI starts at the top left.
             Rect safe = Screen.safeArea;
             float left = safe.xMin + EdgeMargin * scale;
-            // The connection status line sits in the same top left corner (ClassmateStatusLabel), so the pill goes just below it.
+            // The connection status line sits in the same top left corner (ClassmateStatusLabel), so this pill goes just below it.
             float top = Screen.height - safe.yMax + 0.075f * Mathf.Min(Screen.width, Screen.height);
             float available = safe.width - EdgeMargin * 2f * scale;
 

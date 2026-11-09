@@ -28,7 +28,7 @@ namespace DIYsect.Editor
         };
 
         // Professor-only objects other tools add later (Add Quiz). Included when they exist.
-        private static readonly string[] OptionalProfessorObjectNames = { "QuizPanel" };
+        private static readonly string[] OptionalProfessorObjectNames = { "QuizPanel", AddSpeakPanel.PanelName };
 
         [MenuItem("Tools/DIYsect/Build Shared Scene")]
         public static void Apply()
@@ -101,6 +101,10 @@ namespace DIYsect.Editor
                     throw new InvalidOperationException($"{ScenePath} has no {name}.");
                 professorObjects.Add(found);
             }
+
+            // The participant list (who is asking to speak, who is muted, Allow / Mute) is built once and kept; Add Speak Panel rebuilds it.
+            if (FindByName(scene, AddSpeakPanel.PanelName) == null)
+                AddSpeakPanel.Build(scene);
 
             foreach (string optional in OptionalProfessorObjectNames)
             {
@@ -214,6 +218,8 @@ namespace DIYsect.Editor
                 ?? throw new InvalidOperationException("The body has no HandBoard. Run Tools > DIYsect > Add Raise Hand.");
 
             AddClassmateStartScreen.AddTo(rig, autoJoin, statusLabel);
+            // The name page comes before the Join page.
+            AddClassmateNameScreen.AddTo(rig, rig.GetComponent<DIYsect.ClassmateConnection.ClassmateStartScreen>());
             AddClassmateBottomBar.AddMic(rig);
             AddClassmateBottomBar.AddHand(rig, hands);
             AddOrganNameTap.AddTo(rig, board.GetComponent<DIYsect.Networking.SharedBody>());

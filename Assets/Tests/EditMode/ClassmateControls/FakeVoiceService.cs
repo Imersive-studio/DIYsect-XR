@@ -11,6 +11,17 @@ namespace DIYsect.ClassmateControls.Tests
         public bool HasMicPermission { get; set; }
         public int PermissionRequests { get; private set; }
 
+        /// <summary>Whether the professor has allowed this person to speak. Allowed by default, so older tests are unaffected.</summary>
+        public bool MayUnmute { get; set; } = true;
+
+        /// <summary>How many times the person asked the professor for permission.</summary>
+        public int SpeakRequests { get; private set; }
+
+        public void RequestToSpeak()
+        {
+            SpeakRequests++;
+        }
+
         public event Action Changed;
 
         public void RequestMicPermission(Action<bool> done)
