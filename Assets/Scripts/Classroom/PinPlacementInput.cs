@@ -1,4 +1,5 @@
 // Authority: none. This only asks the server for a pin through QuestionBoard; the server decides.
+using System.Collections.Generic;
 using UnityEngine;
 using DIYsect.Networking;
 
@@ -11,6 +12,7 @@ namespace DIYsect.Classroom
     /// together with the camera pose, so the professor can later see what the asker saw.
     /// There is no text entry yet: every pin carries <see cref="DefaultText"/> ("?"). Set <see cref="PendingText"/>
     /// from a UI field later to ask a real question.
+    /// A tap that another feature claims (see <see cref="ITapClaim"/>, for example a running quiz round) places no pin.
     /// </summary>
     public class PinPlacementInput : MonoBehaviour
     {
@@ -24,6 +26,10 @@ namespace DIYsect.Classroom
         [SerializeField] private LayerMask _hitLayers = ~0;
         [SerializeField, Tooltip("Reports taps; a drag (orbiting the camera) is never reported, so it cannot pin.")]
         private PointerGestureTracker _gestures;
+        [SerializeField, Tooltip("Behaviours that implement ITapClaim. While any of them claims the tap, no pin is placed (for example the quiz answer input).")]
+        private MonoBehaviour[] _tapClaimers = new MonoBehaviour[0];
+
+        private List<ITapClaim> _claimers = new List<ITapClaim>();
 
         /// <summary>Text sent with the next pin. Empty means <see cref="DefaultText"/>.</summary>
         public string PendingText { get; set; } = string.Empty;
@@ -35,6 +41,13 @@ namespace DIYsect.Classroom
             if (_gestures == null) { Debug.LogError($"{name}: PinPlacementInput has no PointerGestureTracker assigned.", this); valid = false; }
             if (!valid)
                 enabled = false;
+            _claimers = TapClaims.Resolve(_tapClaimers, this);
+        }
+
+        // Shows a wrong assignment in the Inspector as soon as it is made.
+        private void OnValidate()
+        {
+            TapClaims.Resolve(_tapClaimers, this);
         }
 
         private void OnEnable()
@@ -64,10 +77,10 @@ namespace DIYsect.Classroom
             return _camera != null ? _camera : Camera.main;
         }
 
-        /// <summary>Casts the ray and, if it hits an organ, asks the server for a pin there. Returns true if it asked.</summary>
+        /// <summary>Casts the ray and, if it hits an organ, asks the server for a pin there. Returns true if it asked. Returns false without asking while a tap claimer claims the tap.</summary>
         public bool TryRequestPin(Ray ray)
         {
-            if (!_board.IsSpawned)
+            if (!_board.IsSpawned || TapClaims.AnyClaims(_claimers))
                 return false;
             if (!Physics.Raycast(ray, out RaycastHit hit, _maxDistance, _hitLayers, QueryTriggerInteraction.Ignore))
                 return false;
