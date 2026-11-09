@@ -9,7 +9,9 @@
     "DIYsect.Interaction",
     "DIYsect.Dissection",
     "DIYsect.Classroom",
-    "Unity.Collections"
+    "Unity.Collections",
+    "Unity.Netcode.Runtime",
+    "Unity.TextMeshPro"
   ],
   "includePlatforms": [
     "Editor"

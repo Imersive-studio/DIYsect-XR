@@ -25,6 +25,20 @@ namespace DIYsect.Learning
             "Put it back in its place",
         };
 
+        private static readonly string[] Instructions =
+        {
+            "Hold grip on the scalpel. Draw the tip down the line",
+            "Skin opening",
+            "Touch the muscle with the forceps tip",
+            "Touch the omentum with the forceps tip",
+            "Hold grip on an organ to lift it out",
+            "Keep holding to inspect it",
+            "Bring it back to its place",
+            AllDone,
+        };
+
+        public static string Instruction(ChecklistState state) => Instructions[(int)state];
+
         /// <summary>The wording of step <paramref name="index"/> (0 to <see cref="StepCount"/> - 1).</summary>
         public static string StepText(int index)
         {
