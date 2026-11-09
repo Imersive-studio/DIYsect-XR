@@ -146,7 +146,7 @@ namespace DIYsect.Editor
             SetArray(serialized.FindProperty("_headsetBehaviours"), new Behaviour[] { headsetUi });
             SetArray(serialized.FindProperty("_joiningBehaviours"), new Behaviour[] { autoJoin });
             SetArray(serialized.FindProperty("_professorBehaviours"), new Behaviour[] { autoHost });
-            SetArray(serialized.FindProperty("_classmateBehaviours"), new Behaviour[] { statusLabel, classmateUi });
+            SetArray(serialized.FindProperty("_classmateBehaviours"), AddClassmateSketch.WithClassmateInput(new Behaviour[] { statusLabel, classmateUi }, classmateRig));
 
             // The student in VR and the phone classmate both see the lecture hall with the seated class and the operating light.
             // The professor sees the real room through the headset, so the role switch keeps all of it off there. Saved off,
@@ -238,6 +238,7 @@ namespace DIYsect.Editor
             AddClassmateBottomBar.AddHand(rig, hands);
             AddOrganNameTap.AddTo(rig, board.GetComponent<DIYsect.Networking.SharedBody>());
             AddClassmatePointInput.AddTo(rig, board.GetComponent<DIYsect.Networking.SharedBody>(), board.GetComponent<DIYsect.Classroom.PointerBoard>());
+            AddClassmateSketch.AddToRig(rig, board.GetComponent<DIYsect.Networking.SharedBody>());
         }
 
         // The template is a tabletop game, so its move and turn providers ship switched off. They are the standard XR Interaction
