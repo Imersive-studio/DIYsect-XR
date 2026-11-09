@@ -94,3 +94,7 @@ See [deployment and OpenXR notes](docs/DEPLOYMENT.md) to build, install and run 
 The earlier frog browser prototype remains in `server/`, `shared/`, `vr/`, `audience/` and `public/`. Run it with `npm ci`, `npm start`, and `npm test`. Its WebSocket/WebXR implementation is separate from the Unity Netcode/OpenXR work. Other older documents describe that prototype; this README and the Unity architecture/checklist describe the current direction.
 
 Follow the [task branch and commit workflow](docs/WORKFLOW.md) for every change.
+
+### Immersive dissection checklist
+
+For the headset guidance upgrade, run **Tools > DIYsect > Add Dissection Checklist** in Unity 6000.3.28f1. It rebuilds the local card, progress list and body cues in `LectureHall_VR` and `Professor_MR`; the desktop scene stays unchanged. Run it after updating scenes from main, including the seated audience work. Setup, controls, validation and outstanding device checks are in [the checklist guide](docs/IMMERSIVE_CHECKLIST.md).
