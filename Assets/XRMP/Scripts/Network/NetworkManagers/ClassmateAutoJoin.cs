@@ -1,7 +1,5 @@
 // Authority: none. Local client behavior that only asks the lobby service for an existing lobby and joins it.
 using System.Collections;
-using System.Threading.Tasks;
-using Unity.Services.Lobbies.Models;
 using UnityEngine;
 
 namespace XRMultiplayer
@@ -16,10 +14,18 @@ namespace XRMultiplayer
         [SerializeField, Min(2f), Tooltip("Seconds between looks for a lobby. The lobby service allows about one query a second.")]
         private float _retrySeconds = 5f;
 
+        [SerializeField, Tooltip("Also join on its own in the Unity editor. Off by default, so the editor can host a test room instead of joining a leftover one.")]
+        private bool _runInEditor;
+
         private Coroutine _loop;
 
         private void OnEnable()
         {
+            if (Application.isEditor && !_runInEditor)
+            {
+                enabled = false;
+                return;
+            }
             XRINetworkGameManager.CurrentConnectionState.Subscribe(OnConnectionState);
         }
 
@@ -41,30 +47,11 @@ namespace XRMultiplayer
 
         private IEnumerator JoinLoop()
         {
+            var joiner = new RoomJoiner("ClassmateAutoJoin");
             var wait = new WaitForSeconds(_retrySeconds);
-            while (!XRINetworkGameManager.Connected.Value)
+            while (!RoomJoiner.Connected)
             {
-                XRINetworkGameManager manager = XRINetworkGameManager.Instance;
-                // Only look while signed in and idle: Connecting means a join is already under way.
-                if (manager != null && XRINetworkGameManager.CurrentConnectionState.Value == XRINetworkGameManager.ConnectionState.Authenticated)
-                {
-                    Task<Lobby> search = manager.lobbyManager.FindJoinableLobbyAsync();
-                    while (!search.IsCompleted)
-                        yield return null;
-                    if (search.IsCompletedSuccessfully && search.Result != null)
-                    {
-                        Debug.Log($"[ClassmateAutoJoin] Joining lobby {search.Result.Name}.");
-                        manager.JoinLobbySpecific(search.Result);
-                    }
-                    else if (search.IsFaulted)
-                    {
-                        Debug.LogWarning($"[ClassmateAutoJoin] Lobby search failed: {search.Exception?.GetBaseException().Message}");
-                    }
-                    else
-                    {
-                        Debug.Log("[ClassmateAutoJoin] No lobby yet. Waiting for the professor.");
-                    }
-                }
+                yield return joiner.TryJoinOnce();
                 yield return wait;
             }
             _loop = null;

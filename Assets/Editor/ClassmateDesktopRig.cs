@@ -24,11 +24,17 @@ namespace DIYsect.Editor
         private static readonly Vector3 _cameraOffset = new Vector3(0f, 0.9f, -0.9f);
 
         [MenuItem("Tools/DIYsect/Add Classmate Desktop Camera")]
-        public static void Apply()
+        public static void Apply() => Apply(ScenePath, true);
+
+        /// <summary>
+        /// Builds the classmate camera in any scene that has the body. <paramref name="switchOffXr"/> turns the headset rig off,
+        /// which is right for the classmate-only scene; a shared scene keeps it, and a role switch picks one at start.
+        /// </summary>
+        public static void Apply(string scenePath, bool switchOffXr)
         {
-            if (!File.Exists(ScenePath))
-                throw new FileNotFoundException($"{ScenePath} is missing. Run Tools > DIYsect > Create Scenes first.");
-            Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            if (!File.Exists(scenePath))
+                throw new FileNotFoundException($"{scenePath} is missing. Run Tools > DIYsect > Create Scenes first.");
+            Scene scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
 
             QuestionBoard board = null;
             GameObject existingRig = null;
@@ -45,19 +51,20 @@ namespace DIYsect.Editor
             if (existingRig == null)
             {
                 existingRig = CreateRig(board);
-                SwitchOffXr(scene);
+                if (switchOffXr)
+                    SwitchOffXr(scene);
             }
             else
             {
-                Debug.Log($"{ScenePath} already has the {RigName}, keeping its camera.");
+                Debug.Log($"{scenePath} already has the {RigName}, keeping its camera.");
             }
             AddRejectionToast(existingRig, board);
             AddOrbitControls(existingRig, board);
 
             EditorSceneManager.MarkSceneDirty(scene);
             if (!EditorSceneManager.SaveScene(scene))
-                throw new IOException($"Could not save {ScenePath}.");
-            Debug.Log($"Set up the {RigName} in {ScenePath}.");
+                throw new IOException($"Could not save {scenePath}.");
+            Debug.Log($"Set up the {RigName} in {scenePath}.");
         }
 
         private static GameObject CreateRig(QuestionBoard board)

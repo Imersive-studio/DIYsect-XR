@@ -211,5 +211,34 @@ namespace DIYsect.MixedReality.Tests
             Assert.IsTrue(TableAlignmentMath.IsDeliberateTurn(Quaternion.identity, Quaternion.Euler(0f, -40f, 0f), 15f));
             Assert.IsFalse(TableAlignmentMath.IsDeliberateTurn(Quaternion.identity, Quaternion.Euler(50f, 0f, 0f), 15f), "Tipping the handle is not a turn.");
         }
+
+        [Test]
+        public void InFrontOfViewer_IsAheadOnTheFloorPlaneAndBelowTheEyes()
+        {
+            Vector3 point = TableAlignmentMath.InFrontOfViewer(new Vector3(1f, 1.6f, 2f), new Vector3(0f, -0.4f, 1f), 0.9f, 0.7f);
+
+            Assert.AreEqual(1f, point.x, Tolerance);
+            Assert.AreEqual(2.9f, point.z, Tolerance);
+            Assert.AreEqual(0.9f, point.y, Tolerance);
+        }
+
+        [Test]
+        public void InFrontOfViewer_FollowsTheHeadingNotTheTilt()
+        {
+            Vector3 level = TableAlignmentMath.InFrontOfViewer(Vector3.zero, new Vector3(1f, 0f, 0f), 1f, 0.5f);
+            Vector3 tilted = TableAlignmentMath.InFrontOfViewer(Vector3.zero, new Vector3(1f, -0.8f, 0f), 1f, 0.5f);
+
+            Assert.AreEqual(0f, Vector3.Distance(level, tilted), Tolerance);
+            Assert.AreEqual(1f, level.x, Tolerance);
+        }
+
+        [Test]
+        public void InFrontOfViewer_LookingStraightDownKeepsTheWorldForward()
+        {
+            Vector3 point = TableAlignmentMath.InFrontOfViewer(Vector3.zero, Vector3.down, 1f, 0.5f);
+
+            Assert.AreEqual(0f, point.x, Tolerance);
+            Assert.AreEqual(1f, point.z, Tolerance);
+        }
     }
 }

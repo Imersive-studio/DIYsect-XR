@@ -42,6 +42,17 @@ namespace DIYsect.MixedReality
         [SerializeField, Range(0f, 45f), Tooltip("Largest tilt of a surface that still counts as a table top, in degrees.")] private float _maxTiltDegrees = 10f;
         [SerializeField, Range(1f, 90f), Tooltip("A handle twist larger than this keeps the heading the professor chose, in degrees.")] private float _deliberateTurnDegrees = 15f;
 
+        // A real table top is between 0.2 m and 1.6 m below a person's eyes, whether they stand or sit.
+        private const float TableTopBelowEyesMin = 0.2f;
+        private const float TableTopBelowEyesMax = 1.6f;
+
+        [Header("When no table is near")]
+        [SerializeField, Tooltip("Put the table in front of the professor when no detected table is within reach, so nobody has to walk to a far table.")] private bool _placeInFrontWhenNoNearbyTable = true;
+        [SerializeField, Min(0.5f), Tooltip("A detected table farther than this from the viewer, in metres, is ignored.")] private float _maxDetectedTableDistance = 2.5f;
+        [SerializeField, Min(1f), Tooltip("Seconds to wait for a nearby table before placing the table in front of the viewer.")] private float _waitForTableSeconds = 6f;
+        [SerializeField, Min(0.3f), Tooltip("How far in front of the viewer the table goes, in metres.")] private float _inFrontDistance = 0.9f;
+        [SerializeField, Min(0.2f), Tooltip("How far below the viewer's eyes the table top goes, in metres.")] private float _tableBelowEyes = 0.7f;
+
         private readonly List<ARRaycastHit> _hits = new List<ARRaycastHit>();
         private readonly List<Pose> _hitPoses = new List<Pose>();
         private readonly List<Vector3> _tableCentres = new List<Vector3>();
@@ -53,7 +64,7 @@ namespace DIYsect.MixedReality
         private AlignmentPhase _phaseBeforeCarry;
 
         /// <summary>How the root was last placed.</summary>
-        public enum Source { None, DetectedTable, Handle }
+        public enum Source { None, DetectedTable, Handle, InFrontOfViewer }
 
         /// <summary>Raised after every placement, with what decided it.</summary>
         public event Action<Source> Placed;
@@ -98,6 +109,8 @@ namespace DIYsect.MixedReality
 
         private void Start()
         {
+            if (_placeInFrontWhenNoNearbyTable)
+                StartCoroutine(PlaceInFrontIfNoTable());
             if (_planeManager == null)
                 return;
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -173,9 +186,19 @@ namespace DIYsect.MixedReality
                 return false;
 
             _tableCentres.Clear();
+            float reach = _placeInFrontWhenNoNearbyTable ? _maxDetectedTableDistance : float.MaxValue;
             foreach (ARPlane plane in _planeManager.trackables)
             {
-                if ((plane.classifications & PlaneClassifications.Table) != 0 && TableAlignmentMath.IsLevel(plane.normal, _maxTiltDegrees))
+                Vector3 flat = plane.center - _viewer.position;
+                flat.y = 0f;
+                // A table top is below the eyes. A "table" above them is a shelf, a ledge or the ceiling, and placing the
+                // body there leaves it out of sight.
+                bool belowEyes = !_placeInFrontWhenNoNearbyTable
+                    || (plane.center.y <= _viewer.position.y - TableTopBelowEyesMin && plane.center.y >= _viewer.position.y - TableTopBelowEyesMax);
+                if ((plane.classifications & PlaneClassifications.Table) != 0
+                    && TableAlignmentMath.IsLevel(plane.normal, _maxTiltDegrees)
+                    && flat.magnitude <= reach
+                    && belowEyes)
                     _tableCentres.Add(plane.center);
             }
             int nearest = TableAlignmentMath.NearestIndex(_tableCentres, _viewer.position);
@@ -197,6 +220,25 @@ namespace DIYsect.MixedReality
             ApplyRootPose(TableAlignmentMath.RootPoseForHit(tableCentre, _tableTopLocal, _viewer.position, _root.rotation));
             Finish(Source.DetectedTable);
             return true;
+        }
+
+        /// <summary>
+        /// Puts the table straight ahead of the viewer, at a comfortable height, with the virtual table showing. For when
+        /// there is no real table within reach. The handle still moves it afterwards.
+        /// </summary>
+        public void PlaceInFrontOfViewer()
+        {
+            Vector3 hit = TableAlignmentMath.InFrontOfViewer(_viewer.position, _viewer.forward, _inFrontDistance, _tableBelowEyes);
+            ApplyRootPose(TableAlignmentMath.RootPoseForHit(hit, _tableTopLocal, _viewer.position, _root.rotation));
+            Finish(Source.InFrontOfViewer);
+        }
+
+        private IEnumerator PlaceInFrontIfNoTable()
+        {
+            yield return new WaitForSeconds(_waitForTableSeconds);
+            // A placed table, or one being carried to a real table, is already where the professor wants it.
+            if (Phase != AlignmentPhase.Placed && Phase != AlignmentPhase.Carrying)
+                PlaceInFrontOfViewer();
         }
 
         /// <summary>Moves the root. Only the root moves, so the body, tray and screen keep their layout relative to it.</summary>
@@ -289,7 +331,8 @@ namespace DIYsect.MixedReality
         private void Finish(Source source)
         {
             LastSource = source;
-            SetVirtualTableVisible(!_hideVirtualTableWhenPlaced);
+            // With no real table under it, the virtual table stays so the body is not left floating.
+            SetVirtualTableVisible(!_hideVirtualTableWhenPlaced || source == Source.InFrontOfViewer);
             SetPhase(AlignmentPhase.Placed);
             Placed?.Invoke(source);
         }

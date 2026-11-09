@@ -462,12 +462,15 @@ namespace XRMultiplayer
         /// <summary>
         /// Returns the first lobby this client may join, or null when none exists yet. Unlike
         /// <see cref="QuickJoinLobby"/> it never creates a lobby, so a classmate cannot become the host.
+        /// Lobbies in <paramref name="skipLobbyIds"/> are passed over, so a room whose host never came up does not hide the others.
         /// </summary>
-        public async Task<Lobby> FindJoinableLobbyAsync()
+        public async Task<Lobby> FindJoinableLobbyAsync(ICollection<string> skipLobbyIds = null)
         {
             QueryResponse response = await GetLobbiesAsync();
             foreach (Lobby lobby in response.Results)
             {
+                if (skipLobbyIds != null && skipLobbyIds.Contains(lobby.Id))
+                    continue;
                 if (CheckForLobbyFilter(lobby) || CheckForIncompatibilityFilter(lobby))
                     continue;
                 if (lobby.AvailableSlots <= 0 || !CanJoinLobby(lobby))

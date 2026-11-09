@@ -1,0 +1,11 @@
+{
+  "name": "DIYsect.ClassRoster",
+  "rootNamespace": "DIYsect.ClassRoster",
+  "references": [
+    "DIYsect.Classroom",
+    "XRMP",
+    "Unity.Netcode.Runtime",
+    "Unity.Collections",
+    "Unity.XR.CoreUtils"
+  ]
+}

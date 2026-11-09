@@ -47,13 +47,19 @@ namespace DIYsect.StudentRig.Tests
             Assert.IsFalse(EnabledByName(turn, "ContinuousTurnProvider"), "Smooth turning makes many people ill; use snap turning.");
         }
 
+        // Professor_MR is the shared scene. The professor walks with the left thumbstick and snap-turns with the right, to go
+        // around the table and look at the body from every side, and presses A or X to bring the table back when it is out of reach.
         [Test]
-        public void ProfessorSceneKeepsTheTemplateTabletopRig()
+        public void ProfessorSceneLetsTheProfessorWalkAndSnapTurn()
         {
             XROrigin origin = Open(ProfessorScene);
             Transform move = origin.transform.Find("Locomotion/Move");
+            Transform turn = origin.transform.Find("Locomotion/Turn");
             Assert.IsNotNull(move, "The rig has no Locomotion/Move.");
-            Assert.IsFalse(move.gameObject.activeSelf, "The professor stands at a real table and does not walk.");
+            Assert.IsNotNull(turn, "The rig has no Locomotion/Turn.");
+            Assert.IsTrue(move.gameObject.activeSelf, "The professor must be able to walk around the table.");
+            Assert.IsTrue(turn.gameObject.activeSelf);
+            Assert.IsTrue(EnabledByName(turn, "SnapTurnProvider"), "Snap turning must be on.");
         }
 
         private static XROrigin Open(string path)

@@ -323,7 +323,7 @@ namespace UnityEngine.XR.Templates.MRTTabletopAssets
             m_MutedIcon.enabled = muted;
             m_MicOnIcon.enabled = !muted;
             m_LocalPlayerAudioVolume.enabled = !muted;
-            PlayerHudNotification.Instance.ShowText($"<b>Microphone: {(muted ? "OFF" : "ON")}</b>");
+            PlayerHudNotification.TryShowText($"<b>Microphone: {(muted ? "OFF" : "ON")}</b>");
         }
 
         // Room Options

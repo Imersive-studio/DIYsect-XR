@@ -49,7 +49,7 @@ namespace XRMultiplayer
         /// <summary>
         /// Max amount of players allowed when creating a new room.
         /// </summary>
-        public const int maxPlayers = 4;
+        public const int maxPlayers = 8;
 
         const string k_DefaultPlayerName = "Unity Creator";
 
@@ -225,7 +225,7 @@ namespace XRMultiplayer
             {
                 Utils.Log($"{k_DebugPrepend}Failed to Authenticate.", 1);
                 ConnectionFailed("Failed to Authenticate.");
-                PlayerHudNotification.Instance.ShowText($"Failed to Authenticate.");
+                PlayerHudNotification.TryShowText($"Failed to Authenticate.");
             }
             else
             {
@@ -291,7 +291,7 @@ namespace XRMultiplayer
         {
             LocalId = localPlayerId;
             m_Connected.Value = true;
-            PlayerHudNotification.Instance.ShowText($"<b>Status:</b> Connected");
+            PlayerHudNotification.TryShowText($"<b>Status:</b> Connected");
         }
 
         /// <summary>
@@ -304,7 +304,7 @@ namespace XRMultiplayer
         {
             m_Connected.Value = false;
             m_CurrentPlayerIDs.Clear();
-            PlayerHudNotification.Instance.ShowText($"<b>Status:</b> Disconnected");
+            PlayerHudNotification.TryShowText($"<b>Status:</b> Disconnected");
             // Check if authenticated on disconnect.
             if (IsAuthenticated())
             {
@@ -554,6 +554,30 @@ namespace XRMultiplayer
         /// If <see cref="autoConnectOnLobbyJoin"/> is enabled, join networked game here.
         /// </summary>
         /// <returns>Whether or not we connected to a lobby and / or networked game.</returns>
+        private static void LogHostFailure(System.Exception e)
+        {
+            // Two short lines: a build's log drops the tail of one long message, and the flags are the useful part.
+            Debug.LogError($"{k_DebugPrepend}StartHost threw {e.GetType().Name}: {e.Message}");
+            NetworkManager manager = NetworkManager.Singleton;
+            var config = manager != null ? manager.NetworkConfig : null;
+            int nullPrefabs = 0;
+            int prefabCount = 0;
+            if (config != null && config.Prefabs != null)
+            {
+                foreach (var prefab in config.Prefabs.Prefabs)
+                {
+                    prefabCount++;
+                    if (prefab == null || prefab.Prefab == null)
+                        nullPrefabs++;
+                }
+            }
+            Debug.LogError($"{k_DebugPrepend}HostCheck NetworkManager={(manager != null)} NetworkConfig={(config != null)} " +
+                $"Transport={(config != null && config.NetworkTransport != null)} PlayerPrefab={(config != null && config.PlayerPrefab != null)} " +
+                $"Prefabs={prefabCount} NullPrefabs={nullPrefabs} SceneManager={(manager != null && manager.SceneManager != null)} " +
+                $"SpawnManager={(manager != null && manager.SpawnManager != null)} ScenesInBuild={UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings} " +
+                $"ActiveScene={UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}");
+        }
+
         protected virtual bool ConnectedToLobby()
         {
             bool connected;
@@ -565,7 +589,17 @@ namespace XRMultiplayer
 
                 if (m_LobbyManager.connectedLobby.HostId == AuthenicationId)
                 {
-                    connected = NetworkManager.Singleton.StartHost();
+                    try
+                    {
+                        connected = NetworkManager.Singleton.StartHost();
+                    }
+                    catch (System.Exception e)
+                    {
+                        // A host that throws here never reaches the relay, and a classmate then finds a room it cannot join.
+                        // Say which piece of the network setup is missing, because a build's stack trace is cut short.
+                        LogHostFailure(e);
+                        connected = false;
+                    }
                 }
                 else
                 {

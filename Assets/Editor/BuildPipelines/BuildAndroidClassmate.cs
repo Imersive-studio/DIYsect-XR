@@ -4,12 +4,12 @@ using UnityEngine;
 namespace DIYsect.Editor
 {
     /// <summary>
-    /// Builds the classmate scene as a phone APK that never starts XR. It shares the build steps with
+    /// Builds the shared classroom scene as a phone APK that never starts XR; its role switch picks the classmate setup. It shares the build steps with
     /// <see cref="BuildAndroid"/>; only the scene list, output path and temporary player settings differ.
     /// </summary>
     public static class BuildAndroidClassmate
     {
-        public const string ScenePath = "Assets/Scenes/Classmate_Desktop.unity";
+        public const string ScenePath = "Assets/Scenes/Professor_MR.unity";
         public const string OutputPath = "Builds/Android-Classmate/DIYsect-Classmate.apk";
 
         [MenuItem("Tools/DIYsect/Build Classmate Phone APK")]

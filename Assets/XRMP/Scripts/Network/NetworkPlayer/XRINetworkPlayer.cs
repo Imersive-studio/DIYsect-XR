@@ -190,7 +190,8 @@ namespace XRMultiplayer
         ///<inheritdoc/>
         protected virtual void Update()
         {
-            if (IsOwner && XRINetworkGameManager.Instance.positionalVoiceChat)
+            // A client without an XR rig, such as the classmate phone, has no head to place the voice at.
+            if (IsOwner && m_HeadOrigin != null && m_VoiceChat != null && XRINetworkGameManager.Instance.positionalVoiceChat)
             {
                 if (Time.time > m_VoicePositionCheckTimer)
                 {
@@ -281,7 +282,7 @@ namespace XRMultiplayer
         public override void OnNetworkDespawn()
         {
             base.OnNetworkDespawn();
-            PlayerHudNotification.Instance.ShowText($"<b>{m_PlayerName.Value}</b> left");
+            PlayerHudNotification.TryShowText($"<b>{m_PlayerName.Value}</b> left");
             onDisconnected?.Invoke(this);
         }
 
@@ -388,7 +389,7 @@ namespace XRMultiplayer
             {
                 m_InitialConnected = true;
                 if (!IsLocalPlayer)
-                    PlayerHudNotification.Instance.ShowText($"<b>{playerName}</b> joined");
+                    PlayerHudNotification.TryShowText($"<b>{playerName}</b> joined");
             }
 
             if (m_UpdateObjectName)
@@ -440,7 +441,7 @@ namespace XRMultiplayer
             if (!IsOwner) return;
             m_PlayerVoiceId.Value = new FixedString128Bytes(voiceId);
             SetupVoicePlayer();
-            if (XRINetworkGameManager.Instance.positionalVoiceChat)
+            if (m_HeadOrigin != null && m_VoiceChat != null && XRINetworkGameManager.Instance.positionalVoiceChat)
             {
                 m_VoiceChat.Set3DAudio(m_HeadOrigin);
             }
