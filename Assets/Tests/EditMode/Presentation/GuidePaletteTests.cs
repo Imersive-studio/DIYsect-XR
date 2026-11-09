@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using UnityEngine;
 
-namespace DIYsect.Learning.Tests
+namespace DIYsect.Presentation.Tests
 {
     public class GuidePaletteTests
     {

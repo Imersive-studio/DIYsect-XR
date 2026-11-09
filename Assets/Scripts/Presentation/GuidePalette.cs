@@ -1,10 +1,10 @@
 using UnityEngine;
 
-namespace DIYsect.Learning
+namespace DIYsect.Presentation
 {
     /// <summary>
-    /// The colours of the learning guide panel: ink-teal glass, mint for done, coral for now, slate for later.
-    /// One place so the card, the list and the hand-side screens agree.
+    /// The colours of every label and instruction: ink-teal glass, mint for done, coral for now, slate for later.
+    /// One place so the organ labels, the guide card, the list and the hand-side screens agree.
     /// </summary>
     public static class GuidePalette
     {

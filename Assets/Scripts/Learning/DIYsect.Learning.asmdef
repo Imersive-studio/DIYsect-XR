@@ -6,6 +6,7 @@
     "DIYsect.Interaction",
     "DIYsect.Dissection",
     "DIYsect.Classroom",
+    "DIYsect.Presentation",
     "Unity.Netcode.Runtime",
     "Unity.Collections",
     "Unity.InputSystem",
