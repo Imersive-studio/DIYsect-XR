@@ -172,7 +172,9 @@ namespace DIYsect.Editor
                 return;
             if (UnityEngine.Object.FindFirstObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
             {
+                // Under the classmate camera, so the professor's headset never gets a second EventSystem.
                 var events = new GameObject("EventSystem");
+                events.transform.SetParent(rig.transform, false);
                 events.AddComponent<UnityEngine.EventSystems.EventSystem>();
                 events.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
             }
