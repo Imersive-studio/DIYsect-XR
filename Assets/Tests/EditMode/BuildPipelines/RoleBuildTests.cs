@@ -18,11 +18,12 @@ namespace DIYsect.Build.Tests
         }
 
         [Test]
-        public void StudentOptions_ContainOnlyTheStudentScene()
+        public void StudentOptions_ContainTheSameSceneAsTheProfessorAndPhone()
         {
             BuildPlayerOptions options = BuildAndroidRole.CreateStudentOptions();
 
-            CollectionAssert.AreEqual(new[] { "Assets/Scenes/LectureHall_VR.unity" }, options.scenes);
+            CollectionAssert.AreEqual(BuildAndroidRole.CreateProfessorOptions().scenes, options.scenes);
+            CollectionAssert.AreEqual(BuildAndroidClassmate.CreateOptions().scenes, options.scenes);
             StringAssert.StartsWith("Builds/Android-Student/", options.locationPathName);
         }
 

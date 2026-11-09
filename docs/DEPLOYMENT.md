@@ -33,13 +33,13 @@ Never commit credentials. `SourceAssets/` and raw `.blend` files are not in the 
 
 ## 3. Run in the editor
 
-The three scenes are in `Assets/Scenes/`. They are also in the build list (`ProjectSettings/EditorBuildSettings.asset`), together with `SampleScene` and the template's `SlicesChess` scene.
+All role APKs use `Assets/Scenes/Professor_MR.unity`, with local role selection before other scripts start. `LectureHall_VR` and `Classmate_Desktop` remain standalone development scenes; do not use them to host the shared classroom.
 
 | Scene | Role | Device it is for |
 |---|---|---|
-| `LectureHall_VR` | Student, in the virtual lecture hall, holds the scalpel and forceps | VR headset |
-| `Professor_MR` | Professor, mixed reality with passthrough, lines the virtual table up with a real one (see `docs/MR_TABLE_ALIGNMENT.md`) | Quest 3 |
-| `Classmate_Desktop` | Classmate, asks questions by pinning them to the anatomy | Laptop (the README also names Android phones; see section 8) |
+| `Professor_MR` (student role) | Student VR rig, scalpel and forceps; joins the professor | Student Quest APK (`.student`) |
+| `Professor_MR` (professor role) | Mixed reality with passthrough and table alignment; hosts | Professor Quest APK (`.professor`) |
+| `Professor_MR` (classmate role) | Screen camera, orbit, pins and quiz answers | Editor or phone APK (`.classmate`) |
 
 To try a scene:
 
@@ -74,8 +74,8 @@ Each role is its own app with its own application id, so the professor and the s
 | Menu item | Scene | Output | Size on 9 November 2026 |
 |---|---|---|---|
 | **Tools > DIYsect > Build Professor APK** | `Professor_MR` | `Builds/Android-Professor/DIYsect-Professor.apk` | 75 MB |
-| **Tools > DIYsect > Build Student APK** | `LectureHall_VR` | `Builds/Android-Student/DIYsect-Student.apk` | 136 MB |
-| **Tools > DIYsect > Build Classmate Phone APK** | `Classmate_Desktop` | `Builds/Android-Classmate/DIYsect-Classmate.apk` | 71 MB (8 November build) |
+| **Tools > DIYsect > Build Student APK** | `Professor_MR` | `Builds/Android-Student/DIYsect-Student.apk` | 136 MB |
+| **Tools > DIYsect > Build Classmate Phone APK** | `Professor_MR` | `Builds/Android-Classmate/DIYsect-Classmate.apk` | 71 MB (8 November build) |
 
 The role builds are not development builds. Netcode's logging helper only runs in development builds and made hosting and joining throw on the headset. Build from the menu, or from a terminal **without** `-nographics` (the build renders a camera and needs a graphics device; both role builds passed this way on 9 November):
 
@@ -125,16 +125,16 @@ Unity Cloud project (linked in `ProjectSettings`, not a secret): project **DIYse
 
 ### The shared scene and the roles (updated 8 November 2026)
 
-- The professor and the classmates now load **the same scene, `Professor_MR`**. Netcode for GameObjects checks the scene hash and the in-scene object ids when a client joins, so two different scenes broke joining ("Scene Hash does not exist") and made the body vanish. Keep `EnableSceneManagement` on.
-- `ClassroomRole` decides what each device switches on: the professor gets the headset rig, walking and the roster; a classmate gets the screen camera, touch orbit and pins. The Mac editor and the phone build default to the classmate role. `Classmate_Desktop` and `LectureHall_VR` are not used for the shared room.
+- The professor, student and classmates load **the same scene, `Professor_MR`**. Netcode for GameObjects checks the scene hash and the in-scene object ids when a client joins, so two different scenes broke joining ("Scene Hash does not exist") and made the body vanish. Keep `EnableSceneManagement` on.
+- `ClassroomRole` decides what each device switches on: the professor gets the headset rig, walking and the roster; a classmate gets the screen camera, touch orbit and pins. The Mac editor and the phone build default to the classmate role. The `.student` package selects the student role: headset rig, walking, snap turning and opaque VR, without professor panels or the phone camera. `Classmate_Desktop` and `LectureHall_VR` are not used for the shared room.
 - **Professor locomotion:** left thumbstick walks, right thumbstick snap-turns, **A/X** recentres the table in front of you (0.9 m ahead, 0.7 m below the eyes).
 - **Builds must not be development builds** for the Professor, Student and phone roles: a development build throws a NullReferenceException inside Netcode when hosting or joining. `Tools > DIYsect > Build Professor Quest APK` and the phone build are release builds; the professor APK id ends in `.professor`, the phone in `.classmate`, the student in `.student`.
-- **Professor auto-host:** `ProfessorAutoHost` looks for a room for 10 seconds and joins it if one is alive, otherwise creates the lobby "DIYsect class". The classmate only joins, never creates.
+- **Professor auto-host:** `ProfessorAutoHost` creates its own lobby "DIYsect class" and never joins another host. Only that host can mark questions answered or manage the quiz. Failed creates retry every 8 seconds. Students and classmates only join.
 
 ### Join code and link (added 8 November 2026)
 
 - While hosting, the professor's roster panel shows a six-letter **join code** and the link `diysect://join?code=ABC123`.
-- A classmate can type the code into the box under the status line and press **Join**, or tap the link on Android. Both go through `RoomJoiner.TryJoinByCode`; a wrong code shows "No room found with that code."
+- A classmate can type the code into the box under the status line and press **Join**, or tap the link on Android. Submitting a code suppresses public-room discovery for this session, even if the code is invalid or the join fails; correct the code to retry. An invite arriving during a public-room query takes precedence. Both go through `RoomJoiner.TryJoinByCode`; a wrong code shows "No room found with that code."
 - The link works through an Android `activity-alias` in `Assets/Plugins/Android/DeepLink.androidlib`. Its `build.gradle` must point at `AndroidManifest.xml` (`sourceSets.main.manifest.srcFile`), otherwise Gradle merges an empty manifest and the alias is missing. Check the built APK with `aapt2 dump xmltree --file AndroidManifest.xml <apk>` (look for `JoinLinkAlias` and the `diysect` scheme). Test on a phone with `adb shell am start -a android.intent.action.VIEW -d "diysect://join?code=ABC123" com.<company>.<app>.classmate`.
 - Not done: a plain `https://` link (needs a website to host the redirect) and a QR code. Without the app installed, the link does nothing.
 
@@ -143,7 +143,7 @@ Unity Cloud project (linked in `ProjectSettings`, not a secret): project **DIYse
 The headset scenes only offer a VR menu to create a lobby, which the editor cannot click, so use the editor menu instead:
 
 1. Open the project with Unity 6000.3.28f1 and check the project is linked (above).
-2. Open `Assets/Scenes/Classmate_Desktop.unity` and press **Play**. (It runs without a headset. `Professor_MR` needs an XR runtime and has not been tried on a Mac.)
+2. Open `Assets/Scenes/Professor_MR.unity` and press **Play**. Its editor role defaults to Classmate, so it uses the screen camera. An editor-hosted room is useful for phone networking checks, but the professor app deliberately hosts its own room; use the professor as host for the complete demo.
 3. Wait until the Console shows "Initializing Voice Chat" (signed in; the Vivox warnings are expected without voice setup).
 4. Choose **Tools > DIYsect > Host Test Lobby (Play Mode)**. The item is greyed out until the scene has signed in. The log shows `Created Lobby with Join Code: …` and `Connected to game session. Lobby: DIYsect test room.`
 5. Open **DIYsect Classmate** on the phone and keep it on screen. Within about 5 seconds it logs `[ClassmateAutoJoin] Joining lobby DIYsect test room.` and the editor server logs `Pending Client-1 connection approved!`.
