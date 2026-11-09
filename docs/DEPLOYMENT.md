@@ -4,6 +4,8 @@ How to get the project running, build it for Quest 3 and install it. Written for
 
 Last checked against the repository on 9 November 2026 (commit 7e4caac).
 
+For the shared-role integration fixes and current validation results, see [integration validation](INTEGRATION_VALIDATION.md).
+
 ## 1. What you need
 
 | Item | Detail | Source |
